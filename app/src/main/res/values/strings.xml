@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">IndoorApp</string>
+    <string name="check_data_text">Check Model</string>
+    <string name="scan_data_text">Scan Data</string>
+    <string name="subtitle_analysis_text">Data related analysis</string>
+    <string name="analysis_title">Analysis</string>
+    <string name="own_sensors_text">Own Sensors</string>
+    <string name="accelerometer_sensor_text">Accelerometer Sensor: %s</string>
+    <string name="light_sensor_text">Light Sensor: %1$.2f</string>
+    <string name="proximity_sensor_text">Proximity Sensor: %1$.2f</string>
+    <string name="error_no_sensor">No sensor</string>
+    <string name="sensor_movement_text">Device Sensors</string>
+    <string name="gravity_sensor_text">Gravity Sensor: %s</string>
+    <string name="gyroscope_sensor_text">Gyroscope Sensor: %s</string>
+    <string name="linear_accelaration_text">Liner Acceleration Sensor: %s</string>
+    <string name="rotation_sensor_text">Rotation Vector Sensor: %s</string>
+    <string name="step_counter_text">Step Counter Sensor: %1$.2f</string>
+    <string name="accelerometer_sensor">Accelorometer Sensor</string>
+    <string name="accelerometer_x_axis">x: %1$.2f</string>
+    <string name="accelerometer_y_axis">y: %1$.2f</string>
+    <string name="accelerometer_z_axis">z: %1$.2f</string>
+    <string name="gravity_x_axis">x: %1$.2f</string>
+    <string name="gravity_y_axis">y: %1$.2f</string>
+    <string name="gravity_z_axis">z: %1$.2f</string>
+    <string name="bluetooth_sensor">Bluetooth Sensor</string>
+    <string name="rssi_reading">RSSI reading</string>
+    <string name="rssi_info">%1d dBm</string>
+    <string name="wi_fi_sensor">Wi-Fi Sensor</string>
+    <string name="long_scan">Long Scan</string>
+    <string name="setttings_text">Setttings</string>
+</resources>
