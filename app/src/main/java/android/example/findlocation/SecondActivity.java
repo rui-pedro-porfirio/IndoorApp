@@ -17,6 +17,7 @@ public class SecondActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
         startScanningData();
+        checkModelGraphics();
     }
 
     public void startScanningData(){
@@ -26,6 +27,18 @@ public class SecondActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(scanStartIntent);
+            }
+        });
+    }
+
+    public void checkModelGraphics(){
+        final Intent checkModelIntent = new Intent(this,FourthActivity.class);
+        checkModelIntent.putExtra("Type","Model");
+        Button modelButton = (Button) findViewById(R.id.checkDataButtonId);
+        modelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(checkModelIntent);
             }
         });
     }

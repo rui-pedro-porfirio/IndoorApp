@@ -44,6 +44,7 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -81,9 +82,9 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
     private boolean isLongScanning;
 
     //Map with long scan results
-    Map<String, List<Integer>> mWiFiScanResults;
-    Map<String, List<float[]>> mDeviceScanResults;
-    Map<String, List<Integer>> mBluetoothScanResults;
+    protected Map<String, List<Integer>> mWiFiScanResults;
+    protected Map<String, List<float[]>> mDeviceScanResults;
+    protected Map<String, List<Integer>> mBluetoothScanResults;
 
     protected static final String TAG = "MonitoringActivity";
 
@@ -399,8 +400,34 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
             }
 
             public void onFinish() {
+                if(mBluetoothScanResults.size() == 0){
+                    for(Beacon beacon: mBeaconsList){
+                        mBluetoothScanResults.put(beacon.getBluetoothAddress(),new LinkedList<Integer>());
+                        mBluetoothScanResults.get(beacon.getBluetoothAddress()).add(beacon.getRssi());
+                    }
+                }
+                if(mWiFiScanResults.size() == 0){
+                    for(ScanResult accesspoint: mAccessPoints){
+                        mWiFiScanResults.put(accesspoint.BSSID,new LinkedList<Integer>());
+                        mWiFiScanResults.get(accesspoint.BSSID).add(accesspoint.level);
+                    }
+                }
+                if(mDeviceScanResults.size() == 0){
+                    for(SensorObject sensor:mSensorInformationList){
+                        mDeviceScanResults.put(sensor.getName(),new LinkedList<float[]>());
+                        mDeviceScanResults.get(sensor.getName()).add(sensor.getValues());
+                    }
+                }
                 isLongScanning = false;
                 Toast.makeText(getApplicationContext(), "Scan ended", Toast.LENGTH_SHORT).show();
+                //Populate the graphic with results;
+                //SEND RAW DATA TO FOURTH ACTIVITY TO PROCESS THE GRAPHICAL REPRESENTATION OF THE DATA
+                Intent dataIntent = new Intent(getApplicationContext(),FourthActivity.class);
+                dataIntent.putExtra("Device Data",(Serializable)mDeviceScanResults);
+                dataIntent.putExtra("Bluetooth Data",(Serializable)mBluetoothScanResults);
+                dataIntent.putExtra("WiFi Data",(Serializable)mWiFiScanResults);
+                dataIntent.putExtra("Type","Scan");
+                startActivity(dataIntent);
             }
         }.start();
     }

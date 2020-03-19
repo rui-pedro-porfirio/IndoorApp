@@ -45,4 +45,9 @@ public class SensorObject {
         }
     }
 
+    public float[] getValues(){
+        float[] values = {this.x_value,this.y_value,this.z_value};
+        return values;
+    }
+
 }
