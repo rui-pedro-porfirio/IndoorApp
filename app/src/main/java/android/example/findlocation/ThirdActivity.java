@@ -83,7 +83,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
 
     //Map with long scan results
     protected Map<String, List<Integer>> mWiFiScanResults;
-    protected Map<String, List<Float>> mDeviceScanResults;
+    protected Map<String, List<List<Float>>> mDeviceScanResults;
     protected Map<String, List<Integer>> mBluetoothScanResults;
 
     protected static final String TAG = "MonitoringActivity";
@@ -194,17 +194,6 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor sensorDetected = event.sensor;
-        if (isLongScanning) {
-            if (!mDeviceScanResults.containsKey(sensorDetected.getName())) {
-                mDeviceScanResults.put(sensorDetected.getName(), new ArrayList<Float>());
-            }
-
-            if(sensorDetected.getName().equals("MIR3DA Accelerometer")){
-                System.out.println("HERE");
-                float[] valuesToAdd = event.values;
-                mDeviceScanResults.get(sensorDetected.getName()).add(valuesToAdd[0]);
-            }
-        }
         for (int i = 0; i < mSensorInformationList.size(); i++) {
             SensorObject sensorInList = mSensorInformationList.get(i);
             if (sensorDetected.getName().equals(sensorInList.getName())) {
@@ -213,7 +202,22 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
             }
         }
 
+        if (isLongScanning) {
+            if (!mDeviceScanResults.containsKey(sensorDetected.getName())) {
+                mDeviceScanResults.put(sensorDetected.getName(), new ArrayList<List<Float>>());
+            }
+                Float xValue = event.values[0];
+                Float yValue = event.values[1];
+                Float zValue = event.values[2];
+                List<Float> valuesToAdd = new ArrayList<Float>(3);
+                valuesToAdd.add(xValue);
+                valuesToAdd.add(yValue);
+                valuesToAdd.add(zValue);
+                mDeviceScanResults.get(sensorDetected.getName()).add(valuesToAdd);
+        }
     }
+
+
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -420,8 +424,15 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
                 }
                 if(mDeviceScanResults.size() == 0){
                     for(SensorObject sensor:mSensorInformationList){
-                        mDeviceScanResults.put(sensor.getName(),new ArrayList<Float>());
-                        mDeviceScanResults.get(sensor.getName()).add(sensor.getX_value());
+                        mDeviceScanResults.put(sensor.getName(),new ArrayList<List<Float>>());
+                        Float xValue = sensor.getX_value();
+                        Float yValue = sensor.getY_value();
+                        Float zValue = sensor.getZ_value();
+                        List<Float> valuesToAdd = new ArrayList<Float>(3);
+                        valuesToAdd.add(xValue);
+                        valuesToAdd.add(yValue);
+                        valuesToAdd.add(zValue);
+                        mDeviceScanResults.get(sensor.getName()).add(valuesToAdd);
                     }
                 }
                 isLongScanning = false;

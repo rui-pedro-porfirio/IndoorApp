@@ -1,17 +1,25 @@
 package android.example.findlocation;
 
+import java.util.List;
+
 public class SensorObject {
 
     private String name;
     private float x_value;
     private float y_value;
     private float z_value;
+    private List<List<Float>> scannedValues;
 
     public SensorObject(String name, float[] values){
         this.name = name;
         this.x_value = values[0];
         this.y_value = values[1];
         this.z_value = values[2];
+    }
+
+    public SensorObject(String name, List<List<Float>> scannedValues){
+        this.name = name;
+        this.scannedValues = scannedValues;
     }
 
     public float getX_value(){
@@ -48,6 +56,11 @@ public class SensorObject {
     public float[] getValues(){
         float[] values = {this.x_value,this.y_value,this.z_value};
         return values;
+    }
+
+
+    public List<List<Float>> getScannedValues(){
+        return this.scannedValues;
     }
 
 }
