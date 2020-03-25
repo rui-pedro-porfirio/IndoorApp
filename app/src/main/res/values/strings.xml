@@ -10,6 +10,7 @@
     <string name="proximity_sensor_text">Proximity Sensor: %1$.2f</string>
     <string name="error_no_sensor">No sensor</string>
     <string name="sensor_movement_text">Device Sensors</string>
+    <string name="model_text">Model Data</string>
     <string name="gravity_sensor_text">Gravity Sensor: %s</string>
     <string name="gyroscope_sensor_text">Gyroscope Sensor: %s</string>
     <string name="linear_accelaration_text">Liner Acceleration Sensor: %s</string>
