@@ -83,7 +83,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
 
     //Map with long scan results
     protected Map<String, List<Integer>> mWiFiScanResults;
-    protected Map<String, List<float[]>> mDeviceScanResults;
+    protected Map<String, List<Float>> mDeviceScanResults;
     protected Map<String, List<Integer>> mBluetoothScanResults;
 
     protected static final String TAG = "MonitoringActivity";
@@ -194,6 +194,17 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor sensorDetected = event.sensor;
+        if (isLongScanning) {
+            if (!mDeviceScanResults.containsKey(sensorDetected.getName())) {
+                mDeviceScanResults.put(sensorDetected.getName(), new ArrayList<Float>());
+            }
+
+            if(sensorDetected.getName().equals("MIR3DA Accelerometer")){
+                System.out.println("HERE");
+                float[] valuesToAdd = event.values;
+                mDeviceScanResults.get(sensorDetected.getName()).add(valuesToAdd[0]);
+            }
+        }
         for (int i = 0; i < mSensorInformationList.size(); i++) {
             SensorObject sensorInList = mSensorInformationList.get(i);
             if (sensorDetected.getName().equals(sensorInList.getName())) {
@@ -201,12 +212,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
                 mAdapter.notifyDataSetChanged();
             }
         }
-        if (isLongScanning) {
-            if (!mDeviceScanResults.containsKey(sensorDetected.getName())) {
-                mDeviceScanResults.put(sensorDetected.getName(), new LinkedList<float[]>());
-            }
-                mDeviceScanResults.get(sensorDetected.getName()).add(event.values);
-        }
+
     }
 
     @Override
@@ -289,7 +295,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
 
                     if (isLongScanning) {
                         if (!mBluetoothScanResults.containsKey(beaconScanned.getBluetoothAddress())) {
-                            mBluetoothScanResults.put(beaconScanned.getBluetoothAddress(), new LinkedList<Integer>());
+                            mBluetoothScanResults.put(beaconScanned.getBluetoothAddress(), new ArrayList<Integer>());
                         }
                         mBluetoothScanResults.get(beaconScanned.getBluetoothAddress()).add(rss);
                     }
@@ -357,7 +363,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
             }
             if (isLongScanning) {
                 if (!mWiFiScanResults.containsKey(result.BSSID)) {
-                    mWiFiScanResults.put(result.BSSID, new LinkedList<Integer>());
+                    mWiFiScanResults.put(result.BSSID, new ArrayList<Integer>());
                 }
                 mWiFiScanResults.get(result.BSSID).add(rssi);
             }
@@ -390,7 +396,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
     }
 
     public void computeLongScan() {
-        Toast.makeText(getApplicationContext(), "Scan started. Stand still.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Scan started.", Toast.LENGTH_SHORT).show();
 
         isLongScanning = true;
         CountDownTimer waitTimer;
@@ -414,8 +420,8 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
                 }
                 if(mDeviceScanResults.size() == 0){
                     for(SensorObject sensor:mSensorInformationList){
-                        mDeviceScanResults.put(sensor.getName(),new LinkedList<float[]>());
-                        mDeviceScanResults.get(sensor.getName()).add(sensor.getValues());
+                        mDeviceScanResults.put(sensor.getName(),new ArrayList<Float>());
+                        mDeviceScanResults.get(sensor.getName()).add(sensor.getX_value());
                     }
                 }
                 isLongScanning = false;

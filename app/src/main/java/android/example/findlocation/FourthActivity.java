@@ -23,7 +23,7 @@ public class FourthActivity extends AppCompatActivity {
 
     //Map with long scan results
     private Map<String, List<Integer>> wifiResults;
-    private Map<String, List<float[]>> deviceResults;
+    private Map<String, List<Float>> deviceResults;
     private Map<String, List<Integer>> bluetoothResults;
 
     public static final int SCAN_TIME = 10;
@@ -47,20 +47,17 @@ public class FourthActivity extends AppCompatActivity {
     //Try GraphView
     public void computeGraphicalRepresentation(){
         GraphView graph = (GraphView) findViewById(R.id.graph);
-        List<float[]> accelerometerData = deviceResults.get("MIR3DA Accelerometer");
+        List<Float> accelerometerData = deviceResults.get("MIR3DA Accelerometer");
         List<DataPoint> dataPoints = new ArrayList<DataPoint>(SCAN_TIME);
         int dataPerSecond = accelerometerData.size() / SCAN_TIME; //10
         int lookupValue = dataPerSecond;
         double averageValue = 0.0;
+        dataPoints.add(new DataPoint(0,0));
         int seconds = 1;
         double sum = 0.0;
-        // set manual X bounds
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(SCAN_TIME);
 
         for(int i = 0; i < accelerometerData.size();i++){
-            double yValue = accelerometerData.get(i)[0];
+            double yValue = accelerometerData.get(i);
             sum += yValue;
             if(i == (lookupValue -1)){
                 averageValue = sum / dataPerSecond;
@@ -72,6 +69,11 @@ public class FourthActivity extends AppCompatActivity {
         }
 
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints.toArray(new DataPoint[dataPoints.size()]));
+
+        // set manual X bounds
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(seconds);
         graph.addSeries(series);
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.BOTTOM);
