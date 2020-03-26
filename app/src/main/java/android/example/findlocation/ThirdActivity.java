@@ -206,13 +206,26 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
             if (!mDeviceScanResults.containsKey(sensorDetected.getName())) {
                 mDeviceScanResults.put(sensorDetected.getName(), new ArrayList<List<Float>>());
             }
+            List<Float> valuesToAdd = new ArrayList<Float>();
+            if(event.values.length >= 3){
                 Float xValue = event.values[0];
                 Float yValue = event.values[1];
                 Float zValue = event.values[2];
-                List<Float> valuesToAdd = new ArrayList<Float>(3);
                 valuesToAdd.add(xValue);
                 valuesToAdd.add(yValue);
                 valuesToAdd.add(zValue);
+            }
+            else if(event.values.length == 2){
+                Float xValue = event.values[0];
+                Float yValue = event.values[1];
+                valuesToAdd.add(xValue);
+                valuesToAdd.add(yValue);
+            }
+            else{
+                Float xValue = event.values[0];
+                valuesToAdd.add(xValue);
+
+            }
                 mDeviceScanResults.get(sensorDetected.getName()).add(valuesToAdd);
         }
     }

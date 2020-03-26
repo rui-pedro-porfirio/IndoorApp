@@ -63,12 +63,27 @@ public class GraphicalBluetoothAdapter extends
         for(int i = 0; i < data.size();i++){
             double value = data.get(i);
             sumX += value;
-            if(i == (lookupValue -1)){
-                averageValueX = sumX / dataPerSecond;
-                dataPointsX.add(new DataPoint(seconds,averageValueX));
+            if(dataPerSecond < 1 && i == data.size()-1){
+                averageValueX = sumX / data.size();
+                dataPointsX.add(new DataPoint(seconds, averageValueX));
                 sumX = 0.0;
                 seconds++;
                 lookupValue = i + dataPerSecond;
+                if(seconds < SCAN_TIME){
+                    for(int j = seconds; j <= SCAN_TIME;j++){
+                        dataPointsX.add(new DataPoint(j, averageValueX));
+                    }
+                    seconds = SCAN_TIME;
+                }
+            }
+            else {
+                if (i == (lookupValue - 1)) {
+                    averageValueX = sumX / dataPerSecond;
+                    dataPointsX.add(new DataPoint(seconds, averageValueX));
+                    sumX = 0.0;
+                    seconds++;
+                    lookupValue = i + dataPerSecond;
+                }
             }
         }
 

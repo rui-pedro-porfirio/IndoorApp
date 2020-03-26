@@ -70,24 +70,55 @@ public class GraphicalSensorAdapter extends
         double sumZ = 0.0;
 
         for(int i = 0; i < data.size();i++){
-            double xValue = data.get(i).get(0);
-            double yValue = data.get(i).get(1);
-            double zValue = data.get(i).get(2);
-            sumX += xValue;
-            sumY += yValue;
-            sumZ += zValue;
-            if(i == (lookupValue -1)){
-                averageValueX = sumX / dataPerSecond;
-                averageValueY = sumY / dataPerSecond;
-                averageValueZ = sumZ / dataPerSecond;
-                dataPointsX.add(new DataPoint(seconds,averageValueX));
-                dataPointsY.add(new DataPoint(seconds,averageValueY));
-                dataPointsZ.add(new DataPoint(seconds,averageValueZ));
-                sumX = 0.0;
-                sumY = 0.0;
-                sumZ = 0.0;
-                seconds++;
-                lookupValue = i + dataPerSecond;
+            if(data.get(i).size() == 3){
+                double xValue = data.get(i).get(0);
+                double yValue = data.get(i).get(1);
+                double zValue = data.get(i).get(2);
+                sumX += xValue;
+                sumY += yValue;
+                sumZ += zValue;
+                if(i == (lookupValue -1)) {
+                    averageValueX = sumX / dataPerSecond;
+                    averageValueY = sumY / dataPerSecond;
+                    averageValueZ = sumZ / dataPerSecond;
+                    dataPointsX.add(new DataPoint(seconds, averageValueX));
+                    dataPointsY.add(new DataPoint(seconds, averageValueY));
+                    dataPointsZ.add(new DataPoint(seconds, averageValueZ));
+                    sumX = 0.0;
+                    sumY = 0.0;
+                    sumZ = 0.0;
+                    seconds++;
+                    lookupValue = i + dataPerSecond;
+                }
+            }
+            else if(data.get(i).size() == 2){
+                double xValue = data.get(i).get(0);
+                double yValue = data.get(i).get(1);
+                    sumX += xValue;
+                    sumY += yValue;
+                    if(i == (lookupValue -1)) {
+                        averageValueX = sumX / dataPerSecond;
+                        averageValueY = sumY / dataPerSecond;
+                        dataPointsX.add(new DataPoint(seconds, averageValueX));
+                        dataPointsY.add(new DataPoint(seconds, averageValueY));
+                        sumX = 0.0;
+                        sumY = 0.0;
+                        seconds++;
+                        lookupValue = i + dataPerSecond;
+                    }
+            }
+            else{
+                double xValue = data.get(i).get(0);
+                        sumX += xValue;
+                        if(i == (lookupValue -1)) {
+                            averageValueX = sumX / dataPerSecond;
+                            averageValueY = sumY / dataPerSecond;
+                            dataPointsX.add(new DataPoint(seconds, averageValueX));
+                            sumX = 0.0;
+                            sumY = 0.0;
+                            seconds++;
+                            lookupValue = i + dataPerSecond;
+                        }
             }
         }
 
