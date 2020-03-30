@@ -1,14 +1,27 @@
 package android.example.findlocation;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.os.Environment;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class FourthActivity extends AppCompatActivity {
 
@@ -29,8 +42,6 @@ public class FourthActivity extends AppCompatActivity {
     private GraphicalSensorAdapter mAdapter;
     private GraphicalBluetoothAdapter bluetoothAdapter;
     private GraphicalWiFiAdapter wifiAdapter;
-
-    public static final int SCAN_TIME = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +69,7 @@ public class FourthActivity extends AppCompatActivity {
         }
 
     }
-
-    public LinkedList<SensorObject> getAvailableDeviceSensors() {
+        public LinkedList<SensorObject> getAvailableDeviceSensors() {
         for (String currentSensor : deviceResults.keySet()) {
             SensorObject sensorInfo = new SensorObject(currentSensor, deviceResults.get(currentSensor));
             mSensorInformationList.add(sensorInfo);

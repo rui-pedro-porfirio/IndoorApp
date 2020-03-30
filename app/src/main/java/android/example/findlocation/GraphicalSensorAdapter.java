@@ -2,12 +2,17 @@ package android.example.findlocation;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Environment;
+import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jjoe64.graphview.GraphView;
@@ -15,9 +20,21 @@ import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.content.Context.MODE_PRIVATE;
 
 public class GraphicalSensorAdapter extends
         RecyclerView.Adapter<GraphicalSensorAdapter.GraphicalSensorViewHolder>{
@@ -27,8 +44,10 @@ public class GraphicalSensorAdapter extends
 
     public static final int SCAN_TIME = 10;
 
+    public static final String DEVICE_SENSOR_FILE = "sensorData";
     public GraphicalSensorAdapter(Context context, LinkedList<SensorObject> mSensorInformationList) {
         mInflater = LayoutInflater.from(context);
+        writeToFile(DEVICE_SENSOR_FILE,"");
         this.mSensorInformationList = mSensorInformationList;
     }
 
@@ -44,7 +63,25 @@ public class GraphicalSensorAdapter extends
     public void onBindViewHolder(@NonNull GraphicalSensorAdapter.GraphicalSensorViewHolder holder, int position) {
         SensorObject mCurrentSensor = mSensorInformationList.get(position);
         holder.sensorNameView.setText(mCurrentSensor.getName());
+        writeToFile(DEVICE_SENSOR_FILE,mCurrentSensor.getName());
         computeDeviceGraphicalRepresentation(holder,mCurrentSensor.getScannedValues());
+    }
+
+    public void writeToFile(String sFileName,String sBody){
+        try{
+            File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
+            // if external memory exists and folder with name Notes
+            if (!root.exists()) {
+                root.mkdirs(); // this will create folder.
+            }
+            File filepath = new File(root, sFileName + ".txt");  // file path to save
+            Writer output = new BufferedWriter(new FileWriter(filepath, true));
+            output.append(sBody+"\n");
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -81,6 +118,8 @@ public class GraphicalSensorAdapter extends
                     averageValueX = sumX / dataPerSecond;
                     averageValueY = sumY / dataPerSecond;
                     averageValueZ = sumZ / dataPerSecond;
+                    String toAdd = "X value: " + averageValueX + ", Y value: " + averageValueY + ", Z value: " + averageValueZ;
+                    writeToFile(DEVICE_SENSOR_FILE,toAdd);
                     dataPointsX.add(new DataPoint(seconds, averageValueX));
                     dataPointsY.add(new DataPoint(seconds, averageValueY));
                     dataPointsZ.add(new DataPoint(seconds, averageValueZ));

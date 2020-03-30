@@ -2,6 +2,7 @@ package android.example.findlocation;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,11 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,9 +32,11 @@ public class GraphicalBluetoothAdapter extends
 
     public static final int SCAN_TIME = 10;
 
+    public static final String DEVICE_SENSOR_FILE = "sensorData";
     public GraphicalBluetoothAdapter(Context context, LinkedList<BluetoothObject> mBeaconList) {
         mInflater = LayoutInflater.from(context);
         this.mBeaconList = mBeaconList;
+        writeToFile(DEVICE_SENSOR_FILE,"");
     }
 
     @NonNull
@@ -43,9 +51,25 @@ public class GraphicalBluetoothAdapter extends
     public void onBindViewHolder(@NonNull GraphicalBluetoothAdapter.GraphicalSensorViewHolder holder, int position) {
         BluetoothObject mCurrentSensor = mBeaconList.get(position);
         holder.sensorNameView.setText(mCurrentSensor.getName());
+        writeToFile(DEVICE_SENSOR_FILE,mCurrentSensor.getName());
         computeDeviceGraphicalRepresentation(holder,mCurrentSensor.getValues());
     }
+    public void writeToFile(String sFileName,String sBody){
+        try{
+            File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
+            // if external memory exists and folder with name Notes
+            if (!root.exists()) {
+                root.mkdirs(); // this will create folder.
+            }
+            File filepath = new File(root, sFileName + ".txt");  // file path to save
+            Writer output = new BufferedWriter(new FileWriter(filepath, true));
+            output.append(sBody+"\n");
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+    }
     @Override
     public int getItemCount() {
         return mBeaconList.size();
@@ -65,12 +89,16 @@ public class GraphicalBluetoothAdapter extends
             sumX += value;
             if(dataPerSecond < 1 && i == data.size()-1){
                 averageValueX = sumX / data.size();
+                String toAdd = "RSS BLE: " + averageValueX;
+                writeToFile(DEVICE_SENSOR_FILE,toAdd);
                 dataPointsX.add(new DataPoint(seconds, averageValueX));
                 sumX = 0.0;
                 seconds++;
                 lookupValue = i + dataPerSecond;
                 if(seconds < SCAN_TIME){
                     for(int j = seconds; j <= SCAN_TIME;j++){
+                        toAdd = "RSS BLE: " + averageValueX;
+                        writeToFile(DEVICE_SENSOR_FILE,toAdd);
                         dataPointsX.add(new DataPoint(j, averageValueX));
                     }
                     seconds = SCAN_TIME;
@@ -79,6 +107,8 @@ public class GraphicalBluetoothAdapter extends
             else {
                 if (i == (lookupValue - 1)) {
                     averageValueX = sumX / dataPerSecond;
+                    String toAdd = "RSS BLE: " + averageValueX;
+                    writeToFile(DEVICE_SENSOR_FILE,toAdd);
                     dataPointsX.add(new DataPoint(seconds, averageValueX));
                     sumX = 0.0;
                     seconds++;
