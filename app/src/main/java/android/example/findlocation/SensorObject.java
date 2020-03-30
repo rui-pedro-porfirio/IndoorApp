@@ -1,5 +1,6 @@
 package android.example.findlocation;
 
+
 import java.util.List;
 
 public class SensorObject {

@@ -5,8 +5,14 @@ import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.hardware.Sensor;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.JsonWriter;
+
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,6 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,12 +51,17 @@ public class FourthActivity extends AppCompatActivity {
     private GraphicalBluetoothAdapter bluetoothAdapter;
     private GraphicalWiFiAdapter wifiAdapter;
 
+    private ObjectMapper mapper;
+    private JsonWriter writer;
+    public static final String DEVICE_SENSOR_FILE = "sensorData";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fourth);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); //return button on the action bar
         String type = getIntent().getStringExtra("Type");
+        mapper = new ObjectMapper();
         if(type.equals("Scan")) {
 
             wifiResults = new HashMap<>();
@@ -66,7 +79,66 @@ public class FourthActivity extends AppCompatActivity {
             initDeviceSensorRecycleView();
             initBluetoothSensorRecycleView();
             initWifiSensorRecycleView();
+            try {
+                writeJsonStream(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE)),mSensorInformationList);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
+
+    }
+
+    public void writeJsonStream(OutputStream out, List<SensorObject> sensorData) throws IOException {
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        writer.setIndent("  ");
+        writeMessagesArray(writer, sensorData);
+        writer.close();
+    }
+
+    public void writeMessagesArray(JsonWriter writer, List<SensorObject> sensorData) throws IOException {
+        writer.beginArray();
+        for (SensorObject message : sensorData) {
+            writeMessage(writer, message);
+        }
+        writer.endArray();
+    }
+
+    public void writeMessage(JsonWriter writer, SensorObject message) throws IOException {
+        writer.beginObject();
+        writer.name("sensorName").value(message.getName());
+        writer.name("samples");
+        writeListArray(writer,message.getScannedValues());
+        writer.endObject();
+    }
+
+
+    public void writeListArray(JsonWriter writer, List<List<Float>> scannedValues) throws IOException {
+        writer.beginArray();
+        for (int i = 0; i < scannedValues.size();i++) {
+            writer.beginObject();
+            writer.name("Value").value(i);
+            writer.name("values");
+            writer.beginArray();
+            for (Float f: scannedValues.get(i)
+                 ) {
+                writer.value(f);
+            }
+            writer.endArray();
+            writer.endObject();
+        }
+        writer.endArray();
+    }
+
+    public File writeToFile(String sFileName){
+
+            File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
+            // if external memory exists and folder with name Notes
+            if (!root.exists()) {
+                root.mkdirs(); // this will create folder.
+            }
+            File filepath = new File(root, sFileName + ".json");  // file path to save
+            return filepath;
 
     }
         public LinkedList<SensorObject> getAvailableDeviceSensors() {
