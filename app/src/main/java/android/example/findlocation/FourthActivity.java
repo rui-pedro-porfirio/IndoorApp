@@ -51,8 +51,6 @@ public class FourthActivity extends AppCompatActivity {
     private GraphicalBluetoothAdapter bluetoothAdapter;
     private GraphicalWiFiAdapter wifiAdapter;
 
-    private ObjectMapper mapper;
-    private JsonWriter writer;
     public static final String DEVICE_SENSOR_FILE = "sensorData";
 
     @Override
@@ -61,7 +59,6 @@ public class FourthActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fourth);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); //return button on the action bar
         String type = getIntent().getStringExtra("Type");
-        mapper = new ObjectMapper();
         if (type.equals("Scan")) {
 
             wifiResults = new HashMap<>();
@@ -79,7 +76,145 @@ public class FourthActivity extends AppCompatActivity {
             initDeviceSensorRecycleView();
             initBluetoothSensorRecycleView();
             initWifiSensorRecycleView();
+            try {
+                writeJsonStreamSensorData(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true),mSensorInformationList);
+                writeJsonStreamBLE(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true),mBeaconsList);
+                writeJsonStreamWiFi(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true),mAccessPoints);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public void writeJsonStreamSensorData(OutputStream out,List<SensorObject> values) throws IOException {
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        writer.setIndent("  ");
+        writeMessagesArraySensorData(writer, values);
+        writer.close();
+    }
+
+    public void writeMessagesArraySensorData(JsonWriter writer,List<SensorObject> values) throws IOException {
+        writer.beginObject();
+        writer.name("Device Sensors");
+        writer.beginArray();
+        for (SensorObject sensor: values
+             ) {
+            writeMessageSensorData(writer,sensor);
+        }
+        writer.endArray();
+        writer.endObject();
+    }
+
+    public void writeMessageSensorData(JsonWriter writer, SensorObject sensor) throws IOException {
+        writer.beginObject();
+        writer.name("sensorName").value(sensor.getName());
+        writer.name("samples");
+        writeListArraySensorData(writer,sensor.getScannedValues());
+        writer.endObject();
+    }
+
+
+    public void writeListArraySensorData(JsonWriter writer, List<List<Float>> scannedValues) throws IOException {
+        writer.beginArray();
+        for (int i = 0; i < scannedValues.size();i++) {
+            writer.beginObject();
+            writer.name("Sample").value(i);
+            writer.name("values");
+            writer.beginArray();
+            for (Float f: scannedValues.get(i)
+            ) {
+                writer.value(f);
+            }
+            writer.endArray();
+            writer.endObject();
+        }
+        writer.endArray();
+    }
+
+    public void writeJsonStreamBLE(OutputStream out,List<BluetoothObject> values) throws IOException {
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        writer.setIndent("  ");
+        writeMessagesArrayBLE(writer, values);
+        writer.close();
+    }
+
+    public void writeMessagesArrayBLE(JsonWriter writer,List<BluetoothObject> values) throws IOException {
+        writer.beginObject();
+        writer.name("BLE");
+        writer.beginArray();
+        for (BluetoothObject sensor: values
+        ) {
+            writeMessageBLE(writer,sensor);
+        }
+        writer.endArray();
+        writer.endObject();
+    }
+
+    public void writeMessageBLE(JsonWriter writer, BluetoothObject sensor) throws IOException {
+        writer.beginObject();
+        writer.name("sensorName").value(sensor.getName());
+        writer.name("samples");
+        writeListArrayBLE(writer,sensor.getValues());
+        writer.endObject();
+    }
+
+
+    public void writeListArrayBLE(JsonWriter writer, List<Integer> scannedValues) throws IOException {
+        writer.beginArray();
+        for (int i = 0; i < scannedValues.size();i++) {
+            writer.beginObject();
+            writer.name("RSSI").value(scannedValues.get(i));
+            writer.endObject();
+        }
+        writer.endArray();
+    }
+    public void writeJsonStreamWiFi(OutputStream out,List<WifiObject> values) throws IOException {
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        writer.setIndent("  ");
+        writeMessagesArrayWiFi(writer, values);
+        writer.close();
+    }
+
+    public void writeMessagesArrayWiFi(JsonWriter writer,List<WifiObject> values) throws IOException {
+        writer.beginObject();
+        writer.name("Wi-Fi");
+        writer.beginArray();
+        for (WifiObject sensor: values
+        ) {
+            writeMessageWiFi(writer,sensor);
+        }
+        writer.endArray();
+        writer.endObject();
+    }
+
+    public void writeMessageWiFi(JsonWriter writer, WifiObject sensor) throws IOException {
+        writer.beginObject();
+        writer.name("sensorName").value(sensor.getName());
+        writer.name("samples");
+        writeListArrayWiFi(writer,sensor.getValues());
+        writer.endObject();
+    }
+
+
+    public void writeListArrayWiFi(JsonWriter writer, List<Integer> scannedValues) throws IOException {
+        writer.beginArray();
+        for (int i = 0; i < scannedValues.size();i++) {
+            writer.beginObject();
+            writer.name("RSSI").value(scannedValues.get(i));
+            writer.endObject();
+        }
+        writer.endArray();
+    }
+    public File writeToFile(String sFileName){
+
+        File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
+        // if external memory exists and folder with name Notes
+        if (!root.exists()) {
+            root.mkdirs(); // this will create folder.
+        }
+        File filepath = new File(root, sFileName + ".json");  // file path to save
+        return filepath;
+
     }
 
     public LinkedList<SensorObject> getAvailableDeviceSensors() {

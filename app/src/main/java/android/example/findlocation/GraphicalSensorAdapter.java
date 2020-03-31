@@ -49,7 +49,6 @@ public class GraphicalSensorAdapter extends
 
     public static final String DEVICE_SENSOR_FILE = "sensorData";
     private ObjectMapper mapper;
-    private JsonWriter writer;
 
     public GraphicalSensorAdapter(Context context, LinkedList<SensorObject> mSensorInformationList) {
         mInflater = LayoutInflater.from(context);
@@ -70,67 +69,12 @@ public class GraphicalSensorAdapter extends
         SensorObject mCurrentSensor = mSensorInformationList.get(position);
         holder.sensorNameView.setText(mCurrentSensor.getName());
         computeDeviceGraphicalRepresentation(holder,mCurrentSensor.getScannedValues());
-        try {
-            writeJsonStream(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true), mCurrentSensor.getName(),mCurrentSensor.getScannedValues());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     @Override
     public int getItemCount() {
         return mSensorInformationList.size();
-    }
-
-    public void writeJsonStream(OutputStream out,String sensorName, List<List<Float>> values) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
-        writer.setIndent("  ");
-        writeMessagesArray(writer, sensorName,values);
-        writer.close();
-    }
-
-    public void writeMessagesArray(JsonWriter writer,String sensorName, List<List<Float>> values) throws IOException {
-        writer.beginArray();
-        writeMessage(writer,sensorName,values);
-        writer.endArray();
-    }
-
-    public void writeMessage(JsonWriter writer, String sensorName, List<List<Float>> values) throws IOException {
-        writer.beginObject();
-        writer.name("sensorName").value(sensorName);
-        writer.name("samples");
-        writeListArray(writer,values);
-        writer.endObject();
-    }
-
-
-    public void writeListArray(JsonWriter writer, List<List<Float>> scannedValues) throws IOException {
-        writer.beginArray();
-        for (int i = 0; i < scannedValues.size();i++) {
-            writer.beginObject();
-            writer.name("Value").value(i);
-            writer.name("values");
-            writer.beginArray();
-            for (Float f: scannedValues.get(i)
-            ) {
-                writer.value(f);
-            }
-            writer.endArray();
-            writer.endObject();
-        }
-        writer.endArray();
-    }
-
-    public File writeToFile(String sFileName){
-
-        File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
-        // if external memory exists and folder with name Notes
-        if (!root.exists()) {
-            root.mkdirs(); // this will create folder.
-        }
-        File filepath = new File(root, sFileName + ".json");  // file path to save
-        return filepath;
-
     }
 
     public void computeDeviceGraphicalRepresentation(@NonNull GraphicalSensorAdapter.GraphicalSensorViewHolder holder, List<List<Float>> data){
