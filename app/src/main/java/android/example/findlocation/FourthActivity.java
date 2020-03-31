@@ -62,7 +62,7 @@ public class FourthActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); //return button on the action bar
         String type = getIntent().getStringExtra("Type");
         mapper = new ObjectMapper();
-        if(type.equals("Scan")) {
+        if (type.equals("Scan")) {
 
             wifiResults = new HashMap<>();
             deviceResults = new HashMap<>();
@@ -79,69 +79,10 @@ public class FourthActivity extends AppCompatActivity {
             initDeviceSensorRecycleView();
             initBluetoothSensorRecycleView();
             initWifiSensorRecycleView();
-            try {
-                writeJsonStream(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE)),mSensorInformationList);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
-
-
     }
 
-    public void writeJsonStream(OutputStream out, List<SensorObject> sensorData) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
-        writer.setIndent("  ");
-        writeMessagesArray(writer, sensorData);
-        writer.close();
-    }
-
-    public void writeMessagesArray(JsonWriter writer, List<SensorObject> sensorData) throws IOException {
-        writer.beginArray();
-        for (SensorObject message : sensorData) {
-            writeMessage(writer, message);
-        }
-        writer.endArray();
-    }
-
-    public void writeMessage(JsonWriter writer, SensorObject message) throws IOException {
-        writer.beginObject();
-        writer.name("sensorName").value(message.getName());
-        writer.name("samples");
-        writeListArray(writer,message.getScannedValues());
-        writer.endObject();
-    }
-
-
-    public void writeListArray(JsonWriter writer, List<List<Float>> scannedValues) throws IOException {
-        writer.beginArray();
-        for (int i = 0; i < scannedValues.size();i++) {
-            writer.beginObject();
-            writer.name("Value").value(i);
-            writer.name("values");
-            writer.beginArray();
-            for (Float f: scannedValues.get(i)
-                 ) {
-                writer.value(f);
-            }
-            writer.endArray();
-            writer.endObject();
-        }
-        writer.endArray();
-    }
-
-    public File writeToFile(String sFileName){
-
-            File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
-            // if external memory exists and folder with name Notes
-            if (!root.exists()) {
-                root.mkdirs(); // this will create folder.
-            }
-            File filepath = new File(root, sFileName + ".json");  // file path to save
-            return filepath;
-
-    }
-        public LinkedList<SensorObject> getAvailableDeviceSensors() {
+    public LinkedList<SensorObject> getAvailableDeviceSensors() {
         for (String currentSensor : deviceResults.keySet()) {
             SensorObject sensorInfo = new SensorObject(currentSensor, deviceResults.get(currentSensor));
             mSensorInformationList.add(sensorInfo);
@@ -187,5 +128,5 @@ public class FourthActivity extends AppCompatActivity {
         wifiRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    }
+}
 

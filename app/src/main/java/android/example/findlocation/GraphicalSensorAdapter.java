@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Environment;
 import android.text.format.DateFormat;
+import android.util.JsonWriter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
@@ -26,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -39,15 +42,18 @@ import static android.content.Context.MODE_PRIVATE;
 public class GraphicalSensorAdapter extends
         RecyclerView.Adapter<GraphicalSensorAdapter.GraphicalSensorViewHolder>{
 
-    private final LinkedList<SensorObject> mSensorInformationList;
+    private LinkedList<SensorObject> mSensorInformationList;
     private LayoutInflater mInflater;
 
     public static final int SCAN_TIME = 10;
 
     public static final String DEVICE_SENSOR_FILE = "sensorData";
+    private ObjectMapper mapper;
+    private JsonWriter writer;
+
     public GraphicalSensorAdapter(Context context, LinkedList<SensorObject> mSensorInformationList) {
         mInflater = LayoutInflater.from(context);
-        writeToFile(DEVICE_SENSOR_FILE,"");
+        mapper = new ObjectMapper();
         this.mSensorInformationList = mSensorInformationList;
     }
 
@@ -63,30 +69,68 @@ public class GraphicalSensorAdapter extends
     public void onBindViewHolder(@NonNull GraphicalSensorAdapter.GraphicalSensorViewHolder holder, int position) {
         SensorObject mCurrentSensor = mSensorInformationList.get(position);
         holder.sensorNameView.setText(mCurrentSensor.getName());
-        writeToFile(DEVICE_SENSOR_FILE,mCurrentSensor.getName());
         computeDeviceGraphicalRepresentation(holder,mCurrentSensor.getScannedValues());
-    }
-
-    public void writeToFile(String sFileName,String sBody){
-        try{
-            File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
-            // if external memory exists and folder with name Notes
-            if (!root.exists()) {
-                root.mkdirs(); // this will create folder.
-            }
-            File filepath = new File(root, sFileName + ".txt");  // file path to save
-            Writer output = new BufferedWriter(new FileWriter(filepath, true));
-            output.append(sBody+"\n");
-            output.close();
+        try {
+            writeJsonStream(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true), mCurrentSensor.getName(),mCurrentSensor.getScannedValues());
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
     public int getItemCount() {
         return mSensorInformationList.size();
+    }
+
+    public void writeJsonStream(OutputStream out,String sensorName, List<List<Float>> values) throws IOException {
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        writer.setIndent("  ");
+        writeMessagesArray(writer, sensorName,values);
+        writer.close();
+    }
+
+    public void writeMessagesArray(JsonWriter writer,String sensorName, List<List<Float>> values) throws IOException {
+        writer.beginArray();
+        writeMessage(writer,sensorName,values);
+        writer.endArray();
+    }
+
+    public void writeMessage(JsonWriter writer, String sensorName, List<List<Float>> values) throws IOException {
+        writer.beginObject();
+        writer.name("sensorName").value(sensorName);
+        writer.name("samples");
+        writeListArray(writer,values);
+        writer.endObject();
+    }
+
+
+    public void writeListArray(JsonWriter writer, List<List<Float>> scannedValues) throws IOException {
+        writer.beginArray();
+        for (int i = 0; i < scannedValues.size();i++) {
+            writer.beginObject();
+            writer.name("Value").value(i);
+            writer.name("values");
+            writer.beginArray();
+            for (Float f: scannedValues.get(i)
+            ) {
+                writer.value(f);
+            }
+            writer.endArray();
+            writer.endObject();
+        }
+        writer.endArray();
+    }
+
+    public File writeToFile(String sFileName){
+
+        File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
+        // if external memory exists and folder with name Notes
+        if (!root.exists()) {
+            root.mkdirs(); // this will create folder.
+        }
+        File filepath = new File(root, sFileName + ".json");  // file path to save
+        return filepath;
+
     }
 
     public void computeDeviceGraphicalRepresentation(@NonNull GraphicalSensorAdapter.GraphicalSensorViewHolder holder, List<List<Float>> data){
@@ -118,8 +162,6 @@ public class GraphicalSensorAdapter extends
                     averageValueX = sumX / dataPerSecond;
                     averageValueY = sumY / dataPerSecond;
                     averageValueZ = sumZ / dataPerSecond;
-                    String toAdd = "X value: " + averageValueX + ", Y value: " + averageValueY + ", Z value: " + averageValueZ;
-                    writeToFile(DEVICE_SENSOR_FILE,toAdd);
                     dataPointsX.add(new DataPoint(seconds, averageValueX));
                     dataPointsY.add(new DataPoint(seconds, averageValueY));
                     dataPointsZ.add(new DataPoint(seconds, averageValueZ));
@@ -151,7 +193,6 @@ public class GraphicalSensorAdapter extends
                         sumX += xValue;
                         if(i == (lookupValue -1)) {
                             averageValueX = sumX / dataPerSecond;
-                            averageValueY = sumY / dataPerSecond;
                             dataPointsX.add(new DataPoint(seconds, averageValueX));
                             sumX = 0.0;
                             sumY = 0.0;
@@ -159,6 +200,7 @@ public class GraphicalSensorAdapter extends
                             lookupValue = i + dataPerSecond;
                         }
             }
+
         }
 
         LineGraphSeries<DataPoint> seriesX = new LineGraphSeries<DataPoint>(dataPointsX.toArray(new DataPoint[dataPointsX.size()]));
