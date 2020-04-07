@@ -1,35 +1,24 @@
 package android.example.findlocation;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.hardware.Sensor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.JsonWriter;
 
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class FourthActivity extends AppCompatActivity {
 
@@ -77,29 +66,29 @@ public class FourthActivity extends AppCompatActivity {
             initBluetoothSensorRecycleView();
             initWifiSensorRecycleView();
             try {
-                writeJsonStreamSensorData(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true),mSensorInformationList);
-                writeJsonStreamBLE(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true),mBeaconsList);
-                writeJsonStreamWiFi(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE),true),mAccessPoints);
+                writeJsonStreamSensorData(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE), true), mSensorInformationList);
+                writeJsonStreamBLE(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE), true), mBeaconsList);
+                writeJsonStreamWiFi(new FileOutputStream(writeToFile(DEVICE_SENSOR_FILE), true), mAccessPoints);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void writeJsonStreamSensorData(OutputStream out,List<SensorObject> values) throws IOException {
+    public void writeJsonStreamSensorData(OutputStream out, List<SensorObject> values) throws IOException {
         JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
         writer.setIndent("  ");
         writeMessagesArraySensorData(writer, values);
         writer.close();
     }
 
-    public void writeMessagesArraySensorData(JsonWriter writer,List<SensorObject> values) throws IOException {
+    public void writeMessagesArraySensorData(JsonWriter writer, List<SensorObject> values) throws IOException {
         writer.beginObject();
         writer.name("Device Sensors");
         writer.beginArray();
-        for (SensorObject sensor: values
-             ) {
-            writeMessageSensorData(writer,sensor);
+        for (SensorObject sensor : values
+        ) {
+            writeMessageSensorData(writer, sensor);
         }
         writer.endArray();
         writer.endObject();
@@ -109,19 +98,19 @@ public class FourthActivity extends AppCompatActivity {
         writer.beginObject();
         writer.name("sensorName").value(sensor.getName());
         writer.name("samples");
-        writeListArraySensorData(writer,sensor.getScannedValues());
+        writeListArraySensorData(writer, sensor.getScannedValues());
         writer.endObject();
     }
 
 
     public void writeListArraySensorData(JsonWriter writer, List<List<Float>> scannedValues) throws IOException {
         writer.beginArray();
-        for (int i = 0; i < scannedValues.size();i++) {
+        for (int i = 0; i < scannedValues.size(); i++) {
             writer.beginObject();
             writer.name("Sample").value(i);
             writer.name("values");
             writer.beginArray();
-            for (Float f: scannedValues.get(i)
+            for (Float f : scannedValues.get(i)
             ) {
                 writer.value(f);
             }
@@ -131,20 +120,20 @@ public class FourthActivity extends AppCompatActivity {
         writer.endArray();
     }
 
-    public void writeJsonStreamBLE(OutputStream out,List<BluetoothObject> values) throws IOException {
+    public void writeJsonStreamBLE(OutputStream out, List<BluetoothObject> values) throws IOException {
         JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
         writer.setIndent("  ");
         writeMessagesArrayBLE(writer, values);
         writer.close();
     }
 
-    public void writeMessagesArrayBLE(JsonWriter writer,List<BluetoothObject> values) throws IOException {
+    public void writeMessagesArrayBLE(JsonWriter writer, List<BluetoothObject> values) throws IOException {
         writer.beginObject();
         writer.name("BLE");
         writer.beginArray();
-        for (BluetoothObject sensor: values
+        for (BluetoothObject sensor : values
         ) {
-            writeMessageBLE(writer,sensor);
+            writeMessageBLE(writer, sensor);
         }
         writer.endArray();
         writer.endObject();
@@ -154,34 +143,35 @@ public class FourthActivity extends AppCompatActivity {
         writer.beginObject();
         writer.name("sensorName").value(sensor.getName());
         writer.name("samples");
-        writeListArrayBLE(writer,sensor.getValues());
+        writeListArrayBLE(writer, sensor.getValues());
         writer.endObject();
     }
 
 
     public void writeListArrayBLE(JsonWriter writer, List<Integer> scannedValues) throws IOException {
         writer.beginArray();
-        for (int i = 0; i < scannedValues.size();i++) {
+        for (int i = 0; i < scannedValues.size(); i++) {
             writer.beginObject();
             writer.name("RSSI").value(scannedValues.get(i));
             writer.endObject();
         }
         writer.endArray();
     }
-    public void writeJsonStreamWiFi(OutputStream out,List<WifiObject> values) throws IOException {
+
+    public void writeJsonStreamWiFi(OutputStream out, List<WifiObject> values) throws IOException {
         JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
         writer.setIndent("  ");
         writeMessagesArrayWiFi(writer, values);
         writer.close();
     }
 
-    public void writeMessagesArrayWiFi(JsonWriter writer,List<WifiObject> values) throws IOException {
+    public void writeMessagesArrayWiFi(JsonWriter writer, List<WifiObject> values) throws IOException {
         writer.beginObject();
         writer.name("Wi-Fi");
         writer.beginArray();
-        for (WifiObject sensor: values
+        for (WifiObject sensor : values
         ) {
-            writeMessageWiFi(writer,sensor);
+            writeMessageWiFi(writer, sensor);
         }
         writer.endArray();
         writer.endObject();
@@ -191,21 +181,22 @@ public class FourthActivity extends AppCompatActivity {
         writer.beginObject();
         writer.name("sensorName").value(sensor.getName());
         writer.name("samples");
-        writeListArrayWiFi(writer,sensor.getValues());
+        writeListArrayWiFi(writer, sensor.getValues());
         writer.endObject();
     }
 
 
     public void writeListArrayWiFi(JsonWriter writer, List<Integer> scannedValues) throws IOException {
         writer.beginArray();
-        for (int i = 0; i < scannedValues.size();i++) {
+        for (int i = 0; i < scannedValues.size(); i++) {
             writer.beginObject();
             writer.name("RSSI").value(scannedValues.get(i));
             writer.endObject();
         }
         writer.endArray();
     }
-    public File writeToFile(String sFileName){
+
+    public File writeToFile(String sFileName) {
 
         File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
         // if external memory exists and folder with name Notes

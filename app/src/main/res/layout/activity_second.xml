@@ -8,9 +8,9 @@
 
     <TextView
         android:id="@+id/analysisText"
-        android:layout_width="146dp"
-        android:layout_height="46dp"
-        android:fontFamily="montserrat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/andada"
         android:text="@string/analysis_title"
         android:textColor="@android:color/black"
         android:textSize="36sp"
@@ -20,13 +20,13 @@
         app:layout_constraintHorizontal_bias="0.16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.07999998" />
+        app:layout_constraintVertical_bias="0.07" />
 
     <TextView
         android:id="@+id/analysisSubtitleId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="montserrat"
+        android:fontFamily="@font/andada"
         android:text="@string/subtitle_analysis_text"
         android:textColor="#A3A3A3"
         android:textSize="18sp"
@@ -36,44 +36,77 @@
         app:layout_constraintHorizontal_bias="0.18"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/analysisText"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.00999999" />
 
     <Button
         android:id="@+id/scanButtonId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_button"
-        android:fontFamily="@font/montserrat"
+        android:fontFamily="@font/andada"
+        android:padding="10dp"
         android:text="@string/scan_data_text"
         android:textAlignment="center"
-        android:padding="10dp"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.14"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/analysisSubtitleId"
-        app:layout_constraintVertical_bias="0.049" />
+        app:layout_constraintVertical_bias="0.04" />
+
+    <TextView
+        android:id="@+id/fingerprintTextId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/andada"
+        android:text="@string/fingerprint_string_text"
+        android:textColor="@android:color/black"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.26"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scanButtonId"
+        app:layout_constraintVertical_bias="0.04" />
+
+    <TextView
+        android:id="@+id/fingerprintSubtitleId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/andada"
+        android:text="@string/subtitle_fingerprinting_text"
+        android:textColor="#A3A3A3"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.21"
+        app:layout_constraintStart_toStartOf="parent"
+
+        app:layout_constraintTop_toBottomOf="@+id/fingerprintTextId"
+        app:layout_constraintVertical_bias="0.00999999" />
 
     <Button
-        android:id="@+id/checkDataButtonId"
+        android:id="@+id/fingerprintButtonId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_button"
-        android:fontFamily="@font/montserrat"
+        android:fontFamily="@font/andada"
         android:padding="10dp"
-        android:text="@string/check_data_text"
+        android:text="@string/fingerprinting_button_text"
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.86"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/analysisSubtitleId"
-        app:layout_constraintVertical_bias="0.049" />
+        app:layout_constraintTop_toBottomOf="@+id/fingerprintSubtitleId"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintVertical_bias="0.04"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,8 +2,11 @@
     <string name="app_name">IndoorApp</string>
     <string name="check_data_text">Check Model</string>
     <string name="scan_data_text">Scan Data</string>
+    <string name="fingerprinting_button_text">Start Fingerprinting</string>
     <string name="subtitle_analysis_text">Data related analysis</string>
+    <string name="subtitle_fingerprinting_text">Fingerprinting Technique</string>
     <string name="analysis_title">Analysis</string>
+    <string name="fingerprint_string_text">Fingerprinting</string>
     <string name="own_sensors_text">Own Sensors</string>
     <string name="accelerometer_sensor_text">Accelerometer Sensor: %s</string>
     <string name="light_sensor_text">Light Sensor: %1$.2f</string>
@@ -29,4 +32,8 @@
     <string name="wi_fi_sensor">Wi-Fi Sensor</string>
     <string name="long_scan">Long Scan</string>
     <string name="setttings_text">Setttings</string>
+    <string name="checkbox_fingerprint">Select the type of sensor(s) to use</string>
+    <string name="wi_fi">Wi-Fi</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
 </resources>

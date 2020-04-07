@@ -43,9 +43,9 @@ public class SensorAdapter extends
     public void onBindViewHolder(@NonNull SensorAdapter.SensorViewHolder holder, int position) {
         SensorObject mCurrentSensor = mSensorInformationList.get(position);
         holder.sensorItemView.setText(mCurrentSensor.getName());
-        holder.sensorXValueView.setText(new DecimalFormat("##.##").format(mCurrentSensor.getX_value()));
-        holder.sensorYValueView.setText(new DecimalFormat("##.##").format(mCurrentSensor.getY_value()));
-        holder.sensorZValueView.setText(new DecimalFormat("##.##").format(mCurrentSensor.getZ_value()));
+        holder.sensorXValueView.setText("x:" + new DecimalFormat("##.##").format(mCurrentSensor.getX_value()));
+        holder.sensorYValueView.setText("y:" + new DecimalFormat("##.##").format(mCurrentSensor.getY_value()));
+        holder.sensorZValueView.setText("z:"+new DecimalFormat("##.##").format(mCurrentSensor.getZ_value()));
     }
 
     @Override

@@ -17,7 +17,7 @@ public class SecondActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
         startScanningData();
-        checkModelGraphics();
+        enableFingerprinting();
     }
 
     public void startScanningData(){
@@ -31,14 +31,13 @@ public class SecondActivity extends AppCompatActivity {
         });
     }
 
-    public void checkModelGraphics(){
-        final Intent checkModelIntent = new Intent(this,FourthActivity.class);
-        checkModelIntent.putExtra("Type","Model");
-        Button modelButton = (Button) findViewById(R.id.checkDataButtonId);
-        modelButton.setOnClickListener(new View.OnClickListener() {
+    public void enableFingerprinting(){
+        final Intent fingerprintingIntent = new Intent(this, FifthActivity.class);
+        Button mFingerprintingButton = findViewById(R.id.fingerprintButtonId);
+        mFingerprintingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(checkModelIntent);
+                startActivity(fingerprintingIntent);
             }
         });
     }
