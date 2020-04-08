@@ -1,13 +1,13 @@
-package android.example.findlocation;
+package android.example.findlocation.objects;
 
 import java.util.List;
 
-public class BluetoothObject {
+public class WifiObject {
 
     private String name;
     private List<Integer> values;
 
-    public BluetoothObject(String name, List<Integer> values){
+    public WifiObject(String name, List<Integer> values){
         this.name = name;
         this.values = values;
     }

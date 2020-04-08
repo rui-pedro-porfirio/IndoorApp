@@ -3,6 +3,7 @@
     <string name="check_data_text">Check Model</string>
     <string name="scan_data_text">Scan Data</string>
     <string name="fingerprinting_button_text">Start Fingerprinting</string>
+    <string name="next_button_text">Next</string>
     <string name="subtitle_analysis_text">Data related analysis</string>
     <string name="subtitle_fingerprinting_text">Fingerprinting Technique</string>
     <string name="analysis_title">Analysis</string>

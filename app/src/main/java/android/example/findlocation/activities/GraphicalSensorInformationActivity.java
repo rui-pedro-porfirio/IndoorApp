@@ -1,9 +1,16 @@
-package android.example.findlocation;
+package android.example.findlocation.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.example.findlocation.R;
+import android.example.findlocation.adapters.GraphicalBluetoothAdapter;
+import android.example.findlocation.adapters.GraphicalSensorAdapter;
+import android.example.findlocation.adapters.GraphicalWiFiAdapter;
+import android.example.findlocation.objects.BluetoothObject;
+import android.example.findlocation.objects.SensorObject;
+import android.example.findlocation.objects.WifiObject;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.JsonWriter;
@@ -20,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class FourthActivity extends AppCompatActivity {
+public class GraphicalSensorInformationActivity extends AppCompatActivity {
 
     //Map with long scan results
     private Map<String, List<Integer>> wifiResults;

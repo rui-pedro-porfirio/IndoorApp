@@ -1,6 +1,7 @@
-package android.example.findlocation;
+package android.example.findlocation.adapters;
 
 import android.content.Context;
+import android.example.findlocation.R;
 import android.net.wifi.ScanResult;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,9 +11,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.altbeacon.beacon.Beacon;
-
-import java.util.LinkedList;
 import java.util.List;
 
 public class WiFiAdapter extends

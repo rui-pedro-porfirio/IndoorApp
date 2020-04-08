@@ -1,43 +1,25 @@
-package android.example.findlocation;
+package android.example.findlocation.adapters;
 
 import android.content.Context;
+import android.example.findlocation.R;
+import android.example.findlocation.objects.SensorObject;
 import android.graphics.Color;
-import android.os.Environment;
-import android.text.format.DateFormat;
-import android.util.JsonWriter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static android.content.Context.MODE_PRIVATE;
 
 public class GraphicalSensorAdapter extends
         RecyclerView.Adapter<GraphicalSensorAdapter.GraphicalSensorViewHolder>{

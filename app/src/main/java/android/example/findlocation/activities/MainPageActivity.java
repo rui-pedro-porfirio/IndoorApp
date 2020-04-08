@@ -1,8 +1,9 @@
-package android.example.findlocation;
+package android.example.findlocation.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.example.findlocation.R;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,7 +11,7 @@ import android.widget.Button;
 /**
  * Screen with options "Analysis" and "Find location of device"
  */
-public class SecondActivity extends AppCompatActivity {
+public class MainPageActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +22,7 @@ public class SecondActivity extends AppCompatActivity {
     }
 
     public void startScanningData(){
-        final Intent scanStartIntent = new Intent(this,ThirdActivity.class);
+        final Intent scanStartIntent = new Intent(this, SensorInformationActivity.class);
         Button scanButton = (Button) findViewById(R.id.scanButtonId);
         scanButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -32,7 +33,7 @@ public class SecondActivity extends AppCompatActivity {
     }
 
     public void enableFingerprinting(){
-        final Intent fingerprintingIntent = new Intent(this, FifthActivity.class);
+        final Intent fingerprintingIntent = new Intent(this, FingerprintingCheckboxActivity.class);
         Button mFingerprintingButton = findViewById(R.id.fingerprintButtonId);
         mFingerprintingButton.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -1,4 +1,4 @@
-package android.example.findlocation;
+package android.example.findlocation.objects;
 
 
 import java.util.List;

@@ -1,8 +1,7 @@
-package android.example.findlocation;
+package android.example.findlocation.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -14,7 +13,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
+import android.example.findlocation.R;
+import android.example.findlocation.adapters.BluetoothAdapterRC;
+import android.example.findlocation.adapters.SensorAdapter;
+import android.example.findlocation.adapters.WiFiAdapter;
+import android.example.findlocation.objects.SensorObject;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -22,19 +25,13 @@ import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.altbeacon.beacon.Beacon;
@@ -46,15 +43,13 @@ import org.altbeacon.beacon.Region;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class ThirdActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
+public class SensorInformationActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
 
     //iBeacon unique identifier for Alt-Beacon
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
@@ -113,7 +108,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
 
         registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 
-        if (ActivityCompat.checkSelfPermission(ThirdActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(SensorInformationActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                     this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         }
@@ -452,7 +447,7 @@ public class ThirdActivity extends AppCompatActivity implements SensorEventListe
                 Toast.makeText(getApplicationContext(), "Scan ended", Toast.LENGTH_SHORT).show();
                 //Populate the graphic with results;
                 //SEND RAW DATA TO FOURTH ACTIVITY TO PROCESS THE GRAPHICAL REPRESENTATION OF THE DATA
-                Intent dataIntent = new Intent(getApplicationContext(),FourthActivity.class);
+                Intent dataIntent = new Intent(getApplicationContext(), GraphicalSensorInformationActivity.class);
                 dataIntent.putExtra("Device Data",(Serializable)mDeviceScanResults);
                 dataIntent.putExtra("Bluetooth Data",(Serializable)mBluetoothScanResults);
                 dataIntent.putExtra("WiFi Data",(Serializable)mWiFiScanResults);

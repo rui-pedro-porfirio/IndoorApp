@@ -1,11 +1,8 @@
-package android.example.findlocation;
+package android.example.findlocation.adapters;
 
 import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventCallback;
-import android.hardware.SensorEventListener;
-import android.renderscript.Sampler;
+import android.example.findlocation.R;
+import android.example.findlocation.objects.SensorObject;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class SensorAdapter extends
         RecyclerView.Adapter<SensorAdapter.SensorViewHolder>{

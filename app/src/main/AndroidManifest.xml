@@ -16,21 +16,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <activity android:name=".FifthActivity"
-            android:parentActivityName=".SecondActivity"></activity>
+        <activity android:name=".activities.FingerprintingActivity"></activity>
         <activity
-            android:name=".FourthActivity"
-            android:parentActivityName=".SecondActivity" />
+            android:name=".activities.FingerprintingCheckboxActivity"
+            android:parentActivityName=".activities.MainPageActivity" />
         <activity
-            android:name=".ThirdActivity"
-            android:parentActivityName=".SecondActivity">
+            android:name=".activities.GraphicalSensorInformationActivity"
+            android:parentActivityName=".activities.MainPageActivity" />
+        <activity
+            android:name=".activities.SensorInformationActivity"
+            android:parentActivityName=".activities.MainPageActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".SecondActivity" />
+                android:value=".activities.MainPageActivity" />
         </activity>
-        <activity android:name=".SecondActivity" />
+        <activity android:name=".activities.MainPageActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

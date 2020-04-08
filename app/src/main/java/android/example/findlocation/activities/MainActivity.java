@@ -1,15 +1,11 @@
-package android.example.findlocation;
+package android.example.findlocation.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.Intent;
-import android.hardware.SensorEventListener;
+import android.example.findlocation.R;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
 
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -30,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         timer = new Timer();
         timer.schedule(new TimerTask(){
             public void run(){
-                Intent changeScreenIntent = new Intent(MainActivity.this, SecondActivity.class);
+                Intent changeScreenIntent = new Intent(MainActivity.this, MainPageActivity.class);
                 startActivity(changeScreenIntent);
                 finish();
             }
