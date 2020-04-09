@@ -28,28 +28,7 @@ public class FingerprintingActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         dataTypes = getIntent().getStringArrayListExtra("dataTypes");
         preferences = (HashMap<String,Integer>) getIntent().getSerializableExtra("Preferences");
-        fillDataTypeTextView();
-        fillPreferencesTextView();
     }
 
-    private void fillDataTypeTextView(){
-        TextView mDataTypeTextView = findViewById(R.id.dataTypesTextViewId);
-        String typeToAdd = "*";
-        for(int i = 0; i < dataTypes.size(); i++){
-            typeToAdd += dataTypes.get(i);
-            if(i != dataTypes.size() -1){
-                typeToAdd += "|";
-            }
-        }
-        mDataTypeTextView.setText(typeToAdd);
-    }
 
-    private void fillPreferencesTextView(){
-        TextView mPreferencesTextView = findViewById(R.id.preferencesId);
-        String preferencesToAdd = "*";
-        for(String key: preferences.keySet()){
-            preferencesToAdd += key + ":" + preferences.get(key) + "|";
-        }
-        mPreferencesTextView.setText(preferencesToAdd);
-    }
 }

@@ -7,28 +7,84 @@
     tools:context=".activities.FingerprintingActivity">
 
     <TextView
-        android:id="@+id/dataTypesTextViewId"
+        android:id="@+id/selectorPhaseId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sensor Types Chosen"
-        android:textColor="@android:color/holo_red_dark"
+        android:fontFamily="@font/andada"
+        android:text="@string/fingerprinting_phase_string"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.97"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.07" />
+
+    <TextView
+        android:id="@+id/offlineSubtitleId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/andada"
+        android:text="@string/offline_fingerprint_subtitle_string"
+        android:textColor="#A3A3A3"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/selectorPhaseId"
+        app:layout_constraintVertical_bias="0.04000002" />
+
+    <Button
+        android:id="@+id/offlineButtonId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/rounded_button"
+        android:fontFamily="@font/andada"
+        android:padding="10dp"
+        android:text="@string/offline_button_string"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/offlineSubtitleId"
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
-        android:id="@+id/preferencesId"
+        android:id="@+id/onlineSubtitleId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Preferences"
-        android:textColor="@android:color/holo_green_dark"
+        android:fontFamily="@font/andada"
+        android:text="@string/online_fingerprint_subtitle_string"
+        android:textColor="#A3A3A3"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.97"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dataTypesTextViewId"
-        app:layout_constraintVertical_bias="0.04000002" />
+        app:layout_constraintTop_toBottomOf="@+id/offlineButtonId" />
+
+    <Button
+        android:id="@+id/onlineButtonId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/rounded_button"
+        android:fontFamily="@font/andada"
+        android:padding="10dp"
+        android:text="@string/online_button_string"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/onlineSubtitleId"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>

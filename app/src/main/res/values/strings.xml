@@ -4,10 +4,15 @@
     <string name="scan_data_text">Scan Data</string>
     <string name="fingerprinting_button_text">Start Fingerprinting</string>
     <string name="next_button_text">Next</string>
+    <string name="offline_button_string">Start Offline Phase</string>
+    <string name="online_button_string">Start Online Phase</string>
     <string name="subtitle_analysis_text">Data related analysis</string>
+    <string name="offline_fingerprint_subtitle_string">Offline Phase (build radio map)</string>
+    <string name="online_fingerprint_subtitle_string">Online Phase (find user position)</string>
     <string name="subtitle_fingerprinting_text">Fingerprinting Technique</string>
     <string name="analysis_title">Analysis</string>
     <string name="fingerprint_string_text">Fingerprinting</string>
+    <string name="fingerprinting_phase_string">Choose Fingerprinting Phase</string>
     <string name="own_sensors_text">Own Sensors</string>
     <string name="accelerometer_sensor_text">Accelerometer Sensor: %s</string>
     <string name="light_sensor_text">Light Sensor: %1$.2f</string>
@@ -40,4 +45,11 @@
     <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
     <string name="number_of_fingerprints_location_string">Number of Fingerprints/Location:</string>
     <string name="fingerprinting_time_interval_string">Time Interval (in seconds):</string>
+    <string name="title_activity_test">Test</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_activity_offline_fingerprint_phase">OfflineFingerprintPhaseActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
 </resources>
