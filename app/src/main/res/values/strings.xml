@@ -38,8 +38,8 @@
     <string name="wi_fi_sensor">Wi-Fi Sensor</string>
     <string name="long_scan">Long Scan</string>
     <string name="setttings_text">Setttings</string>
-    <string name="checkbox_fingerprint">Select the type of sensor(s) to use</string>
-    <string name="fingerprint_preferences_string">Preferences</string>
+    <string name="checkbox_fingerprint">Type of sensors to use</string>
+    <string name="fingerprint_preferences_string">General Preferences</string>
     <string name="wi_fi">Wi-Fi</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
@@ -50,6 +50,9 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_activity_offline_fingerprint_phase">OfflineFingerprintPhaseActivity</string>
-    <string name="tab_text_1">Tab 1</string>
-    <string name="tab_text_2">Tab 2</string>
+    <string name="tab_text_1">FINGERPRINTS</string>
+    <string name="tab_text_2">RADIO MAP</string>
+    <string name="tab_text_3">PREFERENCES</string>
+    <string name="title_activity_offline_phase">OfflinePhaseActivity</string>
+    <string name="title_activity_offline_tabed">OfflineTabedActivity</string>
 </resources>

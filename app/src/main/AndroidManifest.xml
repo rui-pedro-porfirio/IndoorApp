@@ -17,10 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
         <activity
-            android:name=".activities.FingerprintingActivity"
-            android:parentActivityName=".activities.MainPageActivity" />
+            android:name=".activities.OfflineTabedActivity"
+            android:parentActivityName=".activities.FingerprintingActivity"></activity>
         <activity
-            android:name=".activities.FingerprintingCheckboxActivity"
+            android:name=".activities.FingerprintingActivity"
             android:parentActivityName=".activities.MainPageActivity" />
         <activity
             android:name=".activities.GraphicalSensorInformationActivity"

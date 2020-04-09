@@ -33,7 +33,7 @@ public class MainPageActivity extends AppCompatActivity {
     }
 
     public void enableFingerprinting(){
-        final Intent fingerprintingIntent = new Intent(this, FingerprintingCheckboxActivity.class);
+        final Intent fingerprintingIntent = new Intent(this, FingerprintingActivity.class);
         Button mFingerprintingButton = findViewById(R.id.fingerprintButtonId);
         mFingerprintingButton.setOnClickListener(new View.OnClickListener() {
             @Override
