@@ -34,7 +34,10 @@
     <string name="long_scan">Long Scan</string>
     <string name="setttings_text">Setttings</string>
     <string name="checkbox_fingerprint">Select the type of sensor(s) to use</string>
+    <string name="fingerprint_preferences_string">Preferences</string>
     <string name="wi_fi">Wi-Fi</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
+    <string name="number_of_fingerprints_location_string">Number of Fingerprints/Location:</string>
+    <string name="fingerprinting_time_interval_string">Time Interval (in seconds):</string>
 </resources>

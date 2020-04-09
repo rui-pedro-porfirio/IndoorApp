@@ -16,7 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <activity android:name=".activities.FingerprintingActivity"></activity>
+        <activity android:name=".activities.FingerprintingActivity"
+            android:parentActivityName=".activities.MainPageActivity"></activity>
         <activity
             android:name=".activities.FingerprintingCheckboxActivity"
             android:parentActivityName=".activities.MainPageActivity" />
