@@ -10,6 +10,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+/**
+ * RECYCLE VIEW WITH FINGERPRINTS
+ */
 public class TabRadioMap extends Fragment {
 
     @Override

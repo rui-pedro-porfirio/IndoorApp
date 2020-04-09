@@ -78,4 +78,12 @@ public class OfflineTabedActivity extends AppCompatActivity {
     public void setPreferences(Map<String,Integer> preferences){
         this.preferences = preferences;
     }
+
+    public Map<String, Integer> getPreferences(){
+        return this.preferences;
+    }
+
+    public List<String> getSelectedTypes(){
+        return this.dataTypes;
+    }
 }
