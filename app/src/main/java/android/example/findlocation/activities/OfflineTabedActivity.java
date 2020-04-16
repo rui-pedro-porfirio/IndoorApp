@@ -45,6 +45,7 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.RemoteException;
+import android.provider.ContactsContract;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
@@ -58,12 +59,20 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -115,22 +124,18 @@ public class OfflineTabedActivity extends AppCompatActivity {
         preferences = new HashMap<String, Integer>();
         fingerprints = new ArrayList<>();
         try {
-            url = new URL ("https://reqres.in/api/users");
-            urlConnection = (HttpURLConnection)url.openConnection();
+            url = new URL("https://postman-echo.com/post");
         } catch (MalformedURLException e) {
             e.printStackTrace();
-        }
-        catch (IOException f){
-            f.printStackTrace();
         }
         downloadSensorData = new RetrieveSensorDataTask(this);
         downloadSensorData.doInBackground();
     }
 
-    public void populateRecycleView(View view){
+    public void populateRecycleView(View view) {
 
         mFingerprintRecyclerView = view.findViewById(R.id.recyclerViewFingerprint);
-        mFingerprintAdapter = new FingerprintAdapter(this,fingerprints);
+        mFingerprintAdapter = new FingerprintAdapter(this, fingerprints);
         mFingerprintRecyclerView.setAdapter(mFingerprintAdapter);
         mFingerprintRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
@@ -152,9 +157,8 @@ public class OfflineTabedActivity extends AppCompatActivity {
                 if (checked) {
                     if (!dataTypes.contains("Wi-Fi"))
                         dataTypes.add("Wi-fi");
-                }
-                else{
-                    if(dataTypes.contains("Wi-Fi"))
+                } else {
+                    if (dataTypes.contains("Wi-Fi"))
                         dataTypes.remove("Wi-Fi");
                 }
                 break;
@@ -162,8 +166,8 @@ public class OfflineTabedActivity extends AppCompatActivity {
                 if (checked) {
                     if (!dataTypes.contains("Bluetooth"))
                         dataTypes.add("Bluetooth");
-                }else{
-                    if(dataTypes.contains("Bluetooth"))
+                } else {
+                    if (dataTypes.contains("Bluetooth"))
                         dataTypes.remove("Bluetooth");
                 }
                 break;
@@ -171,15 +175,15 @@ public class OfflineTabedActivity extends AppCompatActivity {
                 if (checked) {
                     if (!dataTypes.contains("DeviceData"))
                         dataTypes.add("DeviceData");
-                }else{
-                    if(dataTypes.contains("DeviceData"))
+                } else {
+                    if (dataTypes.contains("DeviceData"))
                         dataTypes.remove("DeviceData");
                 }
                 break;
         }
     }
 
-    public void addFingerprintListener(View view){
+    public void addFingerprintListener(View view) {
         if (preferences.size() != 0) {
             int numberOfFingerprints = preferences.get("Number of Fingerprints");
             int interval = preferences.get("Time between Fingerprints");
@@ -215,37 +219,31 @@ public class OfflineTabedActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         //TODO: Add HTTP REQUESTS
-        try {
-            sendFingerprintToServer(targetFile,newFingerprint);
-        }
-        catch(ProtocolException p){
-            p.printStackTrace();
-        }
-        catch(IOException e){
-            e.printStackTrace();
-        }
+        sendFingerprintToServer(targetFile);
+
         //TODO: Create final Toast
         Toast.makeText(this, "Fingerprint Created and Sent to Server", Toast.LENGTH_SHORT).show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void sendFingerprintToServer(File jsonFile, Fingerprint fingerprint) throws IOException {
-        urlConnection.setRequestMethod("POST");
-        urlConnection.setReadTimeout(10000);
-        urlConnection.setConnectTimeout(15000);
-        urlConnection.setRequestProperty("Content-Type", "application/json; utf-8");
-        urlConnection.setRequestProperty("Accept", "application/json");
-        urlConnection.setRequestProperty("Cache-Control", "no-cache");
-        urlConnection.setDoOutput(true);
-        try(OutputStream os = urlConnection.getOutputStream()){
+    public void sendFingerprintToServer(File jsonFile) {
+        new SendDeviceDetails().execute(usingBufferedReader(jsonFile.getPath()));
+    }
 
-        }
-        if(urlConnection.getResponseCode() == 200){
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private String usingBufferedReader(String filePath) {
+        StringBuilder contentBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+
+            String sCurrentLine;
+            while ((sCurrentLine = br.readLine()) != null) {
+                contentBuilder.append(sCurrentLine).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else{
-            new Exception("Response code error").printStackTrace();
-        }
+        return contentBuilder.toString();
     }
 
     public void setPreferences(Map<String, Integer> preferences) {
@@ -292,17 +290,17 @@ public class OfflineTabedActivity extends AppCompatActivity {
 
 
     public void writeListArraySensorData(JsonWriter writer, float[] scannedValues) throws IOException {
-            writer.beginObject();
-            writer.name("Sample").value(0);
-            writer.name("values");
-            writer.beginArray();
-            for (Float f : scannedValues
-            ) {
-                if (!Float.isNaN(f))
-                    writer.value(f);
-            }
-            writer.endArray();
-            writer.endObject();
+        writer.beginObject();
+        writer.name("Sample").value(0);
+        writer.name("values");
+        writer.beginArray();
+        for (Float f : scannedValues
+        ) {
+            if (!Float.isNaN(f))
+                writer.value(f);
+        }
+        writer.endArray();
+        writer.endObject();
 
     }
 
@@ -335,9 +333,9 @@ public class OfflineTabedActivity extends AppCompatActivity {
 
 
     public void writeListArrayBLE(JsonWriter writer, Integer scannedValue) throws IOException {
-            writer.beginObject();
-            writer.name("RSSI").value(scannedValue);
-            writer.endObject();
+        writer.beginObject();
+        writer.name("RSSI").value(scannedValue);
+        writer.endObject();
     }
 
     public void writeJsonStreamWiFi(OutputStream out, List<WifiObject> values) throws IOException {
@@ -369,9 +367,9 @@ public class OfflineTabedActivity extends AppCompatActivity {
 
 
     public void writeListArrayWiFi(JsonWriter writer, Integer scannedValue) throws IOException {
-            writer.beginObject();
-            writer.name("RSSI").value(scannedValue);
-            writer.endObject();
+        writer.beginObject();
+        writer.name("RSSI").value(scannedValue);
+        writer.endObject();
     }
 
     public File writeToFile(String sFileName) {
@@ -382,7 +380,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
             root.mkdirs(); // this will create folder.
         }
         File filepath = new File(root, sFileName + ".json");  // file path to save
-        if(filepath.exists()) {
+        if (filepath.exists()) {
             filepath.delete();
             filepath = new File(root, sFileName + ".json");
         }
@@ -432,7 +430,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
             wifiManager.startScan();
         }
 
-        public void scanData(){
+        public void scanData() {
 
 
             CountDownTimer waitTimer;
@@ -573,9 +571,60 @@ public class OfflineTabedActivity extends AppCompatActivity {
             return false;
         }
 
-        public void destroy(){
+        public void destroy() {
             unregisterReceiver(wifiScanReceiver);
             mSensorManager.unregisterListener(this);
+        }
+
+    }
+
+    private class SendDeviceDetails extends AsyncTask<String, Void, String> {
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        protected String doInBackground(String... params) {
+            String data = "";
+            try {
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("POST");
+                urlConnection.setReadTimeout(10000);
+                urlConnection.setConnectTimeout(15000);
+                urlConnection.setRequestProperty("Content-Type", "application/json; utf-8");
+                urlConnection.setRequestProperty("Accept", "application/json");
+                urlConnection.setDoOutput(true);
+                urlConnection.setDoInput(true);
+
+                DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
+                wr.writeBytes("PostData=" + params[0]);
+                wr.flush();
+                wr.close();
+
+                if(urlConnection.getResponseCode() == 200){
+                    Log.i("TAG","MADE IT");
+                }
+                BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
+                    StringBuilder response = new StringBuilder();
+                    String responseLine = null;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    data = response.toString();
+                    System.out.println(response.toString());
+
+        } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+            }
+            return data;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            Log.e("TAG", result); // this is expecting a response code to be sent from your server upon receiving the POST data
         }
 
     }
