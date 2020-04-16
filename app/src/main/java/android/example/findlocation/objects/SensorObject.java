@@ -9,7 +9,6 @@ public class SensorObject {
     private float x_value;
     private float y_value;
     private float z_value;
-    private boolean isChecked;
     private List<List<Float>> scannedValues;
 
     public SensorObject(String name, float[] values){
@@ -58,14 +57,6 @@ public class SensorObject {
     public float[] getValues(){
         float[] values = {this.x_value,this.y_value,this.z_value};
         return values;
-    }
-
-    public boolean isChecked() {
-        return isChecked;
-    }
-
-    public void setChecked(boolean checked) {
-        isChecked = checked;
     }
 
     public List<List<Float>> getScannedValues(){

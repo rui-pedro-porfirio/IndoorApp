@@ -21,6 +21,7 @@
     <string name="proximity_sensor_text">Proximity Sensor: %1$.2f</string>
     <string name="error_no_sensor">No sensor</string>
     <string name="sensor_movement_text">Device Sensors</string>
+    <string name="fingeprints_string">Fingerprints</string>
     <string name="model_text">Model Data</string>
     <string name="gravity_sensor_text">Gravity Sensor: %s</string>
     <string name="gyroscope_sensor_text">Gyroscope Sensor: %s</string>
@@ -42,7 +43,6 @@
     <string name="setttings_text">Setttings</string>
     <string name="checkbox_fingerprint">Type of sensors to use</string>
     <string name="fingerprint_preferences_string">General Preferences</string>
-    <string name="wi_fi">Wi-Fi</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
     <string name="number_of_fingerprints_location_string">Number of Fingerprints/Location:</string>
@@ -59,4 +59,6 @@
     <string name="title_activity_offline_tabed">OfflineTabedActivity</string>
     <string name="selected_sensor_types_string">Selected sensor types: %s</string>
     <string name="general_preferences_string">%s</string>
+    <string name="ble">BLE</string>
+    <string name="wi_fi">Wi-Fi</string>
 </resources>

@@ -6,14 +6,32 @@
     android:layout_height="match_parent"
     tools:context=".tabs.TabRadioMap">
 
-
     <TextView
-        android:id="@+id/radioMapTextViewId"
+        android:id="@+id/fingerprintRadioMapTabId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="RADIO MAP TEXT"
+        android:fontFamily="@font/andada"
+        android:text="@string/fingeprints_string"
+        android:textColor="@android:color/black"
+        android:textSize="36sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.07" />
+
+    <androidx.recyclerview.widget.RecyclerView
+
+        android:id="@+id/recyclerViewFingerprint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fingerprintRadioMapTabId"
+        app:layout_constraintVertical_bias="0.07">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

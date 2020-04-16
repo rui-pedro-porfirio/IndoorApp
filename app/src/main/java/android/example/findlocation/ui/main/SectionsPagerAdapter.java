@@ -22,6 +22,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     @StringRes
     private static final int[] TAB_TITLES = new int[]{R.string.tab_text_1, R.string.tab_text_2,R.string.tab_text_3};
     private final Context mContext;
+    private String radioMapTag;
 
     public SectionsPagerAdapter(Context context, FragmentManager fm) {
         super(fm);
@@ -36,6 +37,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
                 return tab1;
             case 1:
                 TabRadioMap tab2 = new TabRadioMap();
+                radioMapTag = tab2.getTag();
                 return tab2;
             case 2:
                 TabPreferences tab3 = new TabPreferences();
@@ -49,6 +51,10 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
         return mContext.getResources().getString(TAB_TITLES[position]);
+    }
+
+    public String getRadioMapTag(){
+        return radioMapTag;
     }
 
     @Override
