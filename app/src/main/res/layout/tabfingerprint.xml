@@ -26,11 +26,11 @@
         android:id="@+id/fingerprintprocessId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/offlineButtonId"
+        app:layout_constraintBottom_toTopOf="@+id/addFingerprintId"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/selectorPhaseId"
-        app:layout_constraintVertical_bias="0.050000012" />
+        app:layout_constraintVertical_bias="0.01999998" />
 
     <TextView
         android:id="@+id/types_selectedId"
@@ -42,7 +42,7 @@
         app:layout_constraintHorizontal_bias="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.90999997" />0.01999998" />
+        app:layout_constraintVertical_bias="0.90999997" />
 
     <TextView
         android:id="@+id/defaultpreferencesId"
@@ -57,7 +57,7 @@
         app:layout_constraintVertical_bias="0.060000002" />
 
     <Button
-        android:id="@+id/offlineButtonId"
+        android:id="@+id/addFingerprintId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_button"
@@ -65,6 +65,7 @@
         android:padding="10dp"
         android:text="@string/start_fingerprint_string"
         android:textAlignment="center"
+        android:onClick="addFingerprintListener"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"

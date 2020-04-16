@@ -25,6 +25,7 @@ import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.RemoteException;
@@ -124,6 +125,7 @@ public class SensorInformationActivity extends AppCompatActivity implements Sens
         mWiFiScanResults = new HashMap<>();
         mDeviceScanResults = new HashMap<>();
         mBluetoothScanResults = new HashMap<>();
+
     }
 
     @Override
@@ -271,6 +273,18 @@ public class SensorInformationActivity extends AppCompatActivity implements Sens
 
         }
 
+    }
+
+    public LinkedList<Beacon> getmBeaconsList() {
+        return mBeaconsList;
+    }
+
+    public List<ScanResult> getmAccessPoints() {
+        return mAccessPoints;
+    }
+
+    public LinkedList<SensorObject> getmSensorInformationList() {
+        return mSensorInformationList;
     }
 
     @Override

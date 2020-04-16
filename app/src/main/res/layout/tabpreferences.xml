@@ -109,7 +109,7 @@
                 android:ems="2"
                 android:gravity="center"
                 android:inputType="numberDecimal"
-                android:text="2" />
+                android:text="1" />
         </LinearLayout>
 
 
@@ -136,7 +136,7 @@
                 android:ems="2"
                 android:gravity="center"
                 android:inputType="numberDecimal"
-                android:text="10" />
+                android:text="3" />
         </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

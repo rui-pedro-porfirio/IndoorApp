@@ -1,7 +1,9 @@
 package android.example.findlocation.tabs;
 
+import android.content.Intent;
 import android.example.findlocation.R;
 import android.example.findlocation.activities.OfflineTabedActivity;
+import android.example.findlocation.activities.SensorInformationActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -10,6 +12,7 @@ import android.text.style.BulletSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -41,6 +44,7 @@ public class TabFingerprint extends Fragment {
         mSelectedPreferences.setText(getResources().getString(R.string.general_preferences_string,((OfflineTabedActivity) getActivity()).getPreferences()));
         computeBulletList(view);
     }
+
 
     public void computeBulletList(View view) {
         String longDescription = "Go to the position you want to scan for fingerprints.\n" +

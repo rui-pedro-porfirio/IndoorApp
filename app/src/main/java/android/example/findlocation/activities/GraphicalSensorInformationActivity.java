@@ -119,7 +119,8 @@ public class GraphicalSensorInformationActivity extends AppCompatActivity {
             writer.beginArray();
             for (Float f : scannedValues.get(i)
             ) {
-                writer.value(f);
+                if (!Float.isNaN(f))
+                    writer.value(f);
             }
             writer.endArray();
             writer.endObject();

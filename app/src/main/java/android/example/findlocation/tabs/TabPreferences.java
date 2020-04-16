@@ -3,6 +3,8 @@ package android.example.findlocation.tabs;
 import android.example.findlocation.R;
 import android.example.findlocation.activities.OfflineTabedActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +43,40 @@ public class TabPreferences extends Fragment {
         EditText mTimeBetweenFingerprints = view.findViewById(R.id.intervalBetweenFingerprintsNumberId);
         preferences.put("Time between Fingerprints",Integer.valueOf(mTimeBetweenFingerprints.getText().toString()));
         ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+        mNumberOfFingerprints.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                preferences.put("Number of Fingerprints", Integer.valueOf(s.toString()));
+                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+            }
+        });
+        mTimeBetweenFingerprints.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                preferences.put("Time between Fingerprints", Integer.valueOf(s.toString()));
+                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+            }
+        });
     }
 
 }
