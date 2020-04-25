@@ -2,8 +2,7 @@ package android.example.findlocation.adapters;
 
 import android.content.Context;
 import android.example.findlocation.R;
-import android.example.findlocation.objects.Fingerprint;
-import android.example.findlocation.objects.SensorObject;
+import android.example.findlocation.objects.client.Fingerprint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.DecimalFormat;
-import java.util.LinkedList;
 import java.util.List;
 
 public class FingerprintAdapter extends

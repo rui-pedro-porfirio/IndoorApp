@@ -2,7 +2,7 @@ package android.example.findlocation.adapters;
 
 import android.content.Context;
 import android.example.findlocation.R;
-import android.example.findlocation.objects.SensorObject;
+import android.example.findlocation.objects.client.SensorObject;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;

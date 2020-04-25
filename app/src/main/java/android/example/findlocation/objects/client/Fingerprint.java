@@ -1,35 +1,31 @@
-package android.example.findlocation.objects;
+package android.example.findlocation.objects.client;
 
-
-import org.w3c.dom.CDATASection;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class Fingerprint {
 
+    private float x_coordinate;
+    private float y_coordinate;
     private List<SensorObject> mSensorInformationList;
     private List<BluetoothObject> mBeaconsList;
     private List<WifiObject> mAccessPoints;
 
-    public Fingerprint(List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
+    public Fingerprint(float x_coordinate, float y_coordinate,List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
         this.mSensorInformationList = mSensorInformationList;
         this.mBeaconsList = mBeaconsList;
         this.mAccessPoints = mAccessPoints;
+        this.y_coordinate = y_coordinate;
+        this.x_coordinate = x_coordinate;
     }
 
     public Fingerprint(){
         mSensorInformationList = new ArrayList<>();
         mBeaconsList = new ArrayList<>();
         mAccessPoints = new ArrayList<>();
-    }
-
-    public Fingerprint(Fingerprint other){
-        this.mSensorInformationList = other.mSensorInformationList;
-        this.mBeaconsList = other.mBeaconsList;
-        this.mAccessPoints = other.mAccessPoints;
+        this.x_coordinate = 0f;
+        this.y_coordinate = 0f;
     }
 
     public List<SensorObject> getmSensorInformationList() {
@@ -42,6 +38,14 @@ public class Fingerprint {
 
     public List<WifiObject> getmAccessPoints() {
         return mAccessPoints;
+    }
+
+    public float getX_coordinate() {
+        return x_coordinate;
+    }
+
+    public float getY_coordinate() {
+        return y_coordinate;
     }
 
     public void setmAccessPoints(List<WifiObject> mAccessPoints) {
@@ -63,5 +67,13 @@ public class Fingerprint {
             SensorObject newSensor = new SensorObject(sensor.getName(),sensor.getValues());
             this.mSensorInformationList.add(newSensor);
         }
+    }
+
+    public void setX_coordinate(float x_coordinate) {
+        this.x_coordinate = x_coordinate;
+    }
+
+    public void setY_coordinate(float y_coordinate) {
+        this.y_coordinate = y_coordinate;
     }
 }

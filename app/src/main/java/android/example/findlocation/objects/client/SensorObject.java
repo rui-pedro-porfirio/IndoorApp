@@ -1,4 +1,4 @@
-package android.example.findlocation.objects;
+package android.example.findlocation.objects.client;
 
 
 import java.util.List;

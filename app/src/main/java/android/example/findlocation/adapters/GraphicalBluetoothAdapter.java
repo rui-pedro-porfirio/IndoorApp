@@ -1,7 +1,7 @@
 package android.example.findlocation.adapters;
 
 import android.content.Context;
-import android.example.findlocation.objects.BluetoothObject;
+import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.R;
 import android.graphics.Color;
 import android.os.Environment;

@@ -1,30 +1,21 @@
 package android.example.findlocation.activities;
 
-import android.Manifest;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.example.findlocation.R;
-import android.example.findlocation.adapters.BluetoothAdapterRC;
 import android.example.findlocation.adapters.FingerprintAdapter;
-import android.example.findlocation.objects.BluetoothObject;
-import android.example.findlocation.objects.Fingerprint;
-import android.example.findlocation.objects.SensorObject;
-import android.example.findlocation.objects.WifiObject;
-import android.example.findlocation.tabs.TabRadioMap;
+import android.example.findlocation.objects.client.BluetoothObject;
+import android.example.findlocation.objects.client.Fingerprint;
+import android.example.findlocation.objects.client.SensorObject;
+import android.example.findlocation.objects.client.WifiObject;
+import android.example.findlocation.objects.server.ServerFingerprint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -32,10 +23,9 @@ import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.material.tabs.TabLayout;
+import com.google.gson.Gson;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
@@ -43,9 +33,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.CountDownTimer;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.RemoteException;
-import android.provider.ContactsContract;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
@@ -59,36 +47,25 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class OfflineTabedActivity extends AppCompatActivity {
 
@@ -96,11 +73,12 @@ public class OfflineTabedActivity extends AppCompatActivity {
     private Map<String, Integer> preferences;
     private RetrieveSensorDataTask downloadSensorData;
     private List<Fingerprint> fingerprints;
+    private OkHttpClient client;
 
     private RecyclerView mFingerprintRecyclerView;
 
-    private URL url;
-    private HttpURLConnection urlConnection;
+    public static final MediaType JSON
+            = MediaType.get("application/json; charset=utf-8");
 
     private FingerprintAdapter mFingerprintAdapter;
 
@@ -120,14 +98,10 @@ public class OfflineTabedActivity extends AppCompatActivity {
         tabs.getTabAt(0).setIcon(R.drawable.fingerprinticon);
         tabs.getTabAt(1).setIcon(R.drawable.radiomapicon);
         tabs.getTabAt(2).setIcon(R.drawable.preferencesicon);
+        client = new OkHttpClient();
         dataTypes = new ArrayList<String>();
         preferences = new HashMap<String, Integer>();
         fingerprints = new ArrayList<>();
-        try {
-            url = new URL("https://postman-echo.com/post");
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
         downloadSensorData = new RetrieveSensorDataTask(this);
         downloadSensorData.doInBackground();
     }
@@ -190,6 +164,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
             for (int i = 0; i < numberOfFingerprints; i++) {
                 Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
                 startBackgroundService(); //STARTS FINGERPRINT COLLECTION AND SEND
+                //TODO: add interval between fingerprints in the same location
             }
         } else {
             Toast.makeText(this, "Check preferences", Toast.LENGTH_SHORT).show();
@@ -203,13 +178,16 @@ public class OfflineTabedActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void computeFingerprint(Fingerprint fingerprint) {
         Fingerprint newFingerprint = new Fingerprint();
+        newFingerprint.setX_coordinate(fingerprint.getX_coordinate());
+        newFingerprint.setY_coordinate(fingerprint.getY_coordinate());
         newFingerprint.setmAccessPoints(fingerprint.getmAccessPoints());
         newFingerprint.setmBeaconsList(fingerprint.getmBeaconsList());
         newFingerprint.setmSensorInformationList(fingerprint.getmSensorInformationList());
         fingerprints.add(newFingerprint);
+        ServerFingerprint fingerprintToSend = new ServerFingerprint(newFingerprint.getX_coordinate(), newFingerprint.getY_coordinate());
         mFingerprintAdapter.notifyDataSetChanged();
         //TODO: write to json file
-        File targetFile = null;
+  /*      File targetFile = null;
         try {
             targetFile = writeToFile(FINGERPRINT_FILE);
             writeJsonStreamSensorData(new FileOutputStream(targetFile, true), fingerprint.getmSensorInformationList());
@@ -217,17 +195,18 @@ public class OfflineTabedActivity extends AppCompatActivity {
             writeJsonStreamWiFi(new FileOutputStream(targetFile, true), fingerprint.getmAccessPoints());
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         //TODO: Add HTTP REQUESTS
-        sendFingerprintToServer(targetFile);
+        sendFingerprintToServer(fingerprintToSend);
 
         //TODO: Create final Toast
         Toast.makeText(this, "Fingerprint Created and Sent to Server", Toast.LENGTH_SHORT).show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void sendFingerprintToServer(File jsonFile) {
-        new SendDeviceDetails().execute(usingBufferedReader(jsonFile.getPath()));
+    public void sendFingerprintToServer(ServerFingerprint fingerprint) {
+        //SEND DATA TO SERVER - POST FINGERPRINT THEN DEVICE THEN BLUETOOTH THEN WIFI
+        new SendDeviceDetails(fingerprint).execute();
     }
 
 
@@ -451,7 +430,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
                         mSensorInformationList = new ArrayList<>();
                     }
 
-                    onPostExecute(new Fingerprint(mSensorInformationList, mBeaconsList, mAccessPoints));
+                    onPostExecute(new Fingerprint(19.96f, 19.96f, mSensorInformationList, mBeaconsList, mAccessPoints));
                 }
             }.start();
         }
@@ -578,47 +557,26 @@ public class OfflineTabedActivity extends AppCompatActivity {
 
     }
 
-    private class SendDeviceDetails extends AsyncTask<String, Void, String> {
+    private class SendDeviceDetails extends AsyncTask<Void, Void, String> {
+
+        private ServerFingerprint serverFingerprint;
+
+        private SendDeviceDetails(ServerFingerprint fingerprint) {
+            serverFingerprint = fingerprint;
+        }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
-        protected String doInBackground(String... params) {
-            String data = "";
+        protected String doInBackground(Void... voids) {
+            Gson gson = new Gson();
+            String fingerprintInJson = gson.toJson(serverFingerprint);
+            String result = "";
             try {
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("POST");
-                urlConnection.setReadTimeout(10000);
-                urlConnection.setConnectTimeout(15000);
-                urlConnection.setRequestProperty("Content-Type", "application/json; utf-8");
-                urlConnection.setRequestProperty("Accept", "application/json");
-                urlConnection.setDoOutput(true);
-                urlConnection.setDoInput(true);
-
-                DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-                wr.writeBytes("PostData=" + params[0]);
-                wr.flush();
-                wr.close();
-
-                if(urlConnection.getResponseCode() == 200){
-                    Log.i("TAG","MADE IT");
-                }
-                BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
-                    StringBuilder response = new StringBuilder();
-                    String responseLine = null;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-                    data = response.toString();
-                    System.out.println(response.toString());
-
-        } catch (Exception e) {
+                result = post("http:/10.0.2.2:8000/fingerprints/", fingerprintInJson);
+            } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
             }
-            return data;
+            return result;
         }
 
         @Override
@@ -627,5 +585,21 @@ public class OfflineTabedActivity extends AppCompatActivity {
             Log.e("TAG", result); // this is expecting a response code to be sent from your server upon receiving the POST data
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        protected String post(String url, String json) throws IOException {
+            RequestBody body = RequestBody.create(json, JSON);
+            String responseString = "";
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+                System.out.println(response.body().string());
+                responseString = response.body().string();
+            }
+            return responseString;
+        }
     }
+
 }
