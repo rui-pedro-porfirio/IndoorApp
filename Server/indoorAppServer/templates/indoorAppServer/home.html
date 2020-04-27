@@ -1,0 +1,14 @@
+{% extends "indoorAppServer/base.html" %}
+{% block content %}
+    {% for fingerprint in fingerprints %}
+        <article class="media content-section">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <a class="mr-2" href="#">{{ fingerprint.id }}</a>
+                </div>
+                <h2><a class="article-title" href="#">{{ fingerprint.coordinate_X }}</a></h2>
+                <p class="article-content">{{ fingerprint.coordinate_Y }}</p>
+            </div>
+        </article>
+    {% endfor %}
+{% endblock content %}

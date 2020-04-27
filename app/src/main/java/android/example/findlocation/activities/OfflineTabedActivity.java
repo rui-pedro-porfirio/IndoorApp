@@ -81,6 +81,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
     private RetrieveSensorDataTask downloadSensorData;
     private List<Fingerprint> fingerprints;
     private OkHttpClient client;
+    private static final String ADDRESS = "http://192.168.1.4:8000/";
 
     private RecyclerView mFingerprintRecyclerView;
 
@@ -194,7 +195,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
         ServerFingerprint fingerprintToSend = new ServerFingerprint(newFingerprint.getX_coordinate(), newFingerprint.getY_coordinate());
         mFingerprintAdapter.notifyDataSetChanged();
         //TODO: write to json file
-  /*      File targetFile = null;
+        File targetFile = null;
         try {
             targetFile = writeToFile(FINGERPRINT_FILE);
             writeJsonStreamSensorData(new FileOutputStream(targetFile, true), fingerprint.getmSensorInformationList());
@@ -202,14 +203,14 @@ public class OfflineTabedActivity extends AppCompatActivity {
             writeJsonStreamWiFi(new FileOutputStream(targetFile, true), fingerprint.getmAccessPoints());
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
         //TODO: Add HTTP REQUESTS
         SensorObject sensorObject = fingerprint.getmSensorInformationList().get(0);
         ServerDeviceData serverDeviceData = new ServerDeviceData(sensorObject.getName(), sensorObject.getX_value(), sensorObject.getY_value(), sensorObject.getZ_value());
         WifiObject wifiObject = fingerprint.getmAccessPoints().get(0);
         ServerWifiData serverWifiData = new ServerWifiData(wifiObject.getName(), wifiObject.getSingleValue());
-        BluetoothObject bleObject = fingerprint.getmBeaconsList().get(0);
-        ServerBluetoothData serverBluetoothData = new ServerBluetoothData(bleObject.getName(), bleObject.getSingleValue());
+        //BluetoothObject bleObject = fingerprint.getmBeaconsList().get(0);
+        ServerBluetoothData serverBluetoothData = new ServerBluetoothData("testBLE", -60);
         sendFingerprintToServer(fingerprintToSend, serverDeviceData, serverWifiData, serverBluetoothData);
 
         //TODO: Create final Toast
@@ -594,28 +595,28 @@ public class OfflineTabedActivity extends AppCompatActivity {
             String wifiResponse = "";
             String bluetoothResponse = "";
             try {
-                fingerprintId = post("http://10.0.2.2:8000/fingerprints/", fingerprintInJson, "id");
+                fingerprintId = post(ADDRESS+"fingerprints/", fingerprintInJson, "id");
             } catch (IOException e) {
                 e.printStackTrace();
             }
             serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
             String deviceDataInJson = gson.toJson(serverDeviceData);
             try {
-                deviceResponse = post("http:/10.0.2.2:8000/device/", deviceDataInJson, "");
+                deviceResponse = post(ADDRESS+"device/", deviceDataInJson, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }
             serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
             String wifiDataInJson = gson.toJson(serverWifiData);
             try {
-                wifiResponse = post("http:/10.0.2.2:8000/wifi/", wifiDataInJson, "");
+                wifiResponse = post(ADDRESS+"wifi/", wifiDataInJson, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }
             serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
             String bleDataInJson = gson.toJson(serverBluetoothData);
             try {
-                bluetoothResponse = post("http:/10.0.2.2:8000/bluetooth/", bleDataInJson, "");
+                bluetoothResponse = post(ADDRESS+"bluetooth/", bleDataInJson, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }
