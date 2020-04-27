@@ -11,7 +11,10 @@ import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.Fingerprint;
 import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
+import android.example.findlocation.objects.server.ServerBluetoothData;
+import android.example.findlocation.objects.server.ServerDeviceData;
 import android.example.findlocation.objects.server.ServerFingerprint;
+import android.example.findlocation.objects.server.ServerWifiData;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -24,6 +27,10 @@ import android.os.Bundle;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -197,16 +204,22 @@ public class OfflineTabedActivity extends AppCompatActivity {
             e.printStackTrace();
         }*/
         //TODO: Add HTTP REQUESTS
-        sendFingerprintToServer(fingerprintToSend);
+        SensorObject sensorObject = fingerprint.getmSensorInformationList().get(0);
+        ServerDeviceData serverDeviceData = new ServerDeviceData(sensorObject.getName(), sensorObject.getX_value(), sensorObject.getY_value(), sensorObject.getZ_value());
+        WifiObject wifiObject = fingerprint.getmAccessPoints().get(0);
+        ServerWifiData serverWifiData = new ServerWifiData(wifiObject.getName(), wifiObject.getSingleValue());
+        BluetoothObject bleObject = fingerprint.getmBeaconsList().get(0);
+        ServerBluetoothData serverBluetoothData = new ServerBluetoothData(bleObject.getName(), bleObject.getSingleValue());
+        sendFingerprintToServer(fingerprintToSend, serverDeviceData, serverWifiData, serverBluetoothData);
 
         //TODO: Create final Toast
         Toast.makeText(this, "Fingerprint Created and Sent to Server", Toast.LENGTH_SHORT).show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void sendFingerprintToServer(ServerFingerprint fingerprint) {
+    public void sendFingerprintToServer(ServerFingerprint fingerprint, ServerDeviceData serverDeviceData, ServerWifiData serverWifiData, ServerBluetoothData serverBluetoothData) {
         //SEND DATA TO SERVER - POST FINGERPRINT THEN DEVICE THEN BLUETOOTH THEN WIFI
-        new SendDeviceDetails(fingerprint).execute();
+        new SendDeviceDetails(fingerprint, serverDeviceData, serverWifiData, serverBluetoothData).execute();
     }
 
 
@@ -560,9 +573,15 @@ public class OfflineTabedActivity extends AppCompatActivity {
     private class SendDeviceDetails extends AsyncTask<Void, Void, String> {
 
         private ServerFingerprint serverFingerprint;
+        private ServerDeviceData serverDeviceData;
+        private ServerWifiData serverWifiData;
+        private ServerBluetoothData serverBluetoothData;
 
-        private SendDeviceDetails(ServerFingerprint fingerprint) {
-            serverFingerprint = fingerprint;
+        private SendDeviceDetails(ServerFingerprint fingerprint, ServerDeviceData serverDeviceData, ServerWifiData serverWifiData, ServerBluetoothData serverBluetoothData) {
+            this.serverFingerprint = fingerprint;
+            this.serverDeviceData = serverDeviceData;
+            this.serverWifiData = serverWifiData;
+            this.serverBluetoothData = serverBluetoothData;
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -570,13 +589,37 @@ public class OfflineTabedActivity extends AppCompatActivity {
         protected String doInBackground(Void... voids) {
             Gson gson = new Gson();
             String fingerprintInJson = gson.toJson(serverFingerprint);
-            String result = "";
+            String fingerprintId = "";
+            String deviceResponse = "";
+            String wifiResponse = "";
+            String bluetoothResponse = "";
             try {
-                result = post("http:/10.0.2.2:8000/fingerprints/", fingerprintInJson);
+                fingerprintId = post("http://10.0.2.2:8000/fingerprints/", fingerprintInJson, "id");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return result;
+            serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+            String deviceDataInJson = gson.toJson(serverDeviceData);
+            try {
+                deviceResponse = post("http:/10.0.2.2:8000/device/", deviceDataInJson, "");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+            String wifiDataInJson = gson.toJson(serverWifiData);
+            try {
+                wifiResponse = post("http:/10.0.2.2:8000/wifi/", wifiDataInJson, "");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+            String bleDataInJson = gson.toJson(serverBluetoothData);
+            try {
+                bluetoothResponse = post("http:/10.0.2.2:8000/bluetooth/", bleDataInJson, "");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "";
         }
 
         @Override
@@ -586,7 +629,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-        protected String post(String url, String json) throws IOException {
+        protected String post(String url, String json, String parameter) throws IOException {
             RequestBody body = RequestBody.create(json, JSON);
             String responseString = "";
             Request request = new Request.Builder()
@@ -595,10 +638,20 @@ public class OfflineTabedActivity extends AppCompatActivity {
                     .build();
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-                System.out.println(response.body().string());
-                responseString = response.body().string();
+                if (parameter.length() > 1)
+                    responseString = parse(response.body().string(), parameter);
+                else
+                    responseString = response.body().string();
+
             }
             return responseString;
+        }
+
+        public String parse(String jsonLine, String parameter) {
+            JsonElement jelement = new JsonParser().parse(jsonLine);
+            JsonObject jobject = jelement.getAsJsonObject();
+            String result = jobject.get(parameter).getAsString();
+            return result;
         }
     }
 
