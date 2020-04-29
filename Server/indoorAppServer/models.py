@@ -3,29 +3,6 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 
-class Paradigm(models.Model):
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-
-class language(models.Model):
-    name = models.CharField(max_length=50)
-    paradigm = models.ForeignKey(Paradigm, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.name
-
-
-class Programmer(models.Model):
-    name = models.CharField(max_length=50)
-    languages = models.ManyToManyField(language)
-
-    def __str__(self):
-        return self.name
-
-
 class Fingerprint(models.Model):
     coordinate_X = models.FloatField()
     coordinate_Y = models.FloatField()

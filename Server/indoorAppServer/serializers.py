@@ -1,23 +1,5 @@
 from rest_framework import serializers
-from .models import language, Paradigm, Programmer, Fingerprint,DeviceSensor,BluetoothSensor,WiFiSensor
-
-
-class languageSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = language
-        fields = ('id', 'url', 'name', 'paradigm')
-
-
-class paradigmSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Paradigm
-        fields = ('id', 'url', 'name')
-
-
-class programmerSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Programmer
-        fields = ('id', 'url', 'name', 'languages')
+from .models import Fingerprint,DeviceSensor,BluetoothSensor,WiFiSensor
 
 
 class FingerprintSerializer(serializers.HyperlinkedModelSerializer):

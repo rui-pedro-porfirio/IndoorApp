@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class IndoorappserverConfig(AppConfig):
+class IndoorAppServerConfig(AppConfig):
     name = 'indoorAppServer'

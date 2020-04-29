@@ -1,8 +1,7 @@
 from django.shortcuts import render
-from .models import Fingerprint, DeviceSensor, BluetoothSensor, WiFiSensor, language, Programmer, Paradigm
+from .models import Fingerprint, DeviceSensor, BluetoothSensor, WiFiSensor
 from rest_framework import viewsets
-from .serializers import languageSerializer, paradigmSerializer, programmerSerializer, FingerprintSerializer, \
-    DeviceDataSerializer, WifiDataSerializer, BluetoothSerializer
+from .serializers import FingerprintSerializer, DeviceDataSerializer, WifiDataSerializer, BluetoothSerializer
 
 
 # Create your views here.
@@ -17,22 +16,6 @@ def fingerprintInfo(request):
         'fingerprints': Fingerprint.objects.all()
     }
     return render(request, 'indoorAppServer/home.html', context)
-
-
-class languageView(viewsets.ModelViewSet):
-    queryset = language.objects.all()
-    serializer_class = languageSerializer
-
-
-class paradigmView(viewsets.ModelViewSet):
-    queryset = Paradigm.objects.all()
-    serializer_class = paradigmSerializer
-
-
-class programmerView(viewsets.ModelViewSet):
-    queryset = Programmer.objects.all()
-    serializer_class = programmerSerializer
-
 
 class FingerprintView(viewsets.ModelViewSet):
     queryset = Fingerprint.objects.all()
