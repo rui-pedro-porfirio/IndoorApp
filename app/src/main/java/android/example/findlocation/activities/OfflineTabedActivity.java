@@ -77,21 +77,17 @@ import okhttp3.Response;
 public class OfflineTabedActivity extends AppCompatActivity {
 
     private List<String> dataTypes;
-    private Map<String, Integer> preferences;
+    private Map<String, Float> preferences;
     private RetrieveSensorDataTask downloadSensorData;
     private List<Fingerprint> fingerprints;
     private OkHttpClient client;
-    private static final String ADDRESS = "http://192.168.1.4:8000/";
-
     private RecyclerView mFingerprintRecyclerView;
-
-    public static final MediaType JSON
-            = MediaType.get("application/json; charset=utf-8");
-
     private FingerprintAdapter mFingerprintAdapter;
 
 
-    public static final String FINGERPRINT_FILE = "fingeprint";
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private static final String ADDRESS = "http://192.168.1.9:8000/";
+    public static final String FINGERPRINT_FILE = "fingerprint";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +104,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
         tabs.getTabAt(2).setIcon(R.drawable.preferencesicon);
         client = new OkHttpClient();
         dataTypes = new ArrayList<String>();
-        preferences = new HashMap<String, Integer>();
+        preferences = new HashMap<String, Float>();
         fingerprints = new ArrayList<>();
         downloadSensorData = new RetrieveSensorDataTask(this);
         downloadSensorData.doInBackground();
@@ -165,14 +161,14 @@ public class OfflineTabedActivity extends AppCompatActivity {
         }
     }
 
-    public void addFingerprintListener(View view) {
+    public void addFingerprintListener(View view) throws InterruptedException {
         if (preferences.size() != 0) {
-            int numberOfFingerprints = preferences.get("Number of Fingerprints");
-            int interval = preferences.get("Time between Fingerprints");
+            int numberOfFingerprints = Math.round(preferences.get("Number of Fingerprints"));
+            int interval = Math.round(preferences.get("Time between Fingerprints"))*1000;
             for (int i = 0; i < numberOfFingerprints; i++) {
                 Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
-                startBackgroundService(); //STARTS FINGERPRINT COLLECTION AND SEND
-                //TODO: add interval between fingerprints in the same location
+                startBackgroundService(); //STARTS FINGERPRINT COLLECTION AND SEND;
+                Thread.sleep(interval);
             }
         } else {
             Toast.makeText(this, "Check preferences", Toast.LENGTH_SHORT).show();
@@ -239,11 +235,11 @@ public class OfflineTabedActivity extends AppCompatActivity {
         return contentBuilder.toString();
     }
 
-    public void setPreferences(Map<String, Integer> preferences) {
+    public void setPreferences(Map<String, Float> preferences) {
         this.preferences = preferences;
     }
 
-    public Map<String, Integer> getPreferences() {
+    public Map<String, Float> getPreferences() {
         return this.preferences;
     }
 
@@ -591,32 +587,17 @@ public class OfflineTabedActivity extends AppCompatActivity {
             Gson gson = new Gson();
             String fingerprintInJson = gson.toJson(serverFingerprint);
             String fingerprintId = "";
-            String deviceResponse = "";
-            String wifiResponse = "";
-            String bluetoothResponse = "";
             try {
-                fingerprintId = post(ADDRESS+"fingerprints/", fingerprintInJson, "id");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
-            String deviceDataInJson = gson.toJson(serverDeviceData);
-            try {
-                deviceResponse = post(ADDRESS+"device/", deviceDataInJson, "");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
-            String wifiDataInJson = gson.toJson(serverWifiData);
-            try {
-                wifiResponse = post(ADDRESS+"wifi/", wifiDataInJson, "");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
-            String bleDataInJson = gson.toJson(serverBluetoothData);
-            try {
-                bluetoothResponse = post(ADDRESS+"bluetooth/", bleDataInJson, "");
+                fingerprintId = post(ADDRESS + "fingerprints/", fingerprintInJson, "id");
+                serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+                String deviceDataInJson = gson.toJson(serverDeviceData);
+                post(ADDRESS + "device/", deviceDataInJson, "");
+                serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+                String wifiDataInJson = gson.toJson(serverWifiData);
+                post(ADDRESS + "wifi/", wifiDataInJson, "");
+                serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+                String bleDataInJson = gson.toJson(serverBluetoothData);
+                post(ADDRESS + "bluetooth/", bleDataInJson, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -626,7 +607,6 @@ public class OfflineTabedActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            Log.e("TAG", result); // this is expecting a response code to be sent from your server upon receiving the POST data
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)

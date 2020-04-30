@@ -25,7 +25,7 @@ import java.util.Map;
 public class TabPreferences extends Fragment {
 
 
-    private Map<String,Integer> preferences;
+    private Map<String,Float> preferences;
     @Override
     public View onCreateView(
             @NonNull LayoutInflater inflater, ViewGroup container,
@@ -37,11 +37,15 @@ public class TabPreferences extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        preferences = new HashMap<String,Integer>();
+        preferences = new HashMap<String,Float>();
         EditText mNumberOfFingerprints = view.findViewById(R.id.fingerprintPerLocationNumberId);
-        preferences.put("Number of Fingerprints",Integer.valueOf(mNumberOfFingerprints.getText().toString()));
+        preferences.put("Number of Fingerprints",Float.valueOf(mNumberOfFingerprints.getText().toString()));
         EditText mTimeBetweenFingerprints = view.findViewById(R.id.intervalBetweenFingerprintsNumberId);
-        preferences.put("Time between Fingerprints",Integer.valueOf(mTimeBetweenFingerprints.getText().toString()));
+        preferences.put("Time between Fingerprints",Float.valueOf(mTimeBetweenFingerprints.getText().toString()));
+        EditText mXCoordinate = view.findViewById(R.id.x_coordinateId);
+        preferences.put("X",Float.valueOf(mXCoordinate.getText().toString()));
+        EditText mYCoordinate = view.findViewById(R.id.y_coordinateId);
+        preferences.put("Y",Float.valueOf(mYCoordinate.getText().toString()));
         ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
         mNumberOfFingerprints.addTextChangedListener(new TextWatcher() {
             @Override
@@ -56,8 +60,10 @@ public class TabPreferences extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                preferences.put("Number of Fingerprints", Integer.valueOf(s.toString()));
-                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                if(!s.toString().equals("")) {
+                    preferences.put("Number of Fingerprints", Float.valueOf(s.toString()));
+                    ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                }
             }
         });
         mTimeBetweenFingerprints.addTextChangedListener(new TextWatcher() {
@@ -73,7 +79,41 @@ public class TabPreferences extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                preferences.put("Time between Fingerprints", Integer.valueOf(s.toString()));
+                preferences.put("Time between Fingerprints", Float.valueOf(s.toString()));
+                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+            }
+        });
+        mXCoordinate.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                preferences.put("X", Float.valueOf(s.toString()));
+                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+            }
+        });
+        mYCoordinate.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                preferences.put("Y", Float.valueOf(s.toString()));
                 ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
             }
         });
