@@ -61,4 +61,6 @@
     <string name="general_preferences_string">%s</string>
     <string name="ble">BLE</string>
     <string name="wi_fi">Wi-Fi</string>
+    <string name="x_coordinate_string">X Coordinate</string>
+    <string name="y_coordinate_string">Y Coordinate</string>
 </resources>

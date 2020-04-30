@@ -1,7 +1,9 @@
 package android.example.findlocation.activities;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -76,11 +78,10 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class OfflineTabedActivity extends AppCompatActivity {
+public class OfflineTabedActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
 
     private List<String> dataTypes;
     private Map<String, Float> preferences;
-    private RetrieveSensorDataTask downloadSensorData;
     private List<Fingerprint> fingerprints;
     private OkHttpClient client;
     private RecyclerView mFingerprintRecyclerView;
@@ -89,7 +90,14 @@ public class OfflineTabedActivity extends AppCompatActivity {
     private int numberOfFingerprints;
     private int interval;
     private int sentFingerprints;
+    private SensorManager mSensorManager;
+    private WifiManager wifiManager;
+    private BeaconManager beaconManager;
+    private List<WifiObject> mAccessPoints;
+    private List<BluetoothObject> mBeaconsList;
+    private List<SensorObject> mSensorInformationList;
 
+    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String ADDRESS = "http://192.168.1.7:8000/";
     public static final String FINGERPRINT_FILE = "fingerprint";
@@ -115,8 +123,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
         interval = 0;
         numberOfFingerprints = 0;
         sentFingerprints = 0;
-        downloadSensorData = new RetrieveSensorDataTask(this);
-        downloadSensorData.doInBackground();
+        activateSensorScan();
     }
 
     public void populateRecycleView(View view) {
@@ -128,9 +135,15 @@ public class OfflineTabedActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        mSensorManager.unregisterListener(this);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        downloadSensorData.destroy();
+        beaconManager.unbind(this);
     }
 
     public void onCheckboxClicked(View view) {
@@ -182,9 +195,23 @@ public class OfflineTabedActivity extends AppCompatActivity {
     }
 
     public void startBackgroundService() {
-        if(sentFingerprints < numberOfFingerprints) {
+
+        mSensorInformationList = new ArrayList<>();
+        mAccessPoints = new ArrayList<>();
+        mBeaconsList = new ArrayList<>();
+
+        if (sentFingerprints < numberOfFingerprints) {
+            if (sentFingerprints != 0) {
+                try {
+                    Thread.sleep(interval);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
-            downloadSensorData.scanData();
+            scanData();
+        } else {
+            sentFingerprints = 0;
         }
     }
 
@@ -409,193 +436,192 @@ public class OfflineTabedActivity extends AppCompatActivity {
     }
 
 
-    public class RetrieveSensorDataTask implements SensorEventListener, BeaconConsumer {
+    protected void activateSensorScan() {
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensorInformationList = new ArrayList<>();
+        getAvailableDeviceSensors();
 
+        //BLUETOOTH SENSOR
+        mBeaconsList = new ArrayList<>();
+        beaconManager = BeaconManager.getInstanceForApplication(this);
+        beaconManager.getBeaconParsers().clear();
+        beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
+        beaconManager.bind(this);
+        verifyBluetooth();
 
-        private Context mContext;
-        private SensorManager mSensorManager;
-        private WifiManager wifiManager;
-        //iBeacon unique identifier for Alt-Beacon
-        private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
+        //WI-FI SENSOR
+        mAccessPoints = new ArrayList<>();
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(true);
 
-        //Sensor Managers
-        private BeaconManager beaconManager;
-        private List<WifiObject> mAccessPoints;
-        private List<BluetoothObject> mBeaconsList;
-        private List<SensorObject> mSensorInformationList;
+        registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        wifiManager.startScan();
+    }
 
+    public void scanData() {
 
-        public RetrieveSensorDataTask(Context context) {
-            mContext = context;
-        }
+        CountDownTimer waitTimer;
+        waitTimer = new CountDownTimer(10000, 300) {
 
-        protected void doInBackground() {
-            mSensorManager = (SensorManager) mContext.getSystemService(mContext.SENSOR_SERVICE);
-            mSensorInformationList = new ArrayList<>();
-            getAvailableDeviceSensors();
+            public void onTick(long millisUntilFinished) {
+            }
 
-            //BLUETOOTH SENSOR
-            mBeaconsList = new ArrayList<>();
-            beaconManager = BeaconManager.getInstanceForApplication(mContext);
-            beaconManager.getBeaconParsers().clear();
-            beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
-            beaconManager.bind(this);
-
-            //WI-FI SENSOR
-            mAccessPoints = new ArrayList<>();
-            wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-            wifiManager.setWifiEnabled(true);
-
-            registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-            wifiManager.startScan();
-        }
-
-        public void scanData() {
-
-            CountDownTimer waitTimer;
-            waitTimer = new CountDownTimer(10000, 300) {
-
-                public void onTick(long millisUntilFinished) {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            public void onFinish() {
+                if (!dataTypes.contains("Wi-fi")) {
+                    mAccessPoints = new ArrayList<>();
+                }
+                if (!dataTypes.contains("Bluetooth")) {
+                    mBeaconsList = new ArrayList<>();
+                }
+                if (!dataTypes.contains("DeviceData")) {
+                    mSensorInformationList = new ArrayList<>();
                 }
 
-                @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-                public void onFinish() {
-                    if (!dataTypes.contains("Wi-fi")) {
-                        mAccessPoints = new ArrayList<>();
-                    }
-                    if (!dataTypes.contains("Bluetooth")) {
-                        mBeaconsList = new ArrayList<>();
-                    }
-                    if (!dataTypes.contains("DeviceData")) {
-                        mSensorInformationList = new ArrayList<>();
-                    }
+                onPostExecute(new Fingerprint(preferences.get("X"), preferences.get("Y"), mSensorInformationList, mBeaconsList, mAccessPoints));
+            }
+        }.start();
+    }
 
-                    onPostExecute(new Fingerprint(preferences.get("X"), preferences.get("Y"), mSensorInformationList, mBeaconsList, mAccessPoints));
-                }
-            }.start();
-        }
-
-        public void getAvailableDeviceSensors() {
-            float[] defaultValues = new float[3];
-            defaultValues[0] = 0f;
-            defaultValues[1] = 0f;
-            defaultValues[2] = 0f;
-            Sensor orientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-            mSensorManager.registerListener(this, orientation,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-            SensorObject sensorInfo = new SensorObject(orientation.getName(), defaultValues);
-            mSensorInformationList.add(sensorInfo);
-        }
+    public void getAvailableDeviceSensors() {
+        float[] defaultValues = new float[3];
+        defaultValues[0] = 0f;
+        defaultValues[1] = 0f;
+        defaultValues[2] = 0f;
+        Sensor orientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        mSensorManager.registerListener(this, orientation,
+                SensorManager.SENSOR_DELAY_NORMAL);
+        SensorObject sensorInfo = new SensorObject(orientation.getName(), defaultValues);
+        mSensorInformationList.add(sensorInfo);
+    }
 
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-        protected void onPostExecute(Fingerprint fingerprint) {
-            //SEND FINGERPRINT
-            computeFingerprint(fingerprint);
-            System.out.println("Device Data Done");
-        }
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    protected void onPostExecute(Fingerprint fingerprint) {
+        //SEND FINGERPRINT
+        computeFingerprint(fingerprint);
+        System.out.println("Device Data Done");
+    }
 
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            Sensor sensorDetected = event.sensor;
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        Sensor sensorDetected = event.sensor;
+        if (mSensorInformationList.size() != 0) {
             SensorObject sensorInList = mSensorInformationList.get(0);
             if (sensorDetected.getName().equals(sensorInList.getName())) {
                 sensorInList.setValue(event.values);
             }
         }
+    }
 
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
+        public void onReceive(Context c, Intent intent) {
+            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+                scanSuccess();
+            }
         }
+    };
 
-        private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+    private void scanSuccess() {
+        List<ScanResult> results = wifiManager.getScanResults();
+        for (ScanResult result : results
+        ) {
+            int rssi = result.level;
+            boolean found = false;
+            for (int i = 0; i < mAccessPoints.size(); i++) {
+                WifiObject resultInList = mAccessPoints.get(i);
+                if (resultInList.getName().equals(result.BSSID)) {
+                    resultInList.setSingleValue(rssi);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found == false) {
+                WifiObject ap = new WifiObject(result.BSSID, result.level);
+                mAccessPoints.add(ap);
+            }
+        }
+    }
+
+
+    @Override
+    public void onBeaconServiceConnect() {
+        beaconManager.removeAllRangeNotifiers();
+        beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
-            public void onReceive(Context c, Intent intent) {
-                if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                    scanSuccess();
-                }
-            }
-        };
+            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
+                if (beacons.size() > 0) {
 
-        private void scanSuccess() {
-            List<ScanResult> results = wifiManager.getScanResults();
-            for (ScanResult result : results
-            ) {
-                int rssi = result.level;
-                boolean found = false;
-                for (int i = 0; i < mAccessPoints.size(); i++) {
-                    WifiObject resultInList = mAccessPoints.get(i);
-                    if (resultInList.getName().equals(result.BSSID)) {
-                        resultInList.setSingleValue(rssi);
-                        found = true;
-                        break;
+                    Beacon beaconScanned = beacons.iterator().next();
+                    int rss = beaconScanned.getRssi();
+                    boolean found = false;
+                    for (int i = 0; i < mBeaconsList.size(); i++) {
+                        BluetoothObject beaconfound = mBeaconsList.get(i);
+                        if (beaconfound.getName().equals(beaconScanned.getBluetoothAddress())) {
+                            beaconfound.setSingleValue(rss);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found == false) {
+                        BluetoothObject beacon = new BluetoothObject(beaconScanned.getBluetoothAddress(), rss);
+                        mBeaconsList.add(beacon);
                     }
                 }
-
-                if (found == false) {
-                    WifiObject ap = new WifiObject(result.BSSID, result.level);
-                    mAccessPoints.add(ap);
-                }
             }
+        });
+        try {
+            beaconManager.startRangingBeaconsInRegion(new Region("uniqueIdRegion", null, null, null));
+        } catch (
+                RemoteException e) {
         }
+    }
 
+    private void verifyBluetooth() {
 
-        @Override
-        public void onBeaconServiceConnect() {
-            beaconManager.removeAllRangeNotifiers();
-            beaconManager.addRangeNotifier(new RangeNotifier() {
+        try {
+            if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Bluetooth not enabled");
+                builder.setMessage("Please enable bluetooth in settings and restart this application.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        //finish();
+                        //System.exit(0);
+                    }
+                });
+                builder.show();
+            }
+        } catch (RuntimeException e) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Bluetooth LE not available");
+            builder.setMessage("Sorry, this device does not support Bluetooth LE.");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
                 @Override
-                public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                    if (beacons.size() > 0) {
-
-                        Beacon beaconScanned = beacons.iterator().next();
-                        int rss = beaconScanned.getRssi();
-                        boolean found = false;
-                        for (int i = 0; i < mBeaconsList.size(); i++) {
-                            BluetoothObject beaconfound = mBeaconsList.get(i);
-                            if (beaconfound.getName().equals(beaconScanned.getBluetoothAddress())) {
-                                beaconfound.setSingleValue(rss);
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (found == false) {
-                            BluetoothObject beacon = new BluetoothObject(beaconScanned.getBluetoothAddress(), rss);
-                            mBeaconsList.add(beacon);
-                        }
-                    }
+                public void onDismiss(DialogInterface dialog) {
+                    //finish();
+                    //System.exit(0);
                 }
+
             });
-            try {
-                beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-            } catch (
-                    RemoteException e) {
-            }
-        }
+            builder.show();
 
-        @Override
-        public Context getApplicationContext() {
-            return mContext;
-        }
-
-        @Override
-        public void unbindService(ServiceConnection serviceConnection) {
-            beaconManager.unbind(this);
-        }
-
-        @Override
-        public boolean bindService(Intent intent, ServiceConnection serviceConnection, int i) {
-            return false;
-        }
-
-        public void destroy() {
-            unregisterReceiver(wifiScanReceiver);
-            mSensorManager.unregisterListener(this);
         }
 
     }
+
 
     private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
 

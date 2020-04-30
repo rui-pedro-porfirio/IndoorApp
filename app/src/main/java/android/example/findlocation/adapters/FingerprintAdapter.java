@@ -44,7 +44,7 @@ public class FingerprintAdapter extends
         }
         if (mFingerprint.getmBeaconsList().size() > 0) {
             int rssi = mFingerprint.getmBeaconsList().get(0).getSingleValue();
-            holder.bluetoothFirstBeaconView.setText(rssi);
+            holder.bluetoothFirstBeaconView.setText(String.valueOf(rssi));
         }
         if (mFingerprint.getmAccessPoints().size() > 0) {
             int rssi = mFingerprint.getmAccessPoints().get(0).getSingleValue();

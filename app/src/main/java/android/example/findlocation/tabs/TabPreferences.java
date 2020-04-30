@@ -42,9 +42,9 @@ public class TabPreferences extends Fragment {
         preferences.put("Number of Fingerprints",Float.valueOf(mNumberOfFingerprints.getText().toString()));
         EditText mTimeBetweenFingerprints = view.findViewById(R.id.intervalBetweenFingerprintsNumberId);
         preferences.put("Time between Fingerprints",Float.valueOf(mTimeBetweenFingerprints.getText().toString()));
-        EditText mXCoordinate = view.findViewById(R.id.x_coordinateId);
+        EditText mXCoordinate = view.findViewById(R.id.xCoordinateValueId);
         preferences.put("X",Float.valueOf(mXCoordinate.getText().toString()));
-        EditText mYCoordinate = view.findViewById(R.id.y_coordinateId);
+        EditText mYCoordinate = view.findViewById(R.id.yCoordinateValueId);
         preferences.put("Y",Float.valueOf(mYCoordinate.getText().toString()));
         ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
         mNumberOfFingerprints.addTextChangedListener(new TextWatcher() {
