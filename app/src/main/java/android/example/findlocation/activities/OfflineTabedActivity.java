@@ -67,6 +67,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -84,7 +86,9 @@ public class OfflineTabedActivity extends AppCompatActivity {
     private RecyclerView mFingerprintRecyclerView;
     private FingerprintAdapter mFingerprintAdapter;
     private String fingerprintId;
-
+    private int numberOfFingerprints;
+    private int interval;
+    private int sentFingerprints;
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String ADDRESS = "http://192.168.1.7:8000/";
@@ -108,6 +112,9 @@ public class OfflineTabedActivity extends AppCompatActivity {
         preferences = new HashMap<String, Float>();
         fingerprints = new ArrayList<>();
         fingerprintId = "";
+        interval = 0;
+        numberOfFingerprints = 0;
+        sentFingerprints = 0;
         downloadSensorData = new RetrieveSensorDataTask(this);
         downloadSensorData.doInBackground();
     }
@@ -164,21 +171,21 @@ public class OfflineTabedActivity extends AppCompatActivity {
     }
 
     public void addFingerprintListener(View view) throws InterruptedException {
+
         if (preferences.size() != 0) {
-            int numberOfFingerprints = Math.round(preferences.get("Number of Fingerprints"));
-            int interval = Math.round(preferences.get("Time between Fingerprints")) * 1000;
-            for (int i = 0; i < numberOfFingerprints; i++) {
-                Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
-                startBackgroundService(); //STARTS FINGERPRINT COLLECTION AND SEND;
-                //TODO: Add mechanism to loop between scans
-            }
+            numberOfFingerprints = Math.round(preferences.get("Number of Fingerprints"));
+            interval = Math.round(preferences.get("Time between Fingerprints")) * 1000;
+            startBackgroundService(); //STARTS FINGERPRINT COLLECTION AND SEND
         } else {
             Toast.makeText(this, "Check preferences", Toast.LENGTH_SHORT).show();
         }
     }
 
     public void startBackgroundService() {
-        downloadSensorData.scanData();
+        if(sentFingerprints < numberOfFingerprints) {
+            Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
+            downloadSensorData.scanData();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -206,15 +213,17 @@ public class OfflineTabedActivity extends AppCompatActivity {
             ServerDeviceData serverDeviceData = new ServerDeviceData(deviceSensorScanned.getName(), deviceSensorScanned.getX_value(), deviceSensorScanned.getY_value(), deviceSensorScanned.getZ_value());
             sendDeviceHTTPRequest(serverDeviceData);
         }
-        for(WifiObject accessPoint: fingerprint.getmAccessPoints()) {
+        for (WifiObject accessPoint : fingerprint.getmAccessPoints()) {
             ServerWifiData serverWifiData = new ServerWifiData(accessPoint.getName(), accessPoint.getSingleValue());
             sendWiFiHTTPRequest(serverWifiData);
         }
-        for(BluetoothObject beacon: fingerprint.getmBeaconsList()) {
-            ServerBluetoothData serverBluetoothData = new ServerBluetoothData(beacon.getName(),beacon.getSingleValue());
+        for (BluetoothObject beacon : fingerprint.getmBeaconsList()) {
+            ServerBluetoothData serverBluetoothData = new ServerBluetoothData(beacon.getName(), beacon.getSingleValue());
             sendBLERequest(serverBluetoothData);
         }
         Toast.makeText(this, "Fingerprint Created and Sent to Server", Toast.LENGTH_SHORT).show();
+        sentFingerprints++;
+        startBackgroundService();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -442,7 +451,6 @@ public class OfflineTabedActivity extends AppCompatActivity {
         }
 
         public void scanData() {
-
 
             CountDownTimer waitTimer;
             waitTimer = new CountDownTimer(10000, 300) {
