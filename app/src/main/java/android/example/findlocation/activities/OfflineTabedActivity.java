@@ -83,10 +83,11 @@ public class OfflineTabedActivity extends AppCompatActivity {
     private OkHttpClient client;
     private RecyclerView mFingerprintRecyclerView;
     private FingerprintAdapter mFingerprintAdapter;
+    private String fingerprintId;
 
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.9:8000/";
+    private static final String ADDRESS = "http://192.168.1.7:8000/";
     public static final String FINGERPRINT_FILE = "fingerprint";
 
     @Override
@@ -106,6 +107,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
         dataTypes = new ArrayList<String>();
         preferences = new HashMap<String, Float>();
         fingerprints = new ArrayList<>();
+        fingerprintId = "";
         downloadSensorData = new RetrieveSensorDataTask(this);
         downloadSensorData.doInBackground();
     }
@@ -164,11 +166,11 @@ public class OfflineTabedActivity extends AppCompatActivity {
     public void addFingerprintListener(View view) throws InterruptedException {
         if (preferences.size() != 0) {
             int numberOfFingerprints = Math.round(preferences.get("Number of Fingerprints"));
-            int interval = Math.round(preferences.get("Time between Fingerprints"))*1000;
+            int interval = Math.round(preferences.get("Time between Fingerprints")) * 1000;
             for (int i = 0; i < numberOfFingerprints; i++) {
                 Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
                 startBackgroundService(); //STARTS FINGERPRINT COLLECTION AND SEND;
-                Thread.sleep(interval);
+                //TODO: Add mechanism to loop between scans
             }
         } else {
             Toast.makeText(this, "Check preferences", Toast.LENGTH_SHORT).show();
@@ -190,7 +192,6 @@ public class OfflineTabedActivity extends AppCompatActivity {
         fingerprints.add(newFingerprint);
         ServerFingerprint fingerprintToSend = new ServerFingerprint(newFingerprint.getX_coordinate(), newFingerprint.getY_coordinate());
         mFingerprintAdapter.notifyDataSetChanged();
-        //TODO: write to json file
         File targetFile = null;
         try {
             targetFile = writeToFile(FINGERPRINT_FILE);
@@ -200,23 +201,44 @@ public class OfflineTabedActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //TODO: Add HTTP REQUESTS
-        SensorObject sensorObject = fingerprint.getmSensorInformationList().get(0);
-        ServerDeviceData serverDeviceData = new ServerDeviceData(sensorObject.getName(), sensorObject.getX_value(), sensorObject.getY_value(), sensorObject.getZ_value());
-        WifiObject wifiObject = fingerprint.getmAccessPoints().get(0);
-        ServerWifiData serverWifiData = new ServerWifiData(wifiObject.getName(), wifiObject.getSingleValue());
-        //BluetoothObject bleObject = fingerprint.getmBeaconsList().get(0);
-        ServerBluetoothData serverBluetoothData = new ServerBluetoothData("testBLE", -60);
-        sendFingerprintToServer(fingerprintToSend, serverDeviceData, serverWifiData, serverBluetoothData);
-
-        //TODO: Create final Toast
+        sendFingerprintHTTPRequest(fingerprintToSend);
+        for (SensorObject deviceSensorScanned : fingerprint.getmSensorInformationList()) {
+            ServerDeviceData serverDeviceData = new ServerDeviceData(deviceSensorScanned.getName(), deviceSensorScanned.getX_value(), deviceSensorScanned.getY_value(), deviceSensorScanned.getZ_value());
+            sendDeviceHTTPRequest(serverDeviceData);
+        }
+        for(WifiObject accessPoint: fingerprint.getmAccessPoints()) {
+            ServerWifiData serverWifiData = new ServerWifiData(accessPoint.getName(), accessPoint.getSingleValue());
+            sendWiFiHTTPRequest(serverWifiData);
+        }
+        for(BluetoothObject beacon: fingerprint.getmBeaconsList()) {
+            ServerBluetoothData serverBluetoothData = new ServerBluetoothData(beacon.getName(),beacon.getSingleValue());
+            sendBLERequest(serverBluetoothData);
+        }
         Toast.makeText(this, "Fingerprint Created and Sent to Server", Toast.LENGTH_SHORT).show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void sendFingerprintToServer(ServerFingerprint fingerprint, ServerDeviceData serverDeviceData, ServerWifiData serverWifiData, ServerBluetoothData serverBluetoothData) {
+    public void sendFingerprintHTTPRequest(ServerFingerprint fingerprint) {
         //SEND DATA TO SERVER - POST FINGERPRINT THEN DEVICE THEN BLUETOOTH THEN WIFI
-        new SendDeviceDetails(fingerprint, serverDeviceData, serverWifiData, serverBluetoothData).execute();
+        new SendHTTPRequest(fingerprint).execute();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void sendDeviceHTTPRequest(ServerDeviceData deviceData) {
+        //SEND DATA TO SERVER - POST FINGERPRINT THEN DEVICE THEN BLUETOOTH THEN WIFI
+        new SendHTTPRequest(deviceData).execute();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void sendWiFiHTTPRequest(ServerWifiData wifiData) {
+        //SEND DATA TO SERVER - POST FINGERPRINT THEN DEVICE THEN BLUETOOTH THEN WIFI
+        new SendHTTPRequest(wifiData).execute();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void sendBLERequest(ServerBluetoothData bluetoothData) {
+        //SEND DATA TO SERVER - POST FINGERPRINT THEN DEVICE THEN BLUETOOTH THEN WIFI
+        new SendHTTPRequest(bluetoothData).execute();
     }
 
 
@@ -440,7 +462,7 @@ public class OfflineTabedActivity extends AppCompatActivity {
                         mSensorInformationList = new ArrayList<>();
                     }
 
-                    onPostExecute(new Fingerprint(19.96f, 19.96f, mSensorInformationList, mBeaconsList, mAccessPoints));
+                    onPostExecute(new Fingerprint(preferences.get("X"), preferences.get("Y"), mSensorInformationList, mBeaconsList, mAccessPoints));
                 }
             }.start();
         }
@@ -567,18 +589,39 @@ public class OfflineTabedActivity extends AppCompatActivity {
 
     }
 
-    private class SendDeviceDetails extends AsyncTask<Void, Void, String> {
+    private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
 
         private ServerFingerprint serverFingerprint;
         private ServerDeviceData serverDeviceData;
         private ServerWifiData serverWifiData;
         private ServerBluetoothData serverBluetoothData;
 
-        private SendDeviceDetails(ServerFingerprint fingerprint, ServerDeviceData serverDeviceData, ServerWifiData serverWifiData, ServerBluetoothData serverBluetoothData) {
+        private SendHTTPRequest(ServerFingerprint fingerprint) {
             this.serverFingerprint = fingerprint;
-            this.serverDeviceData = serverDeviceData;
-            this.serverWifiData = serverWifiData;
-            this.serverBluetoothData = serverBluetoothData;
+            this.serverDeviceData = null;
+            this.serverWifiData = null;
+            this.serverBluetoothData = null;
+        }
+
+        private SendHTTPRequest(ServerDeviceData deviceData) {
+            this.serverFingerprint = null;
+            this.serverDeviceData = deviceData;
+            this.serverWifiData = null;
+            this.serverBluetoothData = null;
+        }
+
+        private SendHTTPRequest(ServerWifiData wifiData) {
+            this.serverFingerprint = null;
+            this.serverDeviceData = null;
+            this.serverWifiData = wifiData;
+            this.serverBluetoothData = null;
+        }
+
+        private SendHTTPRequest(ServerBluetoothData bluetoothData) {
+            this.serverFingerprint = null;
+            this.serverDeviceData = null;
+            this.serverWifiData = null;
+            this.serverBluetoothData = bluetoothData;
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -586,18 +629,29 @@ public class OfflineTabedActivity extends AppCompatActivity {
         protected String doInBackground(Void... voids) {
             Gson gson = new Gson();
             String fingerprintInJson = gson.toJson(serverFingerprint);
-            String fingerprintId = "";
             try {
-                fingerprintId = post(ADDRESS + "fingerprints/", fingerprintInJson, "id");
-                serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
-                String deviceDataInJson = gson.toJson(serverDeviceData);
-                post(ADDRESS + "device/", deviceDataInJson, "");
-                serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
-                String wifiDataInJson = gson.toJson(serverWifiData);
-                post(ADDRESS + "wifi/", wifiDataInJson, "");
-                serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
-                String bleDataInJson = gson.toJson(serverBluetoothData);
-                post(ADDRESS + "bluetooth/", bleDataInJson, "");
+                if (serverFingerprint != null) {
+                    fingerprintId = post(ADDRESS + "fingerprints/", fingerprintInJson, "id");
+                }
+                if (!fingerprintId.equals("")) {
+                    if (serverDeviceData != null) {
+                        serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+                        String deviceDataInJson = gson.toJson(serverDeviceData);
+                        post(ADDRESS + "device/", deviceDataInJson, "");
+                    }
+                    if (serverWifiData != null) {
+                        serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+                        String wifiDataInJson = gson.toJson(serverWifiData);
+                        post(ADDRESS + "wifi/", wifiDataInJson, "");
+                    }
+                    if (serverBluetoothData != null) {
+                        serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
+                        String bleDataInJson = gson.toJson(serverBluetoothData);
+                        post(ADDRESS + "bluetooth/", bleDataInJson, "");
+                    }
+                } else {
+                    throw new IOException("Fingerprint Id missing");
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
