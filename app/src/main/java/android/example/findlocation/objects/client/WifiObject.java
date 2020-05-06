@@ -40,4 +40,5 @@ public class WifiObject {
     public void setSingleValue(int singleValue) {
         this.singleValue = singleValue;
     }
+
 }

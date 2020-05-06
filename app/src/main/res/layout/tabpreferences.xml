@@ -166,8 +166,8 @@
                 android:layout_marginStart="10dp"
                 android:ems="6"
                 android:gravity="center"
-                android:inputType="numberDecimal"
-                android:text="10.02" />
+                android:inputType="numberDecimal|numberSigned"
+                android:text="0" />
 
         </LinearLayout>
 
@@ -193,8 +193,8 @@
                 android:layout_marginStart="10dp"
                 android:ems="6"
                 android:gravity="center"
-                android:inputType="numberDecimal"
-                android:text="10.02" />
+                android:inputType="numberDecimal|numberSigned"
+                android:text="0" />
 
         </LinearLayout>
     </LinearLayout>

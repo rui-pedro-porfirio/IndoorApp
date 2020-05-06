@@ -96,8 +96,10 @@ public class TabPreferences extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                preferences.put("X", Float.valueOf(s.toString()));
-                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                if(!s.toString().equals("")) {
+                    preferences.put("X", Float.valueOf(s.toString()));
+                    ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                }
             }
         });
         mYCoordinate.addTextChangedListener(new TextWatcher() {
@@ -113,8 +115,10 @@ public class TabPreferences extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                preferences.put("Y", Float.valueOf(s.toString()));
-                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                if(!s.toString().equals("")) {
+                    preferences.put("Y", Float.valueOf(s.toString()));
+                    ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                }
             }
         });
     }

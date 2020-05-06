@@ -99,7 +99,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.7:8000/";
+    private static final String ADDRESS = "http://192.168.1.9:8000/";
     public static final String FINGERPRINT_FILE = "fingerprint";
 
     @Override
@@ -123,6 +123,12 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         interval = 0;
         numberOfFingerprints = 0;
         sentFingerprints = 0;
+        activateSensorScan();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         activateSensorScan();
     }
 
@@ -195,10 +201,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     }
 
     public void startBackgroundService() {
-
-        mSensorInformationList = new ArrayList<>();
-        mAccessPoints = new ArrayList<>();
-        mBeaconsList = new ArrayList<>();
 
         if (sentFingerprints < numberOfFingerprints) {
             if (sentFingerprints != 0) {
@@ -506,8 +508,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor sensorDetected = event.sensor;
-        if (mSensorInformationList.size() != 0) {
-            SensorObject sensorInList = mSensorInformationList.get(0);
+        for(SensorObject sensorInList: mSensorInformationList){
             if (sensorDetected.getName().equals(sensorInList.getName())) {
                 sensorInList.setValue(event.values);
             }

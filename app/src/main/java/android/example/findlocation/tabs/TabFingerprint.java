@@ -50,7 +50,7 @@ public class TabFingerprint extends Fragment {
         String longDescription = "Go to the position you want to scan for fingerprints.\n" +
                 "Click on the button \"ADD FINGERPRINTS\"\n" +
                 "Wait until the scan is over\n" +
-                "Go to the next position and start again";
+                "Repeat the above steps for each position you which to scan\n";
 
         TextView description = (TextView) view.findViewById(R.id.fingerprintprocessId);
 
