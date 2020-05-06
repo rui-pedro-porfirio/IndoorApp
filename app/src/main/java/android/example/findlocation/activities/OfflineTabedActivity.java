@@ -99,7 +99,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.9:8000/";
+    private static final String ADDRESS = "http://192.168.1.4:8000/";
     public static final String FINGERPRINT_FILE = "fingerprint";
 
     @Override
