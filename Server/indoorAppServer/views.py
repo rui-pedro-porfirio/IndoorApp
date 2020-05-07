@@ -121,7 +121,7 @@ def jsonToFile():
         list_json_fingerprints.append(dictionary_fingerprint)
     dict_fingerprints = {'fingerprints': list_json_fingerprints}
     with open('radiomap.json', 'w') as outfile:
-        json.dump(dict_fingerprints, outfile,cls=DjangoJSONEncoder)
+        json.dump(dict_fingerprints, outfile,cls=DjangoJSONEncoder, indent=3)
 
 
 class FilterView(APIView):
