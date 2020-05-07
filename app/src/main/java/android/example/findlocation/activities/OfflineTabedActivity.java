@@ -42,6 +42,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.util.JsonWriter;
 import android.util.Log;
@@ -61,9 +62,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,11 +103,13 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     private List<WifiObject> mAccessPoints;
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
+    private File targetFile;
+    private  Writer writer;
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.4:8000/";
-    public static final String FINGERPRINT_FILE = "fingerprint";
+    private static final String ADDRESS = "http://192.168.1.7:8000/";
+    public static final String FINGERPRINT_FILE = "radio_map";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +132,12 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         interval = 0;
         numberOfFingerprints = 0;
         sentFingerprints = 0;
+        targetFile = writeToFile(FINGERPRINT_FILE);
+        try {
+            writer = new FileWriter(targetFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         activateSensorScan();
     }
 
@@ -149,7 +164,13 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         beaconManager.unbind(this);
+        unregisterReceiver(wifiScanReceiver);
     }
 
     public void onCheckboxClicked(View view) {
@@ -214,6 +235,8 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
             scanData();
         } else {
             sentFingerprints = 0;
+            Gson gson = new Gson();
+            gson.toJson(fingerprints,writer);
         }
     }
 
@@ -228,15 +251,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         fingerprints.add(newFingerprint);
         ServerFingerprint fingerprintToSend = new ServerFingerprint(newFingerprint.getX_coordinate(), newFingerprint.getY_coordinate());
         mFingerprintAdapter.notifyDataSetChanged();
-        File targetFile = null;
-        try {
-            targetFile = writeToFile(FINGERPRINT_FILE);
-            writeJsonStreamSensorData(new FileOutputStream(targetFile, true), fingerprint.getmSensorInformationList());
-            writeJsonStreamBLE(new FileOutputStream(targetFile, true), fingerprint.getmBeaconsList());
-            writeJsonStreamWiFi(new FileOutputStream(targetFile, true), fingerprint.getmAccessPoints());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         sendFingerprintHTTPRequest(fingerprintToSend);
         for (SensorObject deviceSensorScanned : fingerprint.getmSensorInformationList()) {
             ServerDeviceData serverDeviceData = new ServerDeviceData(deviceSensorScanned.getName(), deviceSensorScanned.getX_value(), deviceSensorScanned.getY_value(), deviceSensorScanned.getZ_value());
@@ -250,7 +264,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
             ServerBluetoothData serverBluetoothData = new ServerBluetoothData(beacon.getName(), beacon.getSingleValue());
             sendBLERequest(serverBluetoothData);
         }
-        Toast.makeText(this, "Fingerprint Created and Sent to Server", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Fingerprint Created and being sent to Server", Toast.LENGTH_SHORT).show();
         sentFingerprints++;
         startBackgroundService();
     }
@@ -279,22 +293,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         new SendHTTPRequest(bluetoothData).execute();
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private String usingBufferedReader(String filePath) {
-        StringBuilder contentBuilder = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-
-            String sCurrentLine;
-            while ((sCurrentLine = br.readLine()) != null) {
-                contentBuilder.append(sCurrentLine).append("\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return contentBuilder.toString();
-    }
-
     public void setPreferences(Map<String, Float> preferences) {
         this.preferences = preferences;
     }
@@ -308,119 +306,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     }
 
 
-    //WRITE TO JSON FILE
-
-    public void writeJsonStreamSensorData(OutputStream out, List<SensorObject> values) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
-        writer.setIndent("  ");
-        writeMessagesArraySensorData(writer, values);
-        writer.close();
-    }
-
-    public void writeMessagesArraySensorData(JsonWriter writer, List<SensorObject> values) throws IOException {
-        writer.beginObject();
-        writer.name("Device Sensors");
-        writer.beginArray();
-        for (SensorObject sensor : values
-        ) {
-            writeMessageSensorData(writer, sensor);
-        }
-        writer.endArray();
-        writer.endObject();
-    }
-
-    public void writeMessageSensorData(JsonWriter writer, SensorObject sensor) throws IOException {
-        writer.beginObject();
-        writer.name("sensorName").value(sensor.getName());
-        writer.name("samples");
-        writeListArraySensorData(writer, sensor.getValues());
-        writer.endObject();
-    }
-
-
-    public void writeListArraySensorData(JsonWriter writer, float[] scannedValues) throws IOException {
-        writer.beginObject();
-        writer.name("Sample").value(0);
-        writer.name("values");
-        writer.beginArray();
-        for (Float f : scannedValues
-        ) {
-            if (!Float.isNaN(f))
-                writer.value(f);
-        }
-        writer.endArray();
-        writer.endObject();
-
-    }
-
-    public void writeJsonStreamBLE(OutputStream out, List<BluetoothObject> values) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
-        writer.setIndent("  ");
-        writeMessagesArrayBLE(writer, values);
-        writer.close();
-    }
-
-    public void writeMessagesArrayBLE(JsonWriter writer, List<BluetoothObject> values) throws IOException {
-        writer.beginObject();
-        writer.name("BLE");
-        writer.beginArray();
-        for (BluetoothObject sensor : values
-        ) {
-            writeMessageBLE(writer, sensor);
-        }
-        writer.endArray();
-        writer.endObject();
-    }
-
-    public void writeMessageBLE(JsonWriter writer, BluetoothObject sensor) throws IOException {
-        writer.beginObject();
-        writer.name("sensorName").value(sensor.getName());
-        writer.name("samples");
-        writeListArrayBLE(writer, sensor.getSingleValue());
-        writer.endObject();
-    }
-
-
-    public void writeListArrayBLE(JsonWriter writer, Integer scannedValue) throws IOException {
-        writer.beginObject();
-        writer.name("RSSI").value(scannedValue);
-        writer.endObject();
-    }
-
-    public void writeJsonStreamWiFi(OutputStream out, List<WifiObject> values) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
-        writer.setIndent("  ");
-        writeMessagesArrayWiFi(writer, values);
-        writer.close();
-    }
-
-    public void writeMessagesArrayWiFi(JsonWriter writer, List<WifiObject> values) throws IOException {
-        writer.beginObject();
-        writer.name("Wi-Fi");
-        writer.beginArray();
-        for (WifiObject sensor : values
-        ) {
-            writeMessageWiFi(writer, sensor);
-        }
-        writer.endArray();
-        writer.endObject();
-    }
-
-    public void writeMessageWiFi(JsonWriter writer, WifiObject sensor) throws IOException {
-        writer.beginObject();
-        writer.name("sensorName").value(sensor.getName());
-        writer.name("samples");
-        writeListArrayWiFi(writer, sensor.getSingleValue());
-        writer.endObject();
-    }
-
-
-    public void writeListArrayWiFi(JsonWriter writer, Integer scannedValue) throws IOException {
-        writer.beginObject();
-        writer.name("RSSI").value(scannedValue);
-        writer.endObject();
-    }
-
     public File writeToFile(String sFileName) {
 
         File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
@@ -429,10 +314,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
             root.mkdirs(); // this will create folder.
         }
         File filepath = new File(root, sFileName + ".json");  // file path to save
-        if (filepath.exists()) {
-            filepath.delete();
-            filepath = new File(root, sFileName + ".json");
-        }
         return filepath;
 
     }
@@ -508,7 +389,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor sensorDetected = event.sensor;
-        for(SensorObject sensorInList: mSensorInformationList){
+        for (SensorObject sensorInList : mSensorInformationList) {
             if (sensorDetected.getName().equals(sensorInList.getName())) {
                 sensorInList.setValue(event.values);
             }
@@ -659,12 +540,15 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
             this.serverBluetoothData = bluetoothData;
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         protected String doInBackground(Void... voids) {
             Gson gson = new Gson();
-            String fingerprintInJson = gson.toJson(serverFingerprint);
+            String fingerprintInJson = null;
+
             try {
+                fingerprintInJson = gson.toJson(serverFingerprint);
+
                 if (serverFingerprint != null) {
                     fingerprintId = post(ADDRESS + "fingerprints/", fingerprintInJson, "id");
                 }
@@ -685,7 +569,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
                         post(ADDRESS + "bluetooth/", bleDataInJson, "");
                     }
                 } else {
-                    throw new IOException("Fingerprint Id missing");
+                    System.err.println("Fingerprint Id missing");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -701,6 +585,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         protected String post(String url, String json, String parameter) throws IOException {
             RequestBody body = RequestBody.create(json, JSON);
+            Handler mainHandler = new Handler(getMainLooper());
             String responseString = "";
             Request request = new Request.Builder()
                     .url(url)
@@ -713,6 +598,23 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
                 else
                     responseString = response.body().string();
 
+            } catch (ConnectException e) {
+
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Do your stuff here related to UI, e.g. show toast
+                        Toast.makeText(getApplicationContext(), "Failed to connect to the server", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (SocketTimeoutException e) {
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Do your stuff here related to UI, e.g. show toast
+                        Toast.makeText(getApplicationContext(), "Failed to connect to the server", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
             return responseString;
         }
