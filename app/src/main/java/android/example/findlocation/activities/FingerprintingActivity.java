@@ -42,7 +42,7 @@ public class FingerprintingActivity extends AppCompatActivity {
     }
 
     public void listenForOnlineButton(){
-        final Intent onlinePhaseIntent = new Intent(this, OfflineTabedActivity.class);
+        final Intent onlinePhaseIntent = new Intent(this, OnlineActivity.class);
         Button onlineButton = findViewById(R.id.onlineButtonId);
         onlineButton.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -11,6 +11,6 @@ router.register('bluetooth',views.BluetoothView)
 
 urlpatterns = [
     path('',include(router.urls)),
-    path('filter/',views.FilterView.as_view(),
-    path('radiomap/position',views.FilterView.as_view()))
+    path('filter/',views.FilterView.as_view()),
+    path('radiomap/position',views.PositioningAlgorithmsView.as_view())
 ]
