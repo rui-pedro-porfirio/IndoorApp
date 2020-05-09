@@ -138,7 +138,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         } catch (IOException e) {
             e.printStackTrace();
         }
-        activateSensorScan();
+        //TAKEN activateSensorScan method from here
     }
 
     @Override

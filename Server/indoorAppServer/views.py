@@ -70,6 +70,12 @@ class FilterView(APIView):
 class PositioningAlgorithmsView(APIView):
 
     def post(self, request, format=None):
-        sample = {'ap1':-40,'ap2':-30,'ap3':-50}
-        positioning.apply_knn('Wifi',sample)
-        return Response(status=status.HTTP_200_OK)
+        serializer_context = {
+            'request': request,
+        }
+        sample = request.data
+        position = positioning.apply_knn('Wifi',sample)
+        fingerprint = Fingerprint.objects.create(coordinate_X=position[0][0],coordinate_Y=position[0][1])
+        print(fingerprint)
+        serialized = FingerprintSerializer(fingerprint,context=serializer_context)
+        return Response(serialized.data,status=status.HTTP_200_OK)

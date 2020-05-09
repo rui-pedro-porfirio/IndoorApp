@@ -42,6 +42,7 @@
     <string name="long_scan">Long Scan</string>
     <string name="setttings_text">Setttings</string>
     <string name="checkbox_fingerprint">Type of sensors to use</string>
+    <string name="radio_algorithm">Type of algorithm to apply</string>
     <string name="fingerprint_preferences_string">General Preferences</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
@@ -55,6 +56,7 @@
     <string name="tab_text_1">FINGERPRINTS</string>
     <string name="tab_text_2">RADIO MAP</string>
     <string name="tab_text_3">PREFERENCES</string>
+    <string name="tab_text_1_online">POSITION</string>
     <string name="title_activity_offline_phase">OfflinePhaseActivity</string>
     <string name="title_activity_offline_tabed">OfflineTabedActivity</string>
     <string name="selected_sensor_types_string">Selected sensor types: %s</string>
@@ -63,4 +65,6 @@
     <string name="wi_fi">Wi-Fi</string>
     <string name="x_coordinate_string">X Coordinate</string>
     <string name="y_coordinate_string">Y Coordinate</string>
+    <string name="found_position_string">Found User Position</string>
+    <string name="find_user_position_string">Find User Position</string>
 </resources>

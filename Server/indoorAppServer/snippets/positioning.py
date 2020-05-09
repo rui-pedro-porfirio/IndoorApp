@@ -38,5 +38,6 @@ def apply_knn(types,sample):
         print("Prediction X: " + str(Y_pred[0][0]))
         print("Prediction Y: " + str(Y_pred[0][1]))
         print("The MSE is:", format(np.power(Y_train - Y_pred, 2).mean()))
+        return Y_pred;
     if 'Bluetooth' in types:
         '''TODO: To Implement'''

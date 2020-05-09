@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/selectSensorFingerprintId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/andada"
+        android:text="@string/radio_algorithm"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.050000012" />
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/selectSensorFingerprintId"
+        app:layout_constraintVertical_bias="0.07">
+
+        <RadioButton
+            android:id="@+id/radioknnrId"
+            android:layout_width="wrap_content"
+            android:textColor="@android:color/holo_orange_dark"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:onClick="onRadioButtonClicked"
+            android:text="K-Nearest Neighbor Regression" />
+
+        <RadioButton
+            android:id="@+id/radioknnCId"
+            android:layout_width="wrap_content"
+            android:textColor="@android:color/holo_orange_dark"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:onClick="onRadioButtonClicked"
+            android:text="K-Nearest Neighbor Classfier" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/selectSensortTypePositionId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/andada"
+        android:text="@string/checkbox_fingerprint"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
+
+    <LinearLayout
+        android:id="@+id/linearLayoutOnlinePreferencesId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/selectSensortTypePositionId"
+        app:layout_constraintVertical_bias="0.04000002">
+
+        <CheckBox
+            android:id="@+id/checkbox_wifi_online"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onSensorClicked"
+            android:text="@string/wi_fi"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <CheckBox
+            android:id="@+id/checkbox_bluetooth_online"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onSensorClicked"
+            android:text="@string/bluetooth"
+            android:textSize="18sp"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textStyle="bold" />
+
+        <CheckBox
+            android:id="@+id/checkbox_device_sensors_online"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onSensorClicked"
+            android:text="@string/device_data_orientation_rotation_vector"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

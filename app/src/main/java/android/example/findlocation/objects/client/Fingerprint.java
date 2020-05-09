@@ -20,6 +20,14 @@ public class Fingerprint {
         this.x_coordinate = x_coordinate;
     }
 
+    public Fingerprint(List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
+        this.mSensorInformationList = mSensorInformationList;
+        this.mBeaconsList = mBeaconsList;
+        this.mAccessPoints = mAccessPoints;
+        this.y_coordinate = 0;
+        this.x_coordinate = 0;
+    }
+
     public Fingerprint(){
         mSensorInformationList = new ArrayList<>();
         mBeaconsList = new ArrayList<>();
