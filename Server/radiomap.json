@@ -1,370 +1,40 @@
 {
    "fingerprints": [
       {
-         "id": 61,
+         "Fingerprint ID": 77,
          "coordinate_X": 0.0,
          "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 187,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -62,
-               "fingerprint_id": 61
-            },
-            {
-               "id": 188,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -80,
-               "fingerprint_id": 61
-            }
-         ],
-         "bluetooth": []
+         "ap1": -60,
+         "ap2": -65,
+         "ap3": -66,
+         "ap4": 0
       },
       {
-         "id": 62,
+         "Fingerprint ID": 78,
          "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 189,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -62,
-               "fingerprint_id": 62
-            },
-            {
-               "id": 190,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -80,
-               "fingerprint_id": 62
-            }
-         ],
-         "bluetooth": []
+         "coordinate_Y": 0.5,
+         "ap1": -60,
+         "ap2": -62,
+         "ap3": -65,
+         "ap4": 0
       },
       {
-         "id": 63,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 191,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -63,
-               "fingerprint_id": 63
-            },
-            {
-               "id": 192,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 63
-            },
-            {
-               "id": 193,
-               "name": "1c:ab:c0:df:99:c9",
-               "rssi": -80,
-               "fingerprint_id": 63
-            }
-         ],
-         "bluetooth": []
+         "Fingerprint ID": 79,
+         "coordinate_X": 1.0,
+         "coordinate_Y": 0.5,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
       },
       {
-         "id": 64,
-         "coordinate_X": 0.0,
+         "Fingerprint ID": 80,
+         "coordinate_X": 0.5,
          "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 194,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -63,
-               "fingerprint_id": 64
-            },
-            {
-               "id": 195,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 64
-            },
-            {
-               "id": 196,
-               "name": "1c:ab:c0:df:99:c9",
-               "rssi": -80,
-               "fingerprint_id": 64
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 65,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 197,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -65,
-               "fingerprint_id": 65
-            },
-            {
-               "id": 198,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 65
-            },
-            {
-               "id": 199,
-               "name": "1c:ab:c0:df:99:c9",
-               "rssi": -76,
-               "fingerprint_id": 65
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 66,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 200,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -65,
-               "fingerprint_id": 66
-            },
-            {
-               "id": 201,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 66
-            },
-            {
-               "id": 202,
-               "name": "1c:ab:c0:df:99:c9",
-               "rssi": -76,
-               "fingerprint_id": 66
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 67,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 203,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -72,
-               "fingerprint_id": 67
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 68,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 204,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -72,
-               "fingerprint_id": 68
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 69,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 205,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -71,
-               "fingerprint_id": 69
-            },
-            {
-               "id": 206,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -80,
-               "fingerprint_id": 69
-            },
-            {
-               "id": 207,
-               "name": "1c:ab:c0:df:99:c9",
-               "rssi": -80,
-               "fingerprint_id": 69
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 70,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 208,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -71,
-               "fingerprint_id": 70
-            },
-            {
-               "id": 209,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -80,
-               "fingerprint_id": 70
-            },
-            {
-               "id": 210,
-               "name": "1c:ab:c0:df:99:c9",
-               "rssi": -80,
-               "fingerprint_id": 70
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 71,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 211,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -71,
-               "fingerprint_id": 71
-            },
-            {
-               "id": 212,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -80,
-               "fingerprint_id": 71
-            },
-            {
-               "id": 213,
-               "name": "1c:ab:c0:df:99:c9",
-               "rssi": -80,
-               "fingerprint_id": 71
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 72,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 214,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -69,
-               "fingerprint_id": 72
-            },
-            {
-               "id": 215,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 72
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 73,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 216,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -69,
-               "fingerprint_id": 73
-            },
-            {
-               "id": 217,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 73
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 74,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 218,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -69,
-               "fingerprint_id": 74
-            },
-            {
-               "id": 219,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 74
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 75,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 220,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -69,
-               "fingerprint_id": 75
-            },
-            {
-               "id": 221,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 75
-            }
-         ],
-         "bluetooth": []
-      },
-      {
-         "id": 76,
-         "coordinate_X": 0.0,
-         "coordinate_Y": 0.0,
-         "device": [],
-         "wifi": [
-            {
-               "id": 222,
-               "name": "c4:e9:84:42:ac:ff",
-               "rssi": -69,
-               "fingerprint_id": 76
-            },
-            {
-               "id": 223,
-               "name": "1c:ab:c0:df:99:c8",
-               "rssi": -78,
-               "fingerprint_id": 76
-            }
-         ],
-         "bluetooth": []
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": -120
       }
    ]
 }

@@ -1,5 +1,21 @@
-from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
+from sklearn.neighbors import KNeighborsRegressor
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
-def apply_knn(training_data,target_values,n_neighbors=5,weight='uniform', algorithm='auto',distance_metric='manhattan'):
-    neigh = KNeighborsClassifier(n_neighbors=n_neighbors,weights=weight,algorithm=algorithm,metric=distance_metric)
-    neigh.fit(training_data,target_values)
+
+def apply_knn(types):
+    if 'Wifi' in types:
+        dataset = pd.read_csv('radiomap.csv')
+        for column in dataset.iloc[:,3:]:
+            dataset[column] = dataset[column].replace(0,np.NaN)
+        array = dataset.values
+        print(dataset.head())
+        print(array)
+        x = dataset.iloc[:,3:].values
+        print(x)
+        y = dataset.iloc[:,1:3].values
+        print(y)
+
+    if 'Bluetooth' in types:
+        '''TODO: To Implement'''

@@ -42,7 +42,7 @@ class TypeEnum(Enum):
 class FilterView(APIView):
 
     def post(self, request, format=None):
-        self.apply_filter(FilterEnum.MEAN_FILTER, 1)
+        #self.apply_filter(FilterEnum.MEAN_FILTER, 1)
         convertJson.jsonToFile()
         return Response(status=status.HTTP_200_OK)
 
@@ -70,5 +70,5 @@ class FilterView(APIView):
 class PositioningAlgorithmsView(APIView):
 
     def get(self, request, format=None):
-        positioning.apply_knn()
+        positioning.apply_knn('Wifi')
         return Response(status=status.HTTP_200_OK)
