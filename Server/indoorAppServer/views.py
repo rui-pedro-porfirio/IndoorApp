@@ -69,6 +69,7 @@ class FilterView(APIView):
 
 class PositioningAlgorithmsView(APIView):
 
-    def get(self, request, format=None):
-        positioning.apply_knn('Wifi')
+    def post(self, request, format=None):
+        sample = {'ap1':-40,'ap2':-30,'ap3':-50}
+        positioning.apply_knn('Wifi',sample)
         return Response(status=status.HTTP_200_OK)
