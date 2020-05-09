@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
-def apply_knn(types,sample):
+def apply_knnr(types,sample):
     if 'Wifi' in types:
         dataset = pd.read_csv('radiomap.csv')
         array = dataset.values

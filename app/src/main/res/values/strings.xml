@@ -43,6 +43,7 @@
     <string name="setttings_text">Setttings</string>
     <string name="checkbox_fingerprint">Type of sensors to use</string>
     <string name="radio_algorithm">Type of algorithm to apply</string>
+    <string name="radio_filter">Type of filter to apply</string>
     <string name="fingerprint_preferences_string">General Preferences</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
@@ -67,4 +68,9 @@
     <string name="y_coordinate_string">Y Coordinate</string>
     <string name="found_position_string">Found User Position</string>
     <string name="find_user_position_string">Find User Position</string>
+    <string name="k_nearest_neighbor_regression">K-Nearest Neighbor Regression</string>
+    <string name="k_nearest_neighbor_classifier">K-Nearest Neighbor Classifier</string>
+    <string name="mean_filter">Mean Filter</string>
+    <string name="none">None</string>
+    <string name="median_filter">Median Filter</string>
 </resources>

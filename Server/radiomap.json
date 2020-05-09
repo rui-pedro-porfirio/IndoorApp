@@ -35,6 +35,123 @@
          "ap2": 0,
          "ap3": 0,
          "ap4": -120
+      },
+      {
+         "Fingerprint ID": 87,
+         "coordinate_X": 0.75,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 88,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 89,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 90,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 91,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 92,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 93,
+         "coordinate_X": 0.75,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 94,
+         "coordinate_X": 0.75,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 95,
+         "coordinate_X": 0.75,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 96,
+         "coordinate_X": 0.75,
+         "coordinate_Y": 0.25,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 97,
+         "coordinate_X": 0.875,
+         "coordinate_Y": 0.375,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 98,
+         "coordinate_X": 0.875,
+         "coordinate_Y": 0.375,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
+      },
+      {
+         "Fingerprint ID": 99,
+         "coordinate_X": 0.875,
+         "coordinate_Y": 0.375,
+         "ap1": 0,
+         "ap2": 0,
+         "ap3": 0,
+         "ap4": 0
       }
    ]
 }

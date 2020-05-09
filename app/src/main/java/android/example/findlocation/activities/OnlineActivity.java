@@ -19,6 +19,7 @@ import android.example.findlocation.objects.client.WifiObject;
 import android.example.findlocation.objects.server.ServerBluetoothData;
 import android.example.findlocation.objects.server.ServerDeviceData;
 import android.example.findlocation.objects.server.ServerFingerprint;
+import android.example.findlocation.objects.server.ServerPosition;
 import android.example.findlocation.objects.server.ServerWifiData;
 import android.example.findlocation.ui.main.SectionsPagerAdapter;
 import android.example.findlocation.ui.main.SectionsPagerAdapterOnline;
@@ -83,6 +84,7 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
 
     private List<String> dataTypes;
     private String algorithm;
+    private String filter;
     private OkHttpClient client;
     private SensorManager mSensorManager;
     private WifiManager wifiManager;
@@ -104,6 +106,7 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         tabs.setupWithViewPager(viewPager);
         dataTypes = new ArrayList<String>();
         algorithm = null;
+        filter = null;
         tabs.getTabAt(0).setIcon(R.drawable.map_marker_small);
         tabs.getTabAt(1).setIcon(R.drawable.preferencesicon);
         client = new OkHttpClient();
@@ -195,6 +198,26 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         }
     }
 
+    public void onFilterClicked(View view) {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch (view.getId()) {
+            case R.id.radioNoneFilterId:
+                if (checked)
+                    filter = "None";
+                break;
+            case R.id.radioMeanFilterId:
+                if (checked)
+                    filter = "Mean";
+                break;
+            case R.id.radioMedianFilterId:
+                if(checked)
+                    filter = "Median";
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void computeFingerprint(Fingerprint fingerprint) {
         Fingerprint newFingerprint = new Fingerprint();
@@ -209,13 +232,14 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
             access_points.put(ap.getName(), ap.getSingleValue());
         }
         Gson gson = new Gson();
-        String jsonString = gson.toJson(access_points);
+        ServerPosition position = new ServerPosition(algorithm,filter,access_points,dataTypes);
+        String jsonString = gson.toJson(position);
         new SendHTTPRequest(jsonString).execute();
     }
 
     public void addFindUserPositionListener(View view) throws InterruptedException {
 
-        if (dataTypes.size() != 0 && algorithm != null) {
+        if (dataTypes.size() != 0 && algorithm != null && filter != null) {
             Toast.makeText(this, "Finding Your Position", Toast.LENGTH_SHORT).show();
             Button mButton = (Button) view.findViewById(R.id.buttonFindUserPositionId);
             mButton.setVisibility(View.INVISIBLE);

@@ -74,8 +74,23 @@ class PositioningAlgorithmsView(APIView):
             'request': request,
         }
         sample = request.data
-        position = positioning.apply_knn('Wifi',sample)
-        fingerprint = Fingerprint.objects.create(coordinate_X=position[0][0],coordinate_Y=position[0][1])
-        print(fingerprint)
-        serialized = FingerprintSerializer(fingerprint,context=serializer_context)
-        return Response(serialized.data,status=status.HTTP_200_OK)
+        position = []
+        filter = sample['filter']
+        if filter == 'Mean':
+            FilterView.apply_filter(FilterEnum.MEAN_FILTER,len(Fingerprint.objects.all()))
+            convertJson.jsonToFile()
+        elif filter == 'Median':
+            FilterView.apply_filter(FilterEnum.MEDIAN_FILTER,len(Fingerprint.objects.all()))
+            convertJson.jsonToFile()
+        else:
+            convertJson.jsonToFile()
+        if 'Wi-fi' in sample['dataTypes']:
+            if sample['algorithm'] == 'KNNR':
+                position = positioning.apply_knnr('Wifi',sample['aps'])
+        if len(position) != 0:
+            fingerprint = Fingerprint.objects.create(coordinate_X=position[0][0],coordinate_Y=position[0][1])
+            print(fingerprint)
+            serialized = FingerprintSerializer(fingerprint,context=serializer_context)
+            return Response(serialized.data,status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
