@@ -108,7 +108,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.7:8000/";
+    private static final String ADDRESS = "http://192.168.1.10:8000/";
     public static final String FINGERPRINT_FILE = "radio_map";
 
     @Override
@@ -144,7 +144,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     @Override
     protected void onStart() {
         super.onStart();
-        activateSensorScan();
     }
 
     public void populateRecycleView(View view) {
@@ -344,6 +343,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     public void scanData() {
 
         CountDownTimer waitTimer;
+        activateSensorScan();
         waitTimer = new CountDownTimer(10000, 300) {
 
             public void onTick(long millisUntilFinished) {
@@ -381,6 +381,9 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     protected void onPostExecute(Fingerprint fingerprint) {
+        mSensorManager.unregisterListener(this);
+        beaconManager.unbind(this);
+        unregisterReceiver(wifiScanReceiver);
         //SEND FINGERPRINT
         computeFingerprint(fingerprint);
         System.out.println("Device Data Done");

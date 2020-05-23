@@ -80,7 +80,7 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.3:8000/";
+    private static final String ADDRESS = "http://192.168.1.10:8000/";
 
     private List<String> dataTypes;
     private String algorithm;

@@ -43,7 +43,7 @@ class FilterView(APIView):
 
     def post(self, request, format=None):
         #self.apply_filter(FilterEnum.MEAN_FILTER, 1)
-        convertJson.jsonToFile()
+        convertJson.jsonToFile('Bluetooth')
         return Response(status=status.HTTP_200_OK)
 
     def apply_filter(self, filter_identifier, window_size):
@@ -78,12 +78,10 @@ class PositioningAlgorithmsView(APIView):
         filter = sample['filter']
         if filter == 'Mean':
             FilterView.apply_filter(FilterEnum.MEAN_FILTER,len(Fingerprint.objects.all()))
-            convertJson.jsonToFile()
         elif filter == 'Median':
             FilterView.apply_filter(FilterEnum.MEDIAN_FILTER,len(Fingerprint.objects.all()))
-            convertJson.jsonToFile()
         else:
-            convertJson.jsonToFile()
+            '''convertJson.jsonToFile()'''
         if 'Wi-fi' in sample['dataTypes']:
             if sample['algorithm'] == 'KNNR':
                 position = positioning.apply_knnr('Wifi',sample['aps'])

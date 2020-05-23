@@ -1,0 +1,1044 @@
+{
+   "fingerprints": [
+      {
+         "Fingerprint ID": 390,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -92,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 391,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 392,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -85,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 393,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 394,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -90,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 395,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 396,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -92,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 397,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -85,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 398,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -92,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": -88
+      },
+      {
+         "Fingerprint ID": 399,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -77,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 401,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -90,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 402,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -87,
+         "FF:20:88:3C:97:E7": -85,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 403,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -88,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 404,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -87,
+         "FF:20:88:3C:97:E7": -87,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 405,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -87,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 406,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -90,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 407,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -88,
+         "FF:20:88:3C:97:E7": -86,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 408,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -91,
+         "FF:20:88:3C:97:E7": -83,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 409,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -91,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 410,
+         "coordinate_X": -1.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -86,
+         "FF:20:88:3C:97:E7": -83,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 411,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -83,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 412,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -81,
+         "FF:20:88:3C:97:E7": -95,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 413,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -83,
+         "FF:20:88:3C:97:E7": -83,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 414,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -92,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 415,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -86,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 416,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 417,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -81,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 418,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -87,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 419,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -82,
+         "FF:20:88:3C:97:E7": -83,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 420,
+         "coordinate_X": -1.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 421,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -75,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 422,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 423,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 424,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 425,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 426,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 427,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -79,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 428,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -75,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 429,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -81,
+         "FF:20:88:3C:97:E7": -77,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 430,
+         "coordinate_X": -0.5,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -75,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 431,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 432,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 433,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 434,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 435,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 436,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -77,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 437,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -79,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 438,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -85,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 439,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 440,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 441,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 442,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -89,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 443,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 444,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 445,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 446,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 447,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 448,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 449,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 450,
+         "coordinate_X": 0.0,
+         "coordinate_Y": 0.0,
+         "CA:E0:7D:11:26:B3": -79,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 451,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -74,
+         "FF:20:88:3C:97:E7": -75,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 452,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 453,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -77,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 454,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 455,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -79,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 456,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 457,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 458,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -79,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 459,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -77,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 460,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -0.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 461,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 462,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -85,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 463,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -85,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 464,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 465,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -79,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 466,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 467,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -79,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 468,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 469,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -79,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 470,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.0,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -78,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 471,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -74,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 472,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 473,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -73,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 474,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 475,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -79,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 476,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -74,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 477,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 478,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 479,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -74,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 480,
+         "coordinate_X": 0.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -77,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 481,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -82,
+         "FF:20:88:3C:97:E7": -86,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 482,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -82,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 483,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -83,
+         "FF:20:88:3C:97:E7": -91,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 484,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -83,
+         "FF:20:88:3C:97:E7": -91,
+         "E1:E9:C3:D9:09:C3": -71
+      },
+      {
+         "Fingerprint ID": 485,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -87,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 486,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -83,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 487,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -86,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 488,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -89,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 489,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -91,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 490,
+         "coordinate_X": -0.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -88,
+         "FF:20:88:3C:97:E7": -85,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 491,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -73,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 492,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -72,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 493,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -72,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 494,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -71,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 495,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -72,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 496,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -76,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 497,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -83,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 498,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -74,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 499,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -75,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 500,
+         "coordinate_X": -1.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -71,
+         "FF:20:88:3C:97:E7": -87,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 501,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 502,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -82,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 503,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -79,
+         "FF:20:88:3C:97:E7": -80,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 504,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -79,
+         "FF:20:88:3C:97:E7": -84,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 505,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 506,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -91,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 507,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 508,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -79,
+         "FF:20:88:3C:97:E7": -81,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 509,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -78,
+         "FF:20:88:3C:97:E7": -87,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 510,
+         "coordinate_X": -1.5,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -84,
+         "FF:20:88:3C:97:E7": -91,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 511,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -87,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 512,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -79,
+         "FF:20:88:3C:97:E7": -87,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 513,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -82,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 514,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -81,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 515,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -93,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 516,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 517,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -81,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 518,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -80,
+         "FF:20:88:3C:97:E7": -88,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 519,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -81,
+         "FF:20:88:3C:97:E7": -87,
+         "E1:E9:C3:D9:09:C3": 0
+      },
+      {
+         "Fingerprint ID": 520,
+         "coordinate_X": -2.0,
+         "coordinate_Y": -1.5,
+         "CA:E0:7D:11:26:B3": -89,
+         "FF:20:88:3C:97:E7": -90,
+         "E1:E9:C3:D9:09:C3": 0
+      }
+   ]
+}
