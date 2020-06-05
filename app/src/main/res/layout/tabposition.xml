@@ -24,7 +24,7 @@
         tools:layout_editor_absoluteY="285dp" />
 
     <LinearLayout
-        android:id="@+id/linearLayouttabPositionId"
+        android:id="@+id/linearLayoutTabPositionRegressionId"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -87,6 +87,36 @@
                 android:textStyle="bold"
                 android:text="" />
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutTabPositionClassifierId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="invisible"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/zone_predictionNameId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/zone"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/zone_predictionId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:gravity="center"
+            android:text=""
+            android:textStyle="bold" />
     </LinearLayout>
     <ProgressBar
         android:id="@+id/progressBarLocationId"

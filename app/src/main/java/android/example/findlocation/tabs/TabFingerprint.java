@@ -42,6 +42,8 @@ public class TabFingerprint extends Fragment {
         mSelectedTypes.setText(getResources().getString(R.string.selected_sensor_types_string,((OfflineTabedActivity) getActivity()).getSelectedTypes()));
         TextView mSelectedPreferences = view.findViewById(R.id.defaultpreferencesId);
         mSelectedPreferences.setText(getResources().getString(R.string.general_preferences_string,((OfflineTabedActivity) getActivity()).getPreferences()));
+        TextView mSelectedZone = view.findViewById(R.id.zone_selectedId);
+        mSelectedZone.setText(getResources().getString(R.string.selected_zone,((OfflineTabedActivity) getActivity()).getZoneClassifier()));
         computeBulletList(view);
     }
 

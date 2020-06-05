@@ -5,7 +5,7 @@ from .models import Fingerprint,DeviceSensor,BluetoothSensor,WiFiSensor
 class FingerprintSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Fingerprint
-        fields = ('id','url','coordinate_X','coordinate_Y')
+        fields = ('id','url','coordinate_X','coordinate_Y','zone')
 
 
 class DeviceDataSerializer(serializers.HyperlinkedModelSerializer):

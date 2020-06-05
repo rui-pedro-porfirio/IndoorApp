@@ -8,9 +8,12 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,10 +25,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TabPreferences extends Fragment {
+public class TabPreferences extends Fragment implements AdapterView.OnItemSelectedListener {
 
 
     private Map<String,Float> preferences;
+    private String zoneClassifier;
+
+    private String[] zones = {"None","Bedroom", "Bathroom","Living Room","Kitchen"};
     @Override
     public View onCreateView(
             @NonNull LayoutInflater inflater, ViewGroup container,
@@ -33,11 +39,25 @@ public class TabPreferences extends Fragment {
         View root = inflater.inflate(R.layout.tabpreferences, container, false);
         return root;
     }
+    @Override
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
+        zoneClassifier = zones[position];
+        ((OfflineTabedActivity) getActivity()).setZoneClassifier(zoneClassifier);
+    }
+    @Override
+    public void onNothingSelected(AdapterView<?> arg0) {
+        // TODO - Custom Code
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         preferences = new HashMap<String,Float>();
+        Spinner spin = (Spinner) view.findViewById(R.id.zoneDropdownId);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, zones);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spin.setAdapter(adapter);
+        spin.setOnItemSelectedListener(this);
         EditText mNumberOfFingerprints = view.findViewById(R.id.fingerprintPerLocationNumberId);
         preferences.put("Number of Fingerprints",Float.valueOf(mNumberOfFingerprints.getText().toString()));
         EditText mTimeBetweenFingerprints = view.findViewById(R.id.intervalBetweenFingerprintsNumberId);

@@ -73,4 +73,8 @@
     <string name="mean_filter">Mean Filter</string>
     <string name="none">None</string>
     <string name="median_filter">Median Filter</string>
+    <string name="select_zone">Select Zone:</string>
+    <string name="selected_zone">Selected Zone: %s</string>
+    <string name="load_file">Load File</string>
+    <string name="zone">Zone</string>
 </resources>

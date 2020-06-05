@@ -80,7 +80,7 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.10:8000/";
+    private static final String ADDRESS = "http://192.168.1.6:8000/";
 
     private List<String> dataTypes;
     private String algorithm;
@@ -92,6 +92,8 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
     private List<WifiObject> mAccessPoints;
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
+    private String zoneClassified;
+    private List<Float> coordinates;
 
 
     @Override
@@ -110,6 +112,8 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         tabs.getTabAt(0).setIcon(R.drawable.map_marker_small);
         tabs.getTabAt(1).setIcon(R.drawable.preferencesicon);
         client = new OkHttpClient();
+        zoneClassified = "";
+        coordinates = new ArrayList<>();
     }
 
     @Override
@@ -131,17 +135,35 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         unregisterReceiver(wifiScanReceiver);
     }
 
-    public void computeNewPosition(List<Float> coordinates){
+    public void resetDataStructures() {
+        this.coordinates = new ArrayList<>();
+        this.zoneClassified = "";
+        this.filter = "";
+        this.algorithm = "";
+        this.dataTypes = new ArrayList<>();
+        this.mAccessPoints = new ArrayList<>();
+        this.mBeaconsList = new ArrayList<>();
+        this.mSensorInformationList = new ArrayList<>();
+        this.client = new OkHttpClient();
+    }
+
+    public void computeNewPosition() {
         ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.progressBarLocationId);
         mProgressBar.setVisibility(View.INVISIBLE);
         TextView mTextTitle = (TextView) findViewById(R.id.foundPositionTextViewId);
         mTextTitle.setVisibility(View.VISIBLE);
-        LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.linearLayouttabPositionId);
-        mLinearLayout.setVisibility(View.VISIBLE);
-        TextView xTextView = (TextView) findViewById(R.id.x_coordinate_positionValueId);
-        xTextView.setText(String.valueOf(coordinates.get(0)));
-        TextView yTextView = (TextView) findViewById(R.id.y_coordinate_positionValueId);
-        yTextView.setText(String.valueOf(coordinates.get(1)));
+        if (zoneClassified.length() < 1 && coordinates.size() > 1) {
+            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.linearLayoutTabPositionRegressionId);
+            mLinearLayout.setVisibility(View.VISIBLE);
+            TextView xTextView = (TextView) findViewById(R.id.x_coordinate_positionValueId);
+            xTextView.setText(String.valueOf(coordinates.get(0)));
+        } else if(zoneClassified.length() > 1) {
+            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.linearLayoutTabPositionClassifierId);
+            mLinearLayout.setVisibility(View.VISIBLE);
+            TextView zoneTextView = (TextView) findViewById(R.id.zone_predictionId);
+            zoneTextView.setText(zoneClassified);
+        }
+        resetDataStructures();
     }
 
     public void onSensorClicked(View view) {
@@ -181,42 +203,14 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         }
     }
 
-    public void onRadioButtonClicked(View view) {
-        // Is the button now checked?
-        boolean checked = ((RadioButton) view).isChecked();
-
-        // Check which radio button was clicked
-        switch (view.getId()) {
-            case R.id.radioknnrId:
-                if (checked)
-                    algorithm = "KNNR";
-                break;
-            case R.id.radioknnCId:
-                if (checked)
-                    algorithm = "KNNC";
-                break;
-        }
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
     }
 
-    public void onFilterClicked(View view) {
-        // Is the button now checked?
-        boolean checked = ((RadioButton) view).isChecked();
-
-        // Check which radio button was clicked
-        switch (view.getId()) {
-            case R.id.radioNoneFilterId:
-                if (checked)
-                    filter = "None";
-                break;
-            case R.id.radioMeanFilterId:
-                if (checked)
-                    filter = "Mean";
-                break;
-            case R.id.radioMedianFilterId:
-                if(checked)
-                    filter = "Median";
-        }
+    public void setFilter(String filter) {
+        this.filter = filter;
     }
+
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void computeFingerprint(Fingerprint fingerprint) {
@@ -227,12 +221,20 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         newFingerprint.setmBeaconsList(fingerprint.getmBeaconsList());
         newFingerprint.setmSensorInformationList(fingerprint.getmSensorInformationList());
         Map<String, Integer> access_points = new HashMap<>();
+        Map<String, Integer> beacons = new HashMap<>();
+        Map<String, float[]> deviceData = new HashMap<>();
         for (WifiObject ap : newFingerprint.getmAccessPoints()
         ) {
             access_points.put(ap.getName(), ap.getSingleValue());
         }
+        for (BluetoothObject beacon : newFingerprint.getmBeaconsList()) {
+            beacons.put(beacon.getName(), beacon.getSingleValue());
+        }
+        for (SensorObject sensor : newFingerprint.getmSensorInformationList()) {
+            deviceData.put(sensor.getName(), sensor.getValues());
+        }
         Gson gson = new Gson();
-        ServerPosition position = new ServerPosition(algorithm,filter,access_points,dataTypes);
+        ServerPosition position = new ServerPosition(algorithm, filter, access_points, beacons, deviceData, dataTypes);
         String jsonString = gson.toJson(position);
         new SendHTTPRequest(jsonString).execute();
     }
@@ -435,7 +437,7 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
 
     }
 
-    private class SendHTTPRequest extends AsyncTask<Void, Void, List<Float>> {
+    private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
 
         private String json;
 
@@ -445,29 +447,27 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
-        protected List<Float> doInBackground(Void... voids) {
-            List<Float> coordinates = new ArrayList<>();
+        protected String doInBackground(Void... voids) {
             try {
-                coordinates = post(ADDRESS + "radiomap/position", json, "");
+                post(ADDRESS + "radiomap/position", json, "");
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return coordinates;
+            return "200";
         }
 
         @Override
-        protected void onPostExecute(List<Float> coordinates) {
-            super.onPostExecute(coordinates);
-            computeNewPosition(coordinates);
+        protected void onPostExecute(String message) {
+            super.onPostExecute(message);
+            computeNewPosition();
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-        protected List<Float> post(String url, String json, String parameter) throws IOException {
+        protected void post(String url, String json, String parameter) throws IOException {
             RequestBody body = RequestBody.create(json, JSON);
             Handler mainHandler = new Handler(getMainLooper());
             String responseString = "";
-            List<Float> coordinates = new ArrayList<>();
             Request request = new Request.Builder()
                     .url(url)
                     .post(body)
@@ -480,10 +480,14 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
                 } else {
                     responseString = response.body().string();
                     JSONObject jsonObject = new JSONObject(responseString);
-                    coordinates.add((float) jsonObject.getDouble("coordinate_X"));
-                    coordinates.add((float) jsonObject.getDouble("coordinate_Y"));
+                    if (algorithm.contains("Classifi")) {
+                        zoneClassified = jsonObject.getString("zone");
+                    } else {
+                        coordinates.add((float) jsonObject.getDouble("coordinate_X"));
+                        coordinates.add((float) jsonObject.getDouble("coordinate_Y"));
+                    }
                 }
-
+                response.body().close();
             } catch (ConnectException e) {
 
                 mainHandler.post(new Runnable() {
@@ -504,7 +508,6 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            return coordinates;
         }
 
         public String parse(String jsonLine, String parameter) {

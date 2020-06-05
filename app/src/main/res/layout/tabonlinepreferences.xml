@@ -7,7 +7,7 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/selectSensorFingerprintId"
+        android:id="@+id/selectAlgorithmId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/andada"
@@ -21,39 +21,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.050000012" />
 
-    <RadioGroup
-        android:id="@+id/radioGroup"
-        android:layout_width="match_parent"
+    <Spinner
+        android:id="@+id/algorithmsSpinnerId"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/selectSensorFingerprintId"
-        app:layout_constraintVertical_bias="0.05">
-
-        <RadioButton
-            android:id="@+id/radioknnrId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClicked"
-            android:text="@string/k_nearest_neighbor_regression"
-            android:textColor="@android:color/holo_orange_dark"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RadioButton
-            android:id="@+id/radioknnCId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClicked"
-            android:text="@string/k_nearest_neighbor_classifier"
-            android:textColor="@android:color/holo_orange_dark"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-    </RadioGroup>
+        app:layout_constraintTop_toBottomOf="@+id/selectAlgorithmId"
+        app:layout_constraintVertical_bias="0.04000002" />
 
     <TextView
         android:id="@+id/selectFilterId"
@@ -67,66 +43,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroup"
+        app:layout_constraintTop_toBottomOf="@+id/algorithmsSpinnerId"
         app:layout_constraintVertical_bias="0.12" />
 
-    <RadioGroup
-        android:id="@+id/radioGroupFilter"
-        android:layout_width="match_parent"
+    <Spinner
+        android:id="@+id/filterSpinnerId"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/selectFilterId"
-        app:layout_constraintVertical_bias="0.07">
-
-        <RadioButton
-            android:id="@+id/radioNoneFilterId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onFilterClicked"
-            android:text="@string/none"
-            android:textColor="@android:color/holo_orange_dark"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RadioButton
-            android:id="@+id/radioMeanFilterId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onFilterClicked"
-            android:text="@string/mean_filter"
-            android:textColor="@android:color/holo_orange_dark"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <RadioButton
-            android:id="@+id/radioMedianFilterId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onFilterClicked"
-            android:text="@string/median_filter"
-            android:textColor="@android:color/holo_orange_dark"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </ScrollView>
-    </RadioGroup>
+        app:layout_constraintVertical_bias="0.04000002" />
 
     <TextView
         android:id="@+id/selectSensortTypePositionId"
@@ -140,7 +68,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroupFilter"
+        app:layout_constraintTop_toBottomOf="@+id/filterSpinnerId"
         app:layout_constraintVertical_bias="0.12" />
 
     <LinearLayout

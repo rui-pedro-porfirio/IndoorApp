@@ -17,6 +17,7 @@ import android.example.findlocation.objects.server.ServerBluetoothData;
 import android.example.findlocation.objects.server.ServerDeviceData;
 import android.example.findlocation.objects.server.ServerFingerprint;
 import android.example.findlocation.objects.server.ServerWifiData;
+import android.example.findlocation.tabs.TabPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -48,7 +49,10 @@ import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
 import android.example.findlocation.ui.main.SectionsPagerAdapter;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import org.altbeacon.beacon.Beacon;
@@ -104,11 +108,12 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
     private File targetFile;
-    private  Writer writer;
+    private Writer writer;
+    private String zoneClassifier;
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.10:8000/";
+    private static final String ADDRESS = "http://192.168.1.3:8000/";
     public static final String FINGERPRINT_FILE = "radio_map";
 
     @Override
@@ -124,6 +129,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         tabs.getTabAt(0).setIcon(R.drawable.fingerprinticon);
         tabs.getTabAt(1).setIcon(R.drawable.radiomapicon);
         tabs.getTabAt(2).setIcon(R.drawable.preferencesicon);
+        zoneClassifier = null;
         client = new OkHttpClient();
         dataTypes = new ArrayList<String>();
         preferences = new HashMap<String, Float>();
@@ -157,7 +163,8 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     @Override
     protected void onStop() {
         super.onStop();
-        mSensorManager.unregisterListener(this);
+        if (mSensorManager != null)
+            mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -168,8 +175,14 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         } catch (IOException e) {
             e.printStackTrace();
         }
-        beaconManager.unbind(this);
-        unregisterReceiver(wifiScanReceiver);
+        if (beaconManager != null)
+            beaconManager.unbind(this);
+        try {
+            unregisterReceiver(wifiScanReceiver);
+        }
+        catch(IllegalArgumentException ex){
+
+        }
     }
 
     public void onCheckboxClicked(View view) {
@@ -235,20 +248,21 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         } else {
             sentFingerprints = 0;
             Gson gson = new Gson();
-            gson.toJson(fingerprints,writer);
+            gson.toJson(fingerprints, writer);
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void computeFingerprint(Fingerprint fingerprint) {
         Fingerprint newFingerprint = new Fingerprint();
+        newFingerprint.setZone(fingerprint.getZone());
         newFingerprint.setX_coordinate(fingerprint.getX_coordinate());
         newFingerprint.setY_coordinate(fingerprint.getY_coordinate());
         newFingerprint.setmAccessPoints(fingerprint.getmAccessPoints());
         newFingerprint.setmBeaconsList(fingerprint.getmBeaconsList());
         newFingerprint.setmSensorInformationList(fingerprint.getmSensorInformationList());
         fingerprints.add(newFingerprint);
-        ServerFingerprint fingerprintToSend = new ServerFingerprint(newFingerprint.getX_coordinate(), newFingerprint.getY_coordinate());
+        ServerFingerprint fingerprintToSend = new ServerFingerprint(newFingerprint.getX_coordinate(), newFingerprint.getY_coordinate(), newFingerprint.getZone());
         mFingerprintAdapter.notifyDataSetChanged();
         sendFingerprintHTTPRequest(fingerprintToSend);
         for (SensorObject deviceSensorScanned : fingerprint.getmSensorInformationList()) {
@@ -294,6 +308,14 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
 
     public void setPreferences(Map<String, Float> preferences) {
         this.preferences = preferences;
+    }
+
+    public void setZoneClassifier(String zoneClassifier) {
+        this.zoneClassifier = zoneClassifier;
+    }
+
+    public String getZoneClassifier() {
+        return this.zoneClassifier;
     }
 
     public Map<String, Float> getPreferences() {
@@ -361,7 +383,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
                     mSensorInformationList = new ArrayList<>();
                 }
 
-                onPostExecute(new Fingerprint(preferences.get("X"), preferences.get("Y"), mSensorInformationList, mBeaconsList, mAccessPoints));
+                onPostExecute(new Fingerprint(preferences.get("X"), preferences.get("Y"), zoneClassifier, mSensorInformationList, mBeaconsList, mAccessPoints));
             }
         }.start();
     }

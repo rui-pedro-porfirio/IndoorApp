@@ -1,0 +1,3 @@
+K Parameter,Cross Validation,Weight,Preprocessing,Algorithm,Distance,Filtering,Experimentation
+1,Stratified K-Fold,distance,StandardScaler,brute,canberra,No Filter,KNN Classifier Wifi + Bluetooth
+1,Stratified K-Fold,distance,None,brute,canberra,No Filter,KNN Classifier Wifi

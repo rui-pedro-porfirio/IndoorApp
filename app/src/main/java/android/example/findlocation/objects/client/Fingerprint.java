@@ -8,16 +8,18 @@ public class Fingerprint {
 
     private float x_coordinate;
     private float y_coordinate;
+    private String zone;
     private List<SensorObject> mSensorInformationList;
     private List<BluetoothObject> mBeaconsList;
     private List<WifiObject> mAccessPoints;
 
-    public Fingerprint(float x_coordinate, float y_coordinate,List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
+    public Fingerprint(float x_coordinate, float y_coordinate,String zone,List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
         this.mSensorInformationList = mSensorInformationList;
         this.mBeaconsList = mBeaconsList;
         this.mAccessPoints = mAccessPoints;
         this.y_coordinate = y_coordinate;
         this.x_coordinate = x_coordinate;
+        this.zone = zone;
     }
 
     public Fingerprint(List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
@@ -26,6 +28,7 @@ public class Fingerprint {
         this.mAccessPoints = mAccessPoints;
         this.y_coordinate = 0;
         this.x_coordinate = 0;
+        this.zone = "None";
     }
 
     public Fingerprint(){
@@ -34,6 +37,7 @@ public class Fingerprint {
         mAccessPoints = new ArrayList<>();
         this.x_coordinate = 0f;
         this.y_coordinate = 0f;
+        this.zone = "None";
     }
 
     public List<SensorObject> getmSensorInformationList() {
@@ -55,6 +59,8 @@ public class Fingerprint {
     public float getY_coordinate() {
         return y_coordinate;
     }
+
+    public String getZone(){ return this.zone;}
 
     public void setmAccessPoints(List<WifiObject> mAccessPoints) {
         for(WifiObject ap: mAccessPoints){
@@ -84,4 +90,6 @@ public class Fingerprint {
     public void setY_coordinate(float y_coordinate) {
         this.y_coordinate = y_coordinate;
     }
+
+    public void setZone(String zone){ this.zone = zone;}
 }

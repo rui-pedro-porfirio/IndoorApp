@@ -4,8 +4,9 @@ from django.contrib.auth.models import User
 
 
 class Fingerprint(models.Model):
-    coordinate_X = models.FloatField()
-    coordinate_Y = models.FloatField()
+    coordinate_X = models.FloatField(null=True)
+    coordinate_Y = models.FloatField(null=True)
+    zone = models.CharField(max_length=100)
 
     def __str__(self):
         return str(self.id)

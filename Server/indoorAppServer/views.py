@@ -43,7 +43,7 @@ class FilterView(APIView):
 
     def post(self, request, format=None):
         #self.apply_filter(FilterEnum.MEAN_FILTER, 1)
-        convertJson.jsonToFile('Bluetooth')
+        convertJson.jsonToFile('BluetoothWiFi')
         return Response(status=status.HTTP_200_OK)
 
     def apply_filter(self, filter_identifier, window_size):
@@ -69,26 +69,49 @@ class FilterView(APIView):
 
 class PositioningAlgorithmsView(APIView):
 
+
     def post(self, request, format=None):
+        isClassifier = False
         serializer_context = {
             'request': request,
         }
         sample = request.data
-        position = []
+        prediction = []
         filter = sample['filter']
+        algorithm = sample['algorithm']
+        dataTypes = sample['dataTypes']
         if filter == 'Mean':
             FilterView.apply_filter(FilterEnum.MEAN_FILTER,len(Fingerprint.objects.all()))
         elif filter == 'Median':
             FilterView.apply_filter(FilterEnum.MEDIAN_FILTER,len(Fingerprint.objects.all()))
-        else:
-            '''convertJson.jsonToFile()'''
-        if 'Wi-fi' in sample['dataTypes']:
-            if sample['algorithm'] == 'KNNR':
-                position = positioning.apply_knnr('Wifi',sample['aps'])
-        if len(position) != 0:
-            fingerprint = Fingerprint.objects.create(coordinate_X=position[0][0],coordinate_Y=position[0][1])
-            print(fingerprint)
-            serialized = FingerprintSerializer(fingerprint,context=serializer_context)
-            return Response(serialized.data,status=status.HTTP_200_OK)
+        if algorithm == 'KNN Regression':
+            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+        elif algorithm == 'KNN Classifier':
+            prediction = positioning.apply_knn_classifier(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            isClassifier = True
+        elif algorithm == 'MLP Regression':
+            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+        elif algorithm == 'MLP Classifier':
+            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            isClassifier = True
+        elif algorithm == 'K-Means Classifier':
+            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            isClassifier = True
+        elif algorithm == 'SVM Classifier':
+            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            isClassifier = True
+        print('prediction',prediction)
+        if len(prediction) != 0:
+            if isClassifier == True:
+                fingerprint = Fingerprint.objects.create(coordinate_X=0.0,coordinate_Y= 0.0,zone=prediction[0])
+                print(fingerprint)
+                serialized = FingerprintSerializer(fingerprint, context=serializer_context)
+                return Response(serialized.data, status=status.HTTP_200_OK)
+            else:
+                fingerprint = Fingerprint.objects.create(coordinate_X=prediction[0][0],coordinate_Y=prediction[0][1])
+                print(fingerprint)
+                print(prediction)
+                serialized = FingerprintSerializer(fingerprint,context=serializer_context)
+                return Response(serialized.data,status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
