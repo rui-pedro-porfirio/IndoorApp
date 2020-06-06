@@ -42,7 +42,6 @@ class TypeEnum(Enum):
 class FilterView(APIView):
 
     def post(self, request, format=None):
-        #self.apply_filter(FilterEnum.MEAN_FILTER, 1)
         convertJson.jsonToFile('BluetoothWiFi')
         return Response(status=status.HTTP_200_OK)
 
@@ -85,20 +84,20 @@ class PositioningAlgorithmsView(APIView):
         elif filter == 'Median':
             FilterView.apply_filter(FilterEnum.MEDIAN_FILTER,len(Fingerprint.objects.all()))
         if algorithm == 'KNN Regression':
-            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            prediction = positioning.apply_knn_regressor(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
         elif algorithm == 'KNN Classifier':
             prediction = positioning.apply_knn_classifier(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
             isClassifier = True
         elif algorithm == 'MLP Regression':
-            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            prediction = positioning.apply_mlp_regressor(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
         elif algorithm == 'MLP Classifier':
-            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            prediction = positioning.apply_mlp_classifier(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
             isClassifier = True
         elif algorithm == 'K-Means Classifier':
-            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            prediction = positioning.apply_kmeans_knn_classifier(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
             isClassifier = True
         elif algorithm == 'SVM Classifier':
-            prediction = positioning.apply_knnr(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
+            prediction = positioning.apply_svm_classifier(dataTypes,sample['aps'],sample['beacons'],sample['deviceData'])
             isClassifier = True
         print('prediction',prediction)
         if len(prediction) != 0:
