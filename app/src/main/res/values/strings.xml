@@ -58,6 +58,8 @@
     <string name="tab_text_2">RADIO MAP</string>
     <string name="tab_text_3">PREFERENCES</string>
     <string name="tab_text_1_online">POSITION</string>
+    <string name="tab_text_1_proximity_distance">SCAN</string>
+    <string name="tab_text_2_proximity_distance">PREFERENCES</string>
     <string name="title_activity_offline_phase">OfflinePhaseActivity</string>
     <string name="title_activity_offline_tabed">OfflineTabedActivity</string>
     <string name="selected_sensor_types_string">Selected sensor types: %s</string>
@@ -77,4 +79,12 @@
     <string name="selected_zone">Selected Zone: %s</string>
     <string name="load_file">Load File</string>
     <string name="zone">Zone</string>
+    <string name="proximity_string">Proximity</string>
+    <string name="proximity_technique_string">Proximity Technique</string>
+    <string name="proximity_button_string">Start Proximity</string>
+    <string name="distance_rssi_scan">Distance/RSSI scan</string>
+    <string name="start_distance_scan_string">Start Distance Scan</string>
+    <string name="scan_interval">Scan Interval</string>
+    <string name="distance_rssi_scan_string">Distance/RSSI Scan</string>
+    <string name="start_scan_string">Start Scan</string>
 </resources>

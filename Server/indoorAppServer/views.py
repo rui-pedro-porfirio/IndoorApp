@@ -5,6 +5,11 @@ from .serializers import FingerprintSerializer, DeviceDataSerializer, WifiDataSe
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import os.path
+from os import path
+import pandas as pd
+import numpy as np
+from IPython.core.display import display
 from enum import Enum
 from .snippets import filters, convertJson,positioning
 
@@ -38,6 +43,40 @@ class TypeEnum(Enum):
     WIFI = 1
     BLUETOOTH = 2
 
+class ProximityDistanceView(APIView):
+
+    def post(self,request,formate=None):
+        serializer_context = {
+            'request': request,
+        }
+        csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value','rolling_mean_rssi']
+        sample = request.data
+        single_value_scanned = sample['singleValue']
+        valuesScanned = sample['values']
+        aux_list = list()
+        rolling_mean_list = list()
+        for value in valuesScanned:
+            aux_list.append(value)
+            rolling_mean_list.append(np.mean(aux_list))
+        print(rolling_mean_list)
+        x_coordinate = sample['x_coordinate']
+        y_coordinate = sample['y_coordinate']
+        results_list_2d = list()
+        for i in range(len(valuesScanned)):
+            results_list = list()
+            results_list.append(x_coordinate)
+            results_list.append(y_coordinate)
+            results_list.append(valuesScanned[i])
+            results_list.append(rolling_mean_list[i])
+            results_list_2d.append(results_list)
+        display(results_list_2d)
+        df = pd.DataFrame(data=results_list_2d,columns=csv_columns)
+        display(df)
+        if path.exists(".\distance_proximity_experiments.csv"):
+            df.to_csv(r'.\distance_proximity_experiments.csv', mode='a',index=False, header=False)
+        else:
+            df.to_csv(r'.\distance_proximity_experiments.csv',index=False, header=True)
+        return Response(status=status.HTTP_200_OK)
 
 class FilterView(APIView):
 

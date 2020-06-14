@@ -19,6 +19,7 @@ public class MainPageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_second);
         startScanningData();
         enableFingerprinting();
+        startProximity();
     }
 
     public void startScanningData(){
@@ -41,5 +42,16 @@ public class MainPageActivity extends AppCompatActivity {
                 startActivity(fingerprintingIntent);
             }
         });
+    }
+
+    public void startProximity(){
+        final Intent startProximityIntent = new Intent(this,ProximityScreenActivity.class);
+        Button mProximityButton = findViewById(R.id.proximityButtonId);
+        mProximityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(startProximityIntent);
+            }
+            });
     }
 }
