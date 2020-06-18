@@ -55,6 +55,11 @@ public class BluetoothDistanceObject {
         return name;
     }
 
+    public void resetValues(){
+        this.values = new ArrayList<>();
+        this.singleValue = Integer.MIN_VALUE;
+    }
+
     public float getX_coordinate() {
         return x_coordinate;
     }

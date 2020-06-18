@@ -39,11 +39,33 @@ public class TabProximityDistancePreferences extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         preferences = new HashMap<String, Float>();
+        EditText mScanTime = view.findViewById(R.id.rollingTimeValueId);
+        preferences.put("Scan Time", Float.valueOf(mScanTime.getText().toString()));
         EditText mXCoordinate = view.findViewById(R.id.proximityXCoordinateValueId);
         preferences.put("X", Float.valueOf(mXCoordinate.getText().toString()));
         EditText mYCoordinate = view.findViewById(R.id.proximityYCoordinateValueId);
         preferences.put("Y", Float.valueOf(mYCoordinate.getText().toString()));
         ((ProximityDistanceScanActivity) getActivity()).setPreferences(preferences);
+
+        mScanTime.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!s.toString().equals("")) {
+                    preferences.put("Scan Time", Float.valueOf(s.toString()));
+                    ((ProximityDistanceScanActivity) getActivity()).setPreferences(preferences);
+                }
+            }
+        });
 
         mXCoordinate.addTextChangedListener(new TextWatcher() {
             @Override

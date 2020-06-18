@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.RemoteException;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -39,6 +40,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.MediaType;
@@ -51,8 +53,11 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.4:8000/";
-    private static final long ROLLING_TIME = 5000;
+    private static final String ADDRESS = "http://192.168.1.123:8000/";
+    private static final long SCAN_PERIOD_TIME = 60000; // 1 minute of continuous scanning
+    private static final String TAG = "TIMER";
+    private static final String LOG = "LOG";
+
 
     private OkHttpClient client;
     private BeaconManager beaconManager;
@@ -99,9 +104,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
     }
 
     public void resetDataStructures() {
-        this.mTargetBeacon = null;
-        this.client = new OkHttpClient();
-        isScanning = false;
+        mTargetBeacon.resetValues();
     }
 
     public void startScan(View view) throws InterruptedException {
@@ -195,10 +198,12 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
     }
 
     public void sendScanToServer() {
-        mTargetBeacon.setX_coordinate(preferences.get("X"));
-        mTargetBeacon.setY_coordinate(preferences.get("Y"));
+        BluetoothDistanceObject mCopyCatBeacon = new BluetoothDistanceObject(mTargetBeacon.getName(),mTargetBeacon.getValues());
+        mCopyCatBeacon.setX_coordinate(preferences.get("X"));
+        mCopyCatBeacon.setY_coordinate(preferences.get("Y"));
+        Log.d(LOG,"Created Copy Cat version of beacon, sending data to server...");
         Gson gson = new Gson();
-        String jsonString = gson.toJson(mTargetBeacon);
+        String jsonString = gson.toJson(mCopyCatBeacon);
         resetDataStructures();
         Toast.makeText(this, "Sending data to server", Toast.LENGTH_SHORT).show();
         new SendHTTPRequest(jsonString).execute();
@@ -208,16 +213,26 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
         isScanning = true;
         CountDownTimer waitTimer;
-        waitTimer = new CountDownTimer(ROLLING_TIME, 300) {
+        long tickTimer = preferences.get("Scan Time").longValue();
+        waitTimer = new CountDownTimer(SCAN_PERIOD_TIME, tickTimer) {
 
             public void onTick(long millisUntilFinished) {
+                Log.d(TAG, "notify countDown: " + millisUntilFinished + " msecs");
+                if (mTargetBeacon != null) {
+                    Log.d(LOG,"Beacon is up");
+                    sendScanToServer();
+                }
             }
 
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             public void onFinish() {
                 sendScanToServer();
+                isScanning = false;
+                Toast.makeText(getApplicationContext(),"Finished Scanning ",Toast.LENGTH_SHORT).show();
             }
-        }.start();
+        };
+
+        Log.d(TAG, "start countDown for " + SCAN_PERIOD_TIME + " msecs");
+        waitTimer.start();
     }
 
     private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
