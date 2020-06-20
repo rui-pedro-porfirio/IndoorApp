@@ -53,7 +53,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.123:8000/";
+    private static final String ADDRESS = "http://192.168.1.4:8000/";
     private static final long SCAN_PERIOD_TIME = 60000; // 1 minute of continuous scanning
     private static final String TAG = "TIMER";
     private static final String LOG = "LOG";
@@ -64,6 +64,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
     private BluetoothDistanceObject mTargetBeacon;
     private Map<String, Float> preferences;
     private boolean isScanning;
+    private String zoneClassifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +81,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         tabs.getTabAt(1).setIcon(R.drawable.preferencesicon);
         preferences = new HashMap<String, Float>();
         isScanning = false;
+        zoneClassifier = null;
     }
 
     @Override
@@ -105,6 +107,9 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     public void resetDataStructures() {
         mTargetBeacon.resetValues();
+    }
+    public void setZoneClassifier(String zoneClassifier) {
+        this.zoneClassifier = zoneClassifier;
     }
 
     public void startScan(View view) throws InterruptedException {
@@ -201,6 +206,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         BluetoothDistanceObject mCopyCatBeacon = new BluetoothDistanceObject(mTargetBeacon.getName(),mTargetBeacon.getValues());
         mCopyCatBeacon.setX_coordinate(preferences.get("X"));
         mCopyCatBeacon.setY_coordinate(preferences.get("Y"));
+        mCopyCatBeacon.setZone(zoneClassifier);
         Log.d(LOG,"Created Copy Cat version of beacon, sending data to server...");
         Gson gson = new Gson();
         String jsonString = gson.toJson(mCopyCatBeacon);

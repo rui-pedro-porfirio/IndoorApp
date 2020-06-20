@@ -49,8 +49,9 @@ class ProximityDistanceView(APIView):
         serializer_context = {
             'request': request,
         }
-        csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value','rolling_mean_rssi']
+        csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value','rolling_mean_rssi','zone']
         sample = request.data
+        zone = sample['zone']
         single_value_scanned = sample['singleValue']
         valuesScanned = sample['values']
         aux_list = list()
@@ -68,6 +69,7 @@ class ProximityDistanceView(APIView):
             results_list.append(y_coordinate)
             results_list.append(valuesScanned[i])
             results_list.append(rolling_mean_list[i])
+            results_list.append(zone)
             results_list_2d.append(results_list)
         display(results_list_2d)
         df = pd.DataFrame(data=results_list_2d,columns=csv_columns)

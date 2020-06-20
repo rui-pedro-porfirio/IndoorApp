@@ -21,10 +21,13 @@ import androidx.fragment.app.Fragment;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TabProximityDistancePreferences extends Fragment {
+public class TabProximityDistancePreferences extends Fragment implements AdapterView.OnItemSelectedListener {
 
 
     private Map<String, Float> preferences;
+    private String zoneClassifier;
+
+    private String[] zones = {"None","0-1 meters", "1-2 meters","2-3 meters","3-4 meters"};
 
     @Override
     public View onCreateView(
@@ -33,12 +36,25 @@ public class TabProximityDistancePreferences extends Fragment {
         View root = inflater.inflate(R.layout.tab_distance_proximity_preferences, container, false);
         return root;
     }
-
+    @Override
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
+        zoneClassifier = zones[position];
+        ((ProximityDistanceScanActivity) getActivity()).setZoneClassifier(zoneClassifier);
+    }
+    @Override
+    public void onNothingSelected(AdapterView<?> arg0) {
+        // TODO - Custom Code
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         preferences = new HashMap<String, Float>();
+        Spinner spin = (Spinner) view.findViewById(R.id.zoneSpinnerProximityId);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, zones);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spin.setAdapter(adapter);
+        spin.setOnItemSelectedListener(this);
         EditText mScanTime = view.findViewById(R.id.rollingTimeValueId);
         preferences.put("Scan Time", Float.valueOf(mScanTime.getText().toString()));
         EditText mXCoordinate = view.findViewById(R.id.proximityXCoordinateValueId);

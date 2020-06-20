@@ -10,6 +10,7 @@ public class BluetoothDistanceObject {
     private float y_coordinate;
     private List<Integer> values;
     private int singleValue;
+    private String zone;
 
     public BluetoothDistanceObject(String name, List<Integer> values){
         this.name = name;
@@ -17,6 +18,7 @@ public class BluetoothDistanceObject {
         this.singleValue = Integer.MIN_VALUE;
         this.x_coordinate = 0.0f;
         this.y_coordinate = 0.0f;
+        zone = null;
     }
 
     public BluetoothDistanceObject(String name, int value){
@@ -25,6 +27,7 @@ public class BluetoothDistanceObject {
         this.singleValue = value;
         this.x_coordinate = 0.0f;
         this.y_coordinate = 0.0f;
+        zone = null;
     }
 
     public void setX_coordinate(float x_coordinate) {
@@ -49,6 +52,10 @@ public class BluetoothDistanceObject {
 
     public void addRSSIValue(int rssi){
         values.add(rssi);
+    }
+
+    public void setZone(String zone){
+        this.zone = zone;
     }
 
     public String getName() {
