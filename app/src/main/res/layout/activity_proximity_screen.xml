@@ -78,7 +78,7 @@
         android:background="@drawable/rounded_button"
         android:fontFamily="@font/andada"
         android:padding="10dp"
-        android:text="Start Proximity"
+        android:text="@string/proximity_button_string"
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="18sp"

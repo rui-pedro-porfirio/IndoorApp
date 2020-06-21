@@ -18,10 +18,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <activity android:name=".activities.ProximityDistanceScanActivity"
+        <activity android:name=".activities.ProximityOnlineActivity"
             android:parentActivityName=".activities.ProximityScreenActivity"></activity>
-        <activity android:name=".activities.ProximityScreenActivity"
-            android:parentActivityName=".activities.MainPageActivity"/>
+        <activity
+            android:name=".activities.ProximityDistanceScanActivity"
+            android:parentActivityName=".activities.ProximityScreenActivity" />
+        <activity
+            android:name=".activities.ProximityScreenActivity"
+            android:parentActivityName=".activities.MainPageActivity" />
         <activity
             android:name=".activities.OnlineActivity"
             android:parentActivityName=".activities.FingerprintingActivity" />

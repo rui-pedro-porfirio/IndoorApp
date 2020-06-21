@@ -16,6 +16,7 @@ public class ProximityScreenActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setContentView(R.layout.activity_proximity_screen);
         startScanningData();
+        startOnlinePhase();
     }
 
     public void startScanningData(){
@@ -25,6 +26,17 @@ public class ProximityScreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(scanStartIntent);
+            }
+        });
+    }
+
+    public void startOnlinePhase(){
+        final Intent startOnlinePhaseIntent = new Intent(this, ProximityOnlineActivity.class);
+        Button mOnlineProximityButton = (Button) findViewById(R.id.proximityStartProximityButtonId);
+        mOnlineProximityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(startOnlinePhaseIntent);
             }
         });
     }

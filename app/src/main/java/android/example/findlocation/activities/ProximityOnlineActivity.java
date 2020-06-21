@@ -1,5 +1,9 @@
 package android.example.findlocation.activities;
 
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
+
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,25 +11,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.example.findlocation.R;
-
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
-
+import android.example.findlocation.objects.client.BluetoothDistanceObject;
 import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.Fingerprint;
 import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
-import android.example.findlocation.objects.server.ServerBluetoothData;
-import android.example.findlocation.objects.server.ServerDeviceData;
-import android.example.findlocation.objects.server.ServerFingerprint;
 import android.example.findlocation.objects.server.ServerPosition;
-import android.example.findlocation.objects.server.ServerWifiData;
-import android.example.findlocation.ui.main.SectionsPagerAdapter;
 import android.example.findlocation.ui.main.SectionsPagerAdapterOnline;
+import android.example.findlocation.ui.main.SectionsPagerAdapterOnlineProximity;
+import android.example.findlocation.ui.main.SectionsPagerAdapterProximityDistance;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -35,16 +31,14 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.RemoteException;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.gson.Gson;
@@ -76,22 +70,19 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class OnlineActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
+public class ProximityOnlineActivity extends AppCompatActivity implements BeaconConsumer {
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String ADDRESS = "http://192.168.1.4:8000/";
 
-    private List<String> dataTypes;
     private String algorithm;
-    private String filter;
     private OkHttpClient client;
-    private SensorManager mSensorManager;
-    private WifiManager wifiManager;
     private BeaconManager beaconManager;
-    private List<WifiObject> mAccessPoints;
-    private List<BluetoothObject> mBeaconsList;
-    private List<SensorObject> mSensorInformationList;
+    private static final String TAG = "TIMER";
+    private static final String LOG = "LOG";
+    private BluetoothDistanceObject mTargetBeacon;
+    private boolean isScanning;
     private String zoneClassified;
     private List<Float> coordinates;
 
@@ -99,21 +90,21 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_online);
+        setContentView(R.layout.activity_proximity_online);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        SectionsPagerAdapterOnline sectionsPagerAdapter = new SectionsPagerAdapterOnline(this, getSupportFragmentManager());
-        ViewPager viewPager = findViewById(R.id.view_pagerOnline);
+        SectionsPagerAdapterOnlineProximity sectionsPagerAdapter = new SectionsPagerAdapterOnlineProximity(this, getSupportFragmentManager());
+        ViewPager viewPager = findViewById(R.id.view_pagerProximityId);
         viewPager.setAdapter(sectionsPagerAdapter);
-        TabLayout tabs = findViewById(R.id.tabsOnline);
+        TabLayout tabs = findViewById(R.id.proximitytabsOnline);
         tabs.setupWithViewPager(viewPager);
-        dataTypes = new ArrayList<String>();
         algorithm = null;
-        filter = null;
+        mTargetBeacon = null;
         tabs.getTabAt(0).setIcon(R.drawable.map_marker_small);
         tabs.getTabAt(1).setIcon(R.drawable.preferencesicon);
         client = new OkHttpClient();
         zoneClassified = "";
         coordinates = new ArrayList<>();
+        isScanning = false;
     }
 
     @Override
@@ -125,129 +116,69 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
     @Override
     protected void onStop() {
         super.onStop();
-        mSensorManager.unregisterListener(this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         beaconManager.unbind(this);
-        unregisterReceiver(wifiScanReceiver);
     }
 
     public void resetDataStructures() {
         this.coordinates = new ArrayList<>();
         this.zoneClassified = "";
-        this.filter = "";
         this.algorithm = "";
-        this.dataTypes = new ArrayList<>();
-        this.mAccessPoints = new ArrayList<>();
-        this.mBeaconsList = new ArrayList<>();
-        this.mSensorInformationList = new ArrayList<>();
-        this.client = new OkHttpClient();
+        mTargetBeacon.resetValues();
     }
 
     public void computeNewPosition() {
-        ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.progressBarLocationId);
+        ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.proximity_progressBarLocationId);
         mProgressBar.setVisibility(View.INVISIBLE);
-        TextView mTextTitle = (TextView) findViewById(R.id.foundPositionTextViewId);
+        TextView mTextTitle = (TextView) findViewById(R.id.proximityFoundPositionTextViewId);
         mTextTitle.setVisibility(View.VISIBLE);
         if (zoneClassified.length() < 1 && coordinates.size() > 1) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.linearLayoutTabPositionRegressionId);
+            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.proximityLinearLayoutTabPositionRegressionId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView xTextView = (TextView) findViewById(R.id.x_coordinate_positionValueId);
+            TextView xTextView = (TextView) findViewById(R.id.proximity_x_coordinate_positionValueId);
             xTextView.setText(String.valueOf(coordinates.get(0)));
-            TextView yTextView = (TextView) findViewById(R.id.y_coordinate_positionValueId);
+            TextView yTextView = (TextView) findViewById(R.id.proximity_y_coordinate_positionValueId);
             yTextView.setText(String.valueOf(coordinates.get(1)));
-        } else if(zoneClassified.length() > 1) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.linearLayoutTabPositionClassifierId);
+        } else if (zoneClassified.length() > 1) {
+            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.proximityLinearLayoutTabPositionClassifierId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView zoneTextView = (TextView) findViewById(R.id.zone_predictionId);
+            TextView zoneTextView = (TextView) findViewById(R.id.proximity_zone_predictionId);
             zoneTextView.setText(zoneClassified);
         }
         resetDataStructures();
-    }
-
-    public void onSensorClicked(View view) {
-        // Is the view now checked?
-        boolean checked = ((CheckBox) view).isChecked();
-
-
-        // Check which checkbox was clicked
-        switch (view.getId()) {
-            case R.id.checkbox_wifi_online:
-                if (checked) {
-                    if (!dataTypes.contains("Wi-Fi"))
-                        dataTypes.add("Wi-fi");
-                } else {
-                    if (dataTypes.contains("Wi-Fi"))
-                        dataTypes.remove("Wi-Fi");
-                }
-                break;
-            case R.id.checkbox_bluetooth_online:
-                if (checked) {
-                    if (!dataTypes.contains("Bluetooth"))
-                        dataTypes.add("Bluetooth");
-                } else {
-                    if (dataTypes.contains("Bluetooth"))
-                        dataTypes.remove("Bluetooth");
-                }
-                break;
-            case R.id.checkbox_device_sensors_online:
-                if (checked) {
-                    if (!dataTypes.contains("DeviceData"))
-                        dataTypes.add("DeviceData");
-                } else {
-                    if (dataTypes.contains("DeviceData"))
-                        dataTypes.remove("DeviceData");
-                }
-                break;
-        }
     }
 
     public void setAlgorithm(String algorithm) {
         this.algorithm = algorithm;
     }
 
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void computeFingerprint(Fingerprint fingerprint) {
-        Fingerprint newFingerprint = new Fingerprint();
-        newFingerprint.setX_coordinate(fingerprint.getX_coordinate());
-        newFingerprint.setY_coordinate(fingerprint.getY_coordinate());
-        newFingerprint.setmAccessPoints(fingerprint.getmAccessPoints());
-        newFingerprint.setmBeaconsList(fingerprint.getmBeaconsList());
-        newFingerprint.setmSensorInformationList(fingerprint.getmSensorInformationList());
-        Map<String, Integer> access_points = new HashMap<>();
-        Map<String, Integer> beacons = new HashMap<>();
-        Map<String, float[]> deviceData = new HashMap<>();
-        for (WifiObject ap : newFingerprint.getmAccessPoints()
-        ) {
-            access_points.put(ap.getName(), ap.getSingleValue());
+    public void sendScanToServer() {
+        if(mTargetBeacon != null) {
+            BluetoothDistanceObject mCopyCatBeacon = new BluetoothDistanceObject(mTargetBeacon.getName(), mTargetBeacon.getValues());
+            Log.d(LOG, "Created Copy Cat version of beacon, sending data to server...");
+            Gson gson = new Gson();
+            String jsonString = gson.toJson(mCopyCatBeacon);
+            resetDataStructures();
+            Toast.makeText(this, "Sending data to server", Toast.LENGTH_SHORT).show();
+            new SendHTTPRequest(jsonString).execute();
         }
-        for (BluetoothObject beacon : newFingerprint.getmBeaconsList()) {
-            beacons.put(beacon.getName(), beacon.getSingleValue());
+        else{
+            Toast.makeText(this,"ERROR: Scanning Beacon not working properly",Toast.LENGTH_SHORT).show();
         }
-        for (SensorObject sensor : newFingerprint.getmSensorInformationList()) {
-            deviceData.put(sensor.getName(), sensor.getValues());
-        }
-        Gson gson = new Gson();
-        ServerPosition position = new ServerPosition(algorithm, filter, access_points, beacons, deviceData, dataTypes);
-        String jsonString = gson.toJson(position);
-        new SendHTTPRequest(jsonString).execute();
     }
 
     public void addFindUserPositionListener(View view) throws InterruptedException {
 
-        if (dataTypes.size() != 0 && algorithm != null && filter != null) {
+        if (algorithm != null) {
             Toast.makeText(this, "Finding Your Position", Toast.LENGTH_SHORT).show();
-            Button mButton = (Button) view.findViewById(R.id.buttonFindUserPositionId);
+            Button mButton = (Button) view.findViewById(R.id.proximityButtonFindUserPositionId);
             mButton.setVisibility(View.INVISIBLE);
-            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.progressBarLocationId);
+            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.proximity_progressBarLocationId);
             mProgressBar.setVisibility(View.VISIBLE);
             scanData();
         } else {
@@ -256,117 +187,31 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
     }
 
     protected void activateSensorScan() {
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorInformationList = new ArrayList<>();
-        getAvailableDeviceSensors();
-
-        //BLUETOOTH SENSOR
-        mBeaconsList = new ArrayList<>();
         beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.bind(this);
         verifyBluetooth();
-
-        //WI-FI SENSOR
-        mAccessPoints = new ArrayList<>();
-        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
-
-        registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        wifiManager.startScan();
     }
 
     public void scanData() {
 
+        isScanning = true;
         CountDownTimer waitTimer;
         waitTimer = new CountDownTimer(10000, 300) {
 
             public void onTick(long millisUntilFinished) {
+                Log.d(TAG, "notify countDown: " + millisUntilFinished + " msecs");
             }
 
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             public void onFinish() {
-                if (!dataTypes.contains("Wi-fi")) {
-                    mAccessPoints = new ArrayList<>();
-                }
-                if (!dataTypes.contains("Bluetooth")) {
-                    mBeaconsList = new ArrayList<>();
-                }
-                if (!dataTypes.contains("DeviceData")) {
-                    mSensorInformationList = new ArrayList<>();
-                }
-
-                onPostExecute(new Fingerprint(mSensorInformationList, mBeaconsList, mAccessPoints));
+                sendScanToServer();
+                isScanning = false;
+                Toast.makeText(getApplicationContext(), "Finished Scanning ", Toast.LENGTH_SHORT).show();
             }
-        }.start();
+        };
+        waitTimer.start();
     }
-
-    public void getAvailableDeviceSensors() {
-        float[] defaultValues = new float[3];
-        defaultValues[0] = 0f;
-        defaultValues[1] = 0f;
-        defaultValues[2] = 0f;
-        Sensor orientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        mSensorManager.registerListener(this, orientation,
-                SensorManager.SENSOR_DELAY_NORMAL);
-        SensorObject sensorInfo = new SensorObject(orientation.getName(), defaultValues);
-        mSensorInformationList.add(sensorInfo);
-    }
-
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    protected void onPostExecute(Fingerprint fingerprint) {
-        //SEND FINGERPRINT
-        computeFingerprint(fingerprint);
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        Sensor sensorDetected = event.sensor;
-        for (SensorObject sensorInList : mSensorInformationList) {
-            if (sensorDetected.getName().equals(sensorInList.getName())) {
-                sensorInList.setValue(event.values);
-            }
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                scanSuccess();
-            }
-        }
-    };
-
-    private void scanSuccess() {
-        List<ScanResult> results = wifiManager.getScanResults();
-        for (ScanResult result : results
-        ) {
-            int rssi = result.level;
-            boolean found = false;
-            for (int i = 0; i < mAccessPoints.size(); i++) {
-                WifiObject resultInList = mAccessPoints.get(i);
-                if (resultInList.getName().equals(result.BSSID)) {
-                    resultInList.setSingleValue(rssi);
-                    found = true;
-                    break;
-                }
-            }
-
-            if (found == false) {
-                WifiObject ap = new WifiObject(result.BSSID, result.level);
-                mAccessPoints.add(ap);
-            }
-        }
-    }
-
 
     @Override
     public void onBeaconServiceConnect() {
@@ -374,23 +219,23 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                if (beacons.size() > 0) {
+                if (isScanning) {
+                    if (beacons.size() > 0) {
 
-                    Beacon beaconScanned = beacons.iterator().next();
-                    int rss = beaconScanned.getRssi();
-                    boolean found = false;
-                    for (int i = 0; i < mBeaconsList.size(); i++) {
-                        BluetoothObject beaconfound = mBeaconsList.get(i);
-                        if (beaconfound.getName().equals(beaconScanned.getBluetoothAddress())) {
-                            beaconfound.setSingleValue(rss);
+                        Beacon beaconScanned = beacons.iterator().next();
+                        int rssi = beaconScanned.getRssi();
+                        boolean found = false;
+                        if (mTargetBeacon != null && mTargetBeacon.getName().equals(beaconScanned.getBluetoothAddress())) {
+                            mTargetBeacon.setSingleValue(rssi);
+                            mTargetBeacon.addRSSIValue(rssi);
                             found = true;
-                            break;
                         }
-                    }
 
-                    if (found == false) {
-                        BluetoothObject beacon = new BluetoothObject(beaconScanned.getBluetoothAddress(), rss);
-                        mBeaconsList.add(beacon);
+                        if (found == false) {
+                            mTargetBeacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
+                            mTargetBeacon.addRSSIValue(rssi);
+                            System.out.println("HERE");
+                        }
                     }
                 }
             }
@@ -400,6 +245,7 @@ public class OnlineActivity extends AppCompatActivity implements SensorEventList
         } catch (
                 RemoteException e) {
         }
+
     }
 
     private void verifyBluetooth() {
