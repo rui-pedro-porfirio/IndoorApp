@@ -53,7 +53,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.4:8000/";
+    private static final String ADDRESS = "http://192.168.1.6:8000/";
     private static final long SCAN_PERIOD_TIME = 60000; // 1 minute of continuous scanning
     private static final String TAG = "TIMER";
     private static final String LOG = "LOG";
