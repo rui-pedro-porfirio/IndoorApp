@@ -187,6 +187,7 @@ class PositioningAlgorithmsView(APIView):
         return compute_Response(prediction,isClassifier,serializer_context)
 
 
+
 def compute_Response(prediction,isClassifier,serializer_context):
     print('prediction', prediction)
     if len(prediction) != 0:

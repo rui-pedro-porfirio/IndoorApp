@@ -5,6 +5,7 @@ from sklearn.preprocessing import OneHotEncoder,LabelEncoder
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
 from .algorithms import *
 
+label_encoder = LabelEncoder()
 
 def checkScaler(preprocessingString):
     if preprocessingString == 'MaxAbsScaler':
@@ -36,7 +37,16 @@ def compute_data_cleaning(dataset,feature):
     dataset[feature] = dataset[feature].fillna(nan_filler) # Fill missing values
 
 
-def commpute_encoder(categorical_data):
-    label_encoder = LabelEncoder()
-    labels = label_encoder.fit_transform(categorical_data)
+def compute_encoder(categorical_data,flag):
+    global label_encoder
+    if flag == 0:
+        labels = label_encoder.fit_transform(categorical_data)
+        print("Labels: ", labels)
+    else:
+        labels = label_encoder.transform(categorical_data)
     return labels
+
+def decode(prediction):
+    global label_encoder
+    label = label_encoder.inverse_transform(prediction)
+    return label

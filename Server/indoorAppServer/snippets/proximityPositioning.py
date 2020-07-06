@@ -14,7 +14,6 @@ train_Y = None
 test_X_rssi = None
 test_X_rolling_mean = None
 test_combination_features_X = None
-test_Y = None
 
 def initialize_testing_data(test_dataframe):
     global test_X_rssi
@@ -38,14 +37,14 @@ def initialize_training_data(training_dataframe):
     combination_features_X = training_dataframe[['rssi_Value', 'rolling_mean_rssi']]
     display(combination_features_X.shape)
 
-def data_cleaning(dataset):
+def data_cleaning(dataset,flag):
     # DATA CLEANING
     aux.compute_data_cleaning(dataset, 'rssi_Value')
     aux.compute_data_cleaning(dataset, 'rolling_mean_rssi')
     categorical_zone = dataset[['zone']]
     print("Previous Categorical Data")
     display(categorical_zone)
-    zone_changed = aux.commpute_encoder(categorical_zone)
+    zone_changed = aux.compute_encoder(categorical_zone,flag)
     print("After One Hot Encoder")
     dataset['labels'] = zone_changed
 
@@ -59,13 +58,10 @@ def prepare_dataset(test_datadf):
     aux.replace_features_nan(test_datadf)
     display(dataset)
     # DATA CLEANING
-    data_cleaning(dataset)
+    data_cleaning(dataset,0)
     train_Y = dataset['labels'].values.reshape(-1, 1)
     display(train_Y)
     initialize_training_data(dataset)
-    data_cleaning(test_datadf)
-    test_Y = test_datadf['labels'].values.reshape(-1,1)
-    display(test_Y)
     initialize_testing_data(test_datadf)
 
 def apply_knn_classifier(test_data_df):
@@ -78,7 +74,12 @@ def apply_knn_classifier(test_data_df):
                                              scaler=StandardScaler(),
                                              n_neighbors=12, weights='uniform', algorithm='auto',
                                              metric='manhattan')
-    return result
+    if len(result) > 1:
+        counts = np.bincount(result)
+        result[0] = np.argmax(counts)
+        prediction = aux.decode(result)
+        print("PREDICTION: ", prediction[0])
+    return prediction
 
 
 def apply_knn_regressor(test_data_df):
