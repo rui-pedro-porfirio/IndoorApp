@@ -13,5 +13,6 @@ urlpatterns = [
     path('',include(router.urls)),
     path('filter/',views.FilterView.as_view()),
     path('radiomap/position',views.PositioningAlgorithmsView.as_view()),
+    path('proximity/position', views.ProximityAlgorithmsView.as_view()),
     path('proximity/distance',views.ProximityDistanceView.as_view())
 ]

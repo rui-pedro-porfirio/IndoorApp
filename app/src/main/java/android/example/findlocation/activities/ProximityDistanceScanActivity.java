@@ -4,8 +4,12 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.example.findlocation.R;
 import android.example.findlocation.objects.client.BluetoothDistanceObject;
 import android.example.findlocation.ui.main.SectionsPagerAdapter;
@@ -15,7 +19,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -38,10 +44,12 @@ import org.altbeacon.beacon.Region;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -53,17 +61,23 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.6:8000/";
-    private static final long SCAN_PERIOD_TIME = 60000; // 1 minute of continuous scanning
+    private static final String ADDRESS = "http://192.168.1.10:8000/";
+    private static final long SCAN_PERIOD_TIME = 60000 * 1; // 1 minute of continuous scanning
     private static final String TAG = "TIMER";
+    private static final String BEACON = "BEACON";
     private static final String LOG = "LOG";
+    private static final String REGION_UUID = "b9407f30-f5f8-466e-aff9-25556b57fe6d";
 
+    private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
 
+    private long startTimeNs;
     private OkHttpClient client;
     private BeaconManager beaconManager;
     private BluetoothDistanceObject mTargetBeacon;
     private Map<String, Float> preferences;
     private boolean isScanning;
+    private Region region;
     private String zoneClassifier;
 
     @Override
@@ -82,12 +96,118 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         preferences = new HashMap<String, Float>();
         isScanning = false;
         zoneClassifier = null;
+        verifyBluetooth();
+        activateSensorScan();
+        requestPermissions();
+    }
+
+    public void requestPermissions(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                if (this.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    if (this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle("This app needs background location access");
+                        builder.setMessage("Please grant location access so this app can detect beacons in the background.");
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                            @TargetApi(23)
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                        PERMISSION_REQUEST_BACKGROUND_LOCATION);
+                            }
+
+                        });
+                        builder.show();
+                    }
+                    else {
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle("Functionality limited");
+                        builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                            }
+
+                        });
+                        builder.show();
+                    }
+
+                }
+            } else {
+                if (this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                            PERMISSION_REQUEST_FINE_LOCATION);
+                }
+                else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+
+            }
+        }
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        activateSensorScan();
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_FINE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "fine location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+                return;
+            }
+            case PERMISSION_REQUEST_BACKGROUND_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "background location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+                return;
+            }
+        }
     }
 
     @Override
@@ -108,6 +228,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
     public void resetDataStructures() {
         mTargetBeacon.resetValues();
     }
+
     public void setZoneClassifier(String zoneClassifier) {
         this.zoneClassifier = zoneClassifier;
     }
@@ -126,43 +247,43 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
+        beaconManager.setBackgroundMode(false);
+        beaconManager.setForegroundScanPeriod(200);
         beaconManager.bind(this);
-        verifyBluetooth();
+        startTimeNs = System.nanoTime();
+        Log.d(BEACON, "Beacon configuration ready. Start advertising");
     }
+
 
     @Override
     public void onBeaconServiceConnect() {
         beaconManager.removeAllRangeNotifiers();
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
-            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                if (isScanning) {
-                    if (beacons.size() > 0) {
+            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
 
-                        Beacon beaconScanned = beacons.iterator().next();
-                        int rssi = beaconScanned.getRssi();
-                        boolean found = false;
-                        if (mTargetBeacon != null && mTargetBeacon.getName().equals(beaconScanned.getBluetoothAddress())) {
-                            mTargetBeacon.setSingleValue(rssi);
-                            mTargetBeacon.addRSSIValue(rssi);
-                            found = true;
-                        }
-
-                        if (found == false) {
-                            mTargetBeacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
-                            mTargetBeacon.addRSSIValue(rssi);
-                            System.out.println("HERE");
-                        }
+                long elapsedTimeNs = System.nanoTime() - startTimeNs;
+                if (beacons.size() > 0 && isScanning) {
+                    Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
+                    Log.d(BEACON, "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
+                    Beacon beaconScanned = beacons.iterator().next();
+                    Log.d(BEACON, "Found beacon " + beaconScanned.getBluetoothAddress());
+                    int rssi = beaconScanned.getRssi(); //RSSI value of beacon
+                    if (mTargetBeacon == null) {
+                        Log.d(BEACON, "Beacon initialization");
+                        mTargetBeacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
+                    }
+                    if (mTargetBeacon.getName().equals(beaconScanned.getBluetoothAddress())) {
+                        mTargetBeacon.setSingleValue(rssi);
+                        mTargetBeacon.addRSSIValue(rssi);
+                        Log.d(BEACON, "RSSI VALUE: " + rssi);
                     }
                 }
             }
         });
         try {
-            beaconManager.startRangingBeaconsInRegion(new Region("uniqueIdRegion", null, null, null));
-        } catch (
-                RemoteException e) {
-        }
-
+            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+        } catch (RemoteException e) {    }
     }
 
     private void verifyBluetooth() {
@@ -203,14 +324,18 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
     }
 
     public void sendScanToServer() {
-        BluetoothDistanceObject mCopyCatBeacon = new BluetoothDistanceObject(mTargetBeacon.getName(),mTargetBeacon.getValues());
+        BluetoothDistanceObject mCopyCatBeacon = new BluetoothDistanceObject(mTargetBeacon.getName(), mTargetBeacon.getValues());
+        long scanningTime = beaconManager.getForegroundScanPeriod();
+        System.out.println("Time spent in Scanning: " + scanningTime);
+        long scanningPeriod = beaconManager.getForegroundBetweenScanPeriod();
+        System.out.println("Time spent between Scannings: " + scanningPeriod);
+        System.err.println("NUMBER OF SCANNED VALUES: " + mTargetBeacon.getValues().size());
         mCopyCatBeacon.setX_coordinate(preferences.get("X"));
         mCopyCatBeacon.setY_coordinate(preferences.get("Y"));
         mCopyCatBeacon.setZone(zoneClassifier);
-        Log.d(LOG,"Created Copy Cat version of beacon, sending data to server...");
+        Log.d(LOG, "Created Copy Cat version of beacon, sending data to server...");
         Gson gson = new Gson();
         String jsonString = gson.toJson(mCopyCatBeacon);
-        resetDataStructures();
         Toast.makeText(this, "Sending data to server", Toast.LENGTH_SHORT).show();
         new SendHTTPRequest(jsonString).execute();
     }
@@ -223,21 +348,23 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         waitTimer = new CountDownTimer(SCAN_PERIOD_TIME, tickTimer) {
 
             public void onTick(long millisUntilFinished) {
-                Log.d(TAG, "notify countDown: " + millisUntilFinished + " msecs");
+                Log.d(TAG, "BLE samples scanned at: " + millisUntilFinished + " msecs");
                 if (mTargetBeacon != null) {
-                    Log.d(LOG,"Beacon is up");
+                    Log.d(LOG, "Beacon is up");
                     sendScanToServer();
+                    mTargetBeacon.resetValues();
                 }
             }
 
             public void onFinish() {
                 sendScanToServer();
+                Toast.makeText(getApplicationContext(), "Finished Scanning ", Toast.LENGTH_SHORT).show();
                 isScanning = false;
-                Toast.makeText(getApplicationContext(),"Finished Scanning ",Toast.LENGTH_SHORT).show();
+                resetDataStructures();
             }
         };
 
-        Log.d(TAG, "start countDown for " + SCAN_PERIOD_TIME + " msecs");
+        Log.d(TAG, "Starting BLE scanning for" + SCAN_PERIOD_TIME + " msecs");
         waitTimer.start();
     }
 

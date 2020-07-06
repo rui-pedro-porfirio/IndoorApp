@@ -11,6 +11,7 @@ public class BluetoothDistanceObject {
     private List<Integer> values;
     private int singleValue;
     private String zone;
+    private String algorithm;
 
     public BluetoothDistanceObject(String name, List<Integer> values){
         this.name = name;
@@ -19,6 +20,17 @@ public class BluetoothDistanceObject {
         this.x_coordinate = 0.0f;
         this.y_coordinate = 0.0f;
         zone = null;
+        algorithm = null;
+    }
+
+    public BluetoothDistanceObject(String name,String algorithm, List<Integer> values){
+        this.name = name;
+        this.values = values;
+        this.singleValue = Integer.MIN_VALUE;
+        this.x_coordinate = 0.0f;
+        this.y_coordinate = 0.0f;
+        zone = null;
+        this.algorithm = algorithm;
     }
 
     public BluetoothDistanceObject(String name, int value){
@@ -28,6 +40,7 @@ public class BluetoothDistanceObject {
         this.x_coordinate = 0.0f;
         this.y_coordinate = 0.0f;
         zone = null;
+        algorithm = null;
     }
 
     public void setX_coordinate(float x_coordinate) {
