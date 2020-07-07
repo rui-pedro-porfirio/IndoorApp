@@ -100,7 +100,12 @@ def apply_mlp_classifier(test_data_df):
     result = compute_MLP_with_Classification(num_neurons_basic=len(trainX_data), trainX_data=trainX_data,
                                              trainY_data=train_Y, testX_data=testX_data,
                                              scaler=StandardScaler(), verbose=1)
-    return result
+    if len(result) > 1:
+        counts = np.bincount(result)
+        result[0] = np.argmax(counts)
+        prediction = aux.decode(result)
+        print("PREDICTION: ", prediction[0])
+    return prediction
 
 
 def apply_mlp_regressor(test_data_df):
@@ -121,7 +126,12 @@ def apply_svm_classifier(test_data_df):
                                              scaler=StandardScaler(), C_parameter=1.0, kernel_parameter='rbf',
                                              gamma_parameter='scale',
                                              class_weigth_parameter=None)
-    return result
+    if len(result) > 1:
+        counts = np.bincount(result)
+        result[0] = np.argmax(counts)
+        prediction = aux.decode(result)
+        print("PREDICTION: ", prediction[0])
+    return prediction
 
 
 def apply_svm_regressor(test_data_df):
@@ -149,4 +159,9 @@ def apply_randomForest_classifier(test_data_df):
     testX_data = test_combination_features_X
     result = compute_RF_Classification(trainX_data=trainX_data, trainY_data=train_Y, testX_data=testX_data,
                                       scaler=StandardScaler(),n_estimators_parameter=200,max_depth_parameter=10.0,min_samples_split_parameter=5)
-    return result
+    if len(result) > 1:
+        counts = np.bincount(result)
+        result[0] = np.argmax(counts)
+        prediction = aux.decode(result)
+        print("PREDICTION: ", prediction[0])
+    return prediction
