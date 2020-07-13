@@ -20,6 +20,7 @@ public class MainPageActivity extends AppCompatActivity {
         startScanningData();
         enableFingerprinting();
         startProximity();
+        startTrilateration();
     }
 
     public void startScanningData(){
@@ -52,6 +53,17 @@ public class MainPageActivity extends AppCompatActivity {
             public void onClick(View v) {
                 startActivity(startProximityIntent);
             }
-            });
+        });
+    }
+
+    public void startTrilateration(){
+        final Intent mStartTrilaterationIntent = new Intent(this,TrilaterationScreenActivity.class);
+        Button mTrilaterationButton = findViewById(R.id.trilaterationButtonId);
+        mTrilaterationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(mStartTrilaterationIntent);
+            }
+        });
     }
 }

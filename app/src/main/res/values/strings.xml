@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">IndoorApp</string>
     <string name="check_data_text">Check Model</string>
-    <string name="scan_data_text">Scan Data</string>
+    <string name="scan_data_text">Start Scanning Data</string>
     <string name="fingerprinting_button_text">Start Fingerprinting</string>
     <string name="next_button_text">Next</string>
     <string name="offline_button_string">Start Offline Phase</string>
@@ -88,4 +88,10 @@
     <string name="distance_rssi_scan_string">Distance/RSSI Scan</string>
     <string name="start_scan_string">Start Scan</string>
     <string name="start_proximity_technique_string">Start proximity technique</string>
+    <string name="trilateration_string">Trilateration</string>
+    <string name="trilateration_technique_subtitle">Trilateration Technique</string>
+    <string name="start_trilateration_button_string">Start Trilateration</string>
+    <string name="trilateration_technique_string">Trilateration Technique</string>
+    <string name="trilaterationUISubtitle">Distance/RSSI Scan for at least 3 beacons in range</string>
+    <string name="trilaterationUIPage_online_subtitle">Test Online</string>
 </resources>

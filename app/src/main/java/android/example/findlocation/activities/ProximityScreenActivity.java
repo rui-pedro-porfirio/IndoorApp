@@ -20,23 +20,23 @@ public class ProximityScreenActivity extends AppCompatActivity {
     }
 
     public void startScanningData(){
-        final Intent scanStartIntent = new Intent(this, ProximityDistanceScanActivity.class);
-        Button scanButton = (Button) findViewById(R.id.proximityDistanceScanButtonId);
-        scanButton.setOnClickListener(new View.OnClickListener() {
+        final Intent mScanStartIntent = new Intent(this, ProximityDistanceScanActivity.class);
+        Button mScanButton = (Button) findViewById(R.id.proximityDistanceScanButtonId);
+        mScanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(scanStartIntent);
+                startActivity(mScanStartIntent);
             }
         });
     }
 
     public void startOnlinePhase(){
-        final Intent startOnlinePhaseIntent = new Intent(this, ProximityOnlineActivity.class);
-        Button mOnlineProximityButton = (Button) findViewById(R.id.proximityStartProximityButtonId);
-        mOnlineProximityButton.setOnClickListener(new View.OnClickListener() {
+        final Intent mStartOnlinePhaseIntent = new Intent(this, ProximityOnlineActivity.class);
+        Button mOnlineTrilaterationButton = (Button) findViewById(R.id.proximityStartProximityButtonId);
+        mOnlineTrilaterationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(startOnlinePhaseIntent);
+                startActivity(mStartOnlinePhaseIntent);
             }
         });
     }
