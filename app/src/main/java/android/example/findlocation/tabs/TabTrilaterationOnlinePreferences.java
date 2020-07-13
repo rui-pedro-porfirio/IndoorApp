@@ -20,7 +20,7 @@ public class TabTrilaterationOnlinePreferences extends Fragment {
 
     private String selectedAlgorithm;
 
-    private String[] algorithms = {"KNN Regression","KNN Classifier", "MLP Regression","MLP Classifier","SVM Classifier","SVM Regressor","Linear Regression","Random Forest Classifier"};
+    private String[] algorithms = {"KNN Regression","MLP Regression","SVM Regressor","Linear Regression"};
     @Override
     public View onCreateView(
             @NonNull LayoutInflater inflater, ViewGroup container,

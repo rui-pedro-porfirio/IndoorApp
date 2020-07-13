@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.example.findlocation.R;
 import android.example.findlocation.objects.client.BluetoothDistanceObject;
-import android.example.findlocation.ui.main.SectionsPagerAdapterOnlineProximity;
 import android.example.findlocation.ui.main.SectionsPagerAdapterOnlineTrilateration;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -49,6 +48,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -233,21 +233,21 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
     }
 
     public void computeNewPosition() {
-        ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.proximity_progressBarLocationId);
+        ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.trilateration_progressBarLocationId);
         mProgressBar.setVisibility(View.INVISIBLE);
-        TextView mTextTitle = (TextView) findViewById(R.id.proximityFoundPositionTextViewId);
+        TextView mTextTitle = (TextView) findViewById(R.id.trilaterationFoundPositionTextViewId);
         mTextTitle.setVisibility(View.VISIBLE);
         if (zoneClassified.length() < 1 && coordinates.size() > 1) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.proximityLinearLayoutTabPositionRegressionId);
+            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.trilaterationLinearLayoutTabPositionRegressionId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView xTextView = (TextView) findViewById(R.id.proximity_x_coordinate_positionValueId);
+            TextView xTextView = (TextView) findViewById(R.id.trilateration_x_coordinate_positionValueId);
             xTextView.setText(String.valueOf(coordinates.get(0)));
-            TextView yTextView = (TextView) findViewById(R.id.proximity_y_coordinate_positionValueId);
+            TextView yTextView = (TextView) findViewById(R.id.trilateration_y_coordinate_positionValueId);
             yTextView.setText(String.valueOf(coordinates.get(1)));
         } else if (zoneClassified.length() >= 1 && !zoneClassified.equals("")) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.proximityLinearLayoutTabPositionClassifierId);
+            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.trilaterationLinearLayoutTabPositionClassifierId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView zoneTextView = (TextView) findViewById(R.id.proximity_zone_predictionId);
+            TextView zoneTextView = (TextView) findViewById(R.id.trilateration_zone_predictionId);
             zoneTextView.setText(zoneClassified);
         }
         resetDataStructures();
@@ -261,18 +261,18 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
     public void sendScanToServer() {
         if (mTargetBeacons.size() >= 3) {
             for (BluetoothDistanceObject beacon : mTargetBeacons.values()) {
-                BluetoothDistanceObject mCopyCatBeacon = new BluetoothDistanceObject(beacon.getName(), algorithm, beacon.getValues());
-                long scanningTime = beaconManager.getForegroundScanPeriod();
-                System.out.println("Time spent in Scanning: " + scanningTime);
-                long scanningPeriod = beaconManager.getForegroundBetweenScanPeriod();
-                System.out.println("Time spent between Scannings: " + scanningPeriod);
+                beacon.setAlgorithm(algorithm);
                 System.err.println("NUMBER OF SCANNED VALUES: " + beacon.getValues().size());
-                Log.d(LOG, "Created Copy Cat version of beacon, sending data to server...");
-                Gson gson = new Gson();
-                String jsonString = gson.toJson(mTargetBeacons); // SENDING THE RSSI SCANS FROM EACH BEACON TO THE SERVER
-                Toast.makeText(this, "Sending data to server", Toast.LENGTH_SHORT).show();
-                new SendHTTPRequest(jsonString).execute();
             }
+            long scanningTime = beaconManager.getForegroundScanPeriod();
+            System.out.println("Time spent in Scanning: " + scanningTime);
+            long scanningPeriod = beaconManager.getForegroundBetweenScanPeriod();
+            System.out.println("Time spent between Scannings: " + scanningPeriod);
+            Log.d(LOG, "Created Copy Cat version of beacon, sending data to server...");
+            Gson gson = new Gson();
+            String jsonString = gson.toJson(mTargetBeacons); // SENDING THE RSSI SCANS FROM EACH BEACON TO THE SERVER
+            Toast.makeText(this, "Sending data to server", Toast.LENGTH_SHORT).show();
+            new SendHTTPRequest(jsonString).execute();
         } else {
             Toast.makeText(this, "ERROR: Scanning Beacon not working properly", Toast.LENGTH_SHORT).show();
         }
@@ -282,9 +282,9 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
 
         if (algorithm != null) {
             Toast.makeText(this, "Finding Your Position", Toast.LENGTH_SHORT).show();
-            Button mButton = (Button) view.findViewById(R.id.proximityButtonFindUserPositionId);
+            Button mButton = (Button) view.findViewById(R.id.trilaterationButtonFindUserPositionId);
             mButton.setVisibility(View.INVISIBLE);
-            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.proximity_progressBarLocationId);
+            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.trilateration_progressBarLocationId);
             mProgressBar.setVisibility(View.VISIBLE);
             scanData();
         } else {
@@ -333,19 +333,23 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
                 if (beacons.size() > 0 && isScanning) {
                     Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
                     Log.d(BEACON, "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
-                    Beacon beaconScanned = beacons.iterator().next();
-                    Log.d(BEACON, "Found beacon " + beaconScanned.getBluetoothAddress());
-                    int rssi = beaconScanned.getRssi(); //RSSI value of beacon
-                    BluetoothDistanceObject beaconInStructure = mTargetBeacons.get(beaconScanned.getBluetoothAddress());
-                    if (beaconInStructure == null) {
-                        Log.d(BEACON, "Beacon" + beaconScanned.getBluetoothAddress() + " initialization");
-                        BluetoothDistanceObject beacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
-                        mTargetBeacons.put(beacon.getName(), beacon);
-                    }
-                    if (beaconInStructure.getName().equals(beaconScanned.getBluetoothAddress())) {
-                        beaconInStructure.setSingleValue(rssi);
-                        beaconInStructure.addRSSIValue(rssi);
-                        Log.d(BEACON, "Beacon" + beaconInStructure.getName() + "| RSSI VALUE: " + rssi);
+                    Iterator<Beacon> it = beacons.iterator();
+                    while (it.hasNext()) {
+                        Beacon beaconScanned = it.next();
+                        Log.d(BEACON, "Found beacon " + beaconScanned.getBluetoothAddress());
+                        int rssi = beaconScanned.getRssi(); //RSSI value of beacon
+                        BluetoothDistanceObject beaconInStructure = mTargetBeacons.get(beaconScanned.getBluetoothAddress());
+                        if (beaconInStructure == null) {
+                            Log.d(BEACON, "Beacon" + beaconScanned.getBluetoothAddress() + " initialization");
+                            BluetoothDistanceObject beacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
+                            mTargetBeacons.put(beacon.getName(), beacon);
+                        } else {
+                            if (beaconInStructure.getName().equals(beaconScanned.getBluetoothAddress())) {
+                                beaconInStructure.setSingleValue(rssi);
+                                beaconInStructure.addRSSIValue(rssi);
+                                Log.d(BEACON, "Beacon" + beaconInStructure.getName() + "| RSSI VALUE: " + rssi);
+                            }
+                        }
                     }
                 }
             }

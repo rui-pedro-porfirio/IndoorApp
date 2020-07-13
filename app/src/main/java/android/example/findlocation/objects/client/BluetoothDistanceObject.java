@@ -75,6 +75,10 @@ public class BluetoothDistanceObject {
         return name;
     }
 
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
+    }
+
     public void resetValues(){
         this.values = new ArrayList<>();
         this.singleValue = Integer.MIN_VALUE;
