@@ -14,5 +14,6 @@ urlpatterns = [
     path('filter/',views.FilterView.as_view()),
     path('radiomap/position',views.PositioningAlgorithmsView.as_view()),
     path('proximity/position', views.ProximityAlgorithmsView.as_view()),
+    path('trilateration/position', views.TrilaterationHandlerView.as_view()),
     path('proximity/distance',views.ProximityDistanceView.as_view())
 ]

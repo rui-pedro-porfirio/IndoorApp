@@ -27,7 +27,7 @@ public class TabProximityDistancePreferences extends Fragment implements Adapter
     private Map<String, Float> preferences;
     private String zoneClassifier;
 
-    private String[] zones = {"None","0-1 meters", "1-2 meters","2-3 meters","3-4 meters"};
+    private String[] zones = {"None","Personal","Social","Public"};
 
     @Override
     public View onCreateView(

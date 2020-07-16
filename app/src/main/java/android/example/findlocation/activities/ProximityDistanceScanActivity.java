@@ -18,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.os.RemoteException;
@@ -41,6 +42,8 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
@@ -61,7 +64,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.10:8000/";
+    private static final String ADDRESS = "http://192.168.42.55:8000/";
     private static final long SCAN_PERIOD_TIME = 60000 * 1; // 1 minute of continuous scanning
     private static final String TAG = "TIMER";
     private static final String BEACON = "BEACON";
@@ -248,7 +251,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.setBackgroundMode(false);
-        beaconManager.setForegroundScanPeriod(200);
+        beaconManager.setForegroundScanPeriod(150);
         beaconManager.bind(this);
         startTimeNs = System.nanoTime();
         Log.d(BEACON, "Beacon configuration ready. Start advertising");
@@ -414,7 +417,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
                 }
                 response.body().close();
             } catch (ConnectException e) {
-
+                e.printStackTrace();
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -423,6 +426,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
                     }
                 });
             } catch (SocketTimeoutException e) {
+                e.printStackTrace();
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {

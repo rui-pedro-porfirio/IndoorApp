@@ -12,6 +12,7 @@ import numpy as np
 from IPython.core.display import display
 from enum import Enum
 from .snippets import filters, convertJson,fingerprintPositioning, proximityPositioning
+import json
 
 
 class FingerprintView(viewsets.ModelViewSet):
@@ -42,6 +43,19 @@ class FilterEnum(Enum):
 class TypeEnum(Enum):
     WIFI = 1
     BLUETOOTH = 2
+
+
+def load_access_points_locations():
+    with open('access_points_location.json') as json_file:
+        data = json.load(json_file)
+        access_points = {}
+        for k, v in data.items():
+            print('KEY: ' + k)
+            access_points[k] = v
+            print('X: ', v['x'])
+            print('Y: ', v['y'])
+            print('')
+        return access_points
 
 def compute_csv(request):
     csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
@@ -74,6 +88,38 @@ def compute_csv(request):
     display(df)
     return df
 
+def compute_csv_trilateration(sample,beacon_address):
+    csv_columns = ['BLE Beacon','coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
+    if 'zone' in sample:
+        zone = sample['zone']
+    else:
+        zone = ''
+    mac = beacon_address
+    single_value_scanned = sample['singleValue']
+    valuesScanned = sample['values']
+    aux_list = list()
+    rolling_mean_list = list()
+    for value in valuesScanned:
+        aux_list.append(value)
+        rolling_mean_list.append(np.mean(aux_list))
+    print(rolling_mean_list)
+    x_coordinate = sample['x_coordinate']
+    y_coordinate = sample['y_coordinate']
+    results_list_2d = list()
+    for i in range(len(valuesScanned)):
+        results_list = list()
+        results_list.append(mac)
+        results_list.append(x_coordinate)
+        results_list.append(y_coordinate)
+        results_list.append(valuesScanned[i])
+        results_list.append(rolling_mean_list[i])
+        results_list.append(zone)
+        results_list_2d.append(results_list)
+    display(results_list_2d)
+    df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
+    display(df)
+    return df
+
 class ProximityDistanceView(APIView):
 
     def post(self,request,formate=None):
@@ -81,10 +127,10 @@ class ProximityDistanceView(APIView):
             'request': request,
         }
         df = compute_csv(request)
-        if path.exists(".\dataset_test.csv"):
-            df.to_csv(r'.\dataset_test.csv', mode='a',index=False, header=False)
+        if path.exists(".\dataset_test_university.csv"):
+            df.to_csv(r'.\dataset_test_university.csv', mode='a',index=False, header=False)
         else:
-            df.to_csv(r'.\dataset_test.csv',index=False, header=True)
+            df.to_csv(r'.\dataset_test_university.csv',index=False, header=True)
         return Response(status=status.HTTP_200_OK)
 
 class FilterView(APIView):
@@ -112,6 +158,74 @@ class FilterView(APIView):
                     filters.apply_mean_filter(fingerprints_per_reference_point, TypeEnum.WIFI, existing_fingerprint)
                     filters.apply_mean_filter(fingerprints_per_reference_point, TypeEnum.BLUETOOTH,
                                               existing_fingerprint)
+
+class TrilaterationHandlerView(APIView):
+
+
+    def post(self,request,format=None):
+        serializer_context = {
+            'request': request,
+        }
+        room_limit_x_min = -2.0
+        room_limit_x_max = 0.0
+        room_limit_y_min = -1.5
+        room_limit_y_max = 0.5
+        access_points = load_access_points_locations()
+        display(access_points)
+        sample_dict = request.data
+        print(sample_dict)
+        distances = {}
+        first_beacon = list(sample_dict.keys())[0]
+        beacon_information = sample_dict[first_beacon]
+        print(beacon_information)
+        algorithm = beacon_information['algorithm']
+        print(algorithm)
+        if algorithm == 'KNN Regression':
+            for k, v in sample_dict.items():
+                df = compute_csv_trilateration(v, k)
+                prediction_list = proximityPositioning.apply_knn_regressor(df)
+                distances[k] = np.mean(prediction_list)
+                print("PREDICTION")
+                display(distances[k])
+        elif algorithm == 'MLP Regression':
+            for k, v in sample_dict.items():
+                df = compute_csv_trilateration(v, k)
+                prediction_list = proximityPositioning.apply_mlp_regressor(df)
+                distances[k] = np.mean(prediction_list)
+                print("PREDICTION")
+                display(distances[k])
+        elif algorithm == 'SVM Regressor':
+            for k, v in sample_dict.items():
+                df = compute_csv_trilateration(v, k)
+                prediction_list = proximityPositioning.apply_svm_regressor(df)
+                distances[k] = np.mean(prediction_list)
+                print("PREDICTION")
+                display(distances[k])
+        elif algorithm == 'Linear Regression':
+            for k, v in sample_dict.items():
+                df = compute_csv_trilateration(v, k)
+                prediction_list = proximityPositioning.apply_linear_regression(df)
+                distances[k] = np.mean(prediction_list)
+                print("PREDICTION")
+                display(distances[k])
+        print("DISTANCES ESTIMATIONS")
+        print(distances)
+        print("CHECKPOINT")
+        for i in np.arange(room_limit_x_min,room_limit_x_max,0.5):
+            for j in np.arange(room_limit_y_min,room_limit_y_max,0.5):
+                self.compute_trilateration(x=i,y=j,access_points=access_points,distances=distances)
+
+    def compute_trilateration(self,x,y,access_points,distances):
+        mse = 0.0
+        locations = []
+        distances_list = []
+        for k, v in access_points.items():
+            locations.append((v['x'],v['y']))
+        for k,v in distances.items():
+            distances_list.append(v)
+        for access_points, distances in zip(locations,distances_list):
+            print(access_points)
+            print(distances)
 
 class ProximityAlgorithmsView(APIView):
 

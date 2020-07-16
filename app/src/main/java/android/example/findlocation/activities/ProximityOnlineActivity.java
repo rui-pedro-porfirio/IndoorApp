@@ -78,7 +78,7 @@ public class ProximityOnlineActivity extends AppCompatActivity implements Beacon
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.10:8000/";
+    private static final String ADDRESS = "http://10.22.204.237:8000/";
     private static final long SCAN_PERIOD_TIME = 10000;
 
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;

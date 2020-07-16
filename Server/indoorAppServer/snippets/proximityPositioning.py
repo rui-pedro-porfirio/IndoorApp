@@ -59,7 +59,25 @@ def prepare_dataset(test_datadf):
     display(dataset)
     # DATA CLEANING
     data_cleaning(dataset,0)
+    data_cleaning(test_datadf,0)
     train_Y = dataset['labels'].values.reshape(-1, 1)
+    display(train_Y)
+    initialize_training_data(dataset)
+    initialize_testing_data(test_datadf)
+
+def prepare_dataset_trilateration(test_datadf):
+    global dataset
+    global train_Y
+    global test_Y
+    positions = dataset['coordinate_Y']
+    dataset['distance'] = positions
+    aux.replace_features_nan(dataset)
+    aux.replace_features_nan(test_datadf)
+    display(dataset)
+    # DATA CLEANING
+    data_cleaning(dataset,0)
+    data_cleaning(test_datadf,0)
+    train_Y = dataset['distance'].values.reshape(-1, 1)
     display(train_Y)
     initialize_training_data(dataset)
     initialize_testing_data(test_datadf)
@@ -83,7 +101,10 @@ def apply_knn_classifier(test_data_df):
 
 
 def apply_knn_regressor(test_data_df):
-    prepare_dataset(test_data_df)  # initialized dataset including training set and testing set
+    global train_X_rolling_mean
+    global test_X_rolling_mean
+    prepare_dataset_trilateration(test_data_df)
+    display(train_Y.shape)# initialized dataset including training set and testing set
     trainX_data = combination_features_X
     testX_data = test_combination_features_X
     result = compute_KNN_with_Regression(trainX_data=trainX_data, trainY_data=train_Y, testX_data=testX_data,

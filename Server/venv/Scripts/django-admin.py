@@ -1,4 +1,4 @@
-#!D:\College\5th Year College\TESE\Desenvolvimento\Code\Application\Server\venv\Scripts\python.exe
+#!D:\College\5th Year College\TESE\Desenvolvimento\Code\Application\findLocationApp\findLocation\Server\venv\Scripts\python.exe
 from django.core import management
 
 if __name__ == "__main__":

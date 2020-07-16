@@ -82,7 +82,6 @@ def compute_KNN_with_Regression(trainX_data=None, trainY_data=None, testX_data=N
     main_estimator.fit(trainX_data, trainY_data)
     # Predict the results of the testing data features
     predict_test = main_estimator.predict(testX_data)
-    print("The MSE is:", format(np.power(trainY_data - predict_test, 2).mean()))
     return predict_test
 
 
