@@ -13,7 +13,7 @@ from IPython.core.display import display
 from enum import Enum
 from .snippets import filters, convertJson,fingerprintPositioning, proximityPositioning
 import json
-
+import math
 
 class FingerprintView(viewsets.ModelViewSet):
     queryset = Fingerprint.objects.all()
@@ -210,22 +210,38 @@ class TrilaterationHandlerView(APIView):
                 display(distances[k])
         print("DISTANCES ESTIMATIONS")
         print(distances)
-        print("CHECKPOINT")
+        results_mse = {}
         for i in np.arange(room_limit_x_min,room_limit_x_max,0.5):
             for j in np.arange(room_limit_y_min,room_limit_y_max,0.5):
-                self.compute_trilateration(x=i,y=j,access_points=access_points,distances=distances)
+                mse = self.compute_trilateration(x=i,y=j,access_points=access_points,distances=distances)
+                results_mse[(i,j)]=mse
+                display(results_mse)
+        print("DONE COMPUTING MSE")
+        prediction = min(results_mse,key=results_mse.get)
+        print(prediction)
+        return compute_Response_Trilateration(prediction,False,serializer_context)
+
+    def compute_distance_coordinate_system(self,x1,y1,x2,y2):
+        dist = math.hypot(x2 - x1, y2 - y1)
+        return dist
 
     def compute_trilateration(self,x,y,access_points,distances):
-        mse = 0.0
+        squared_errors = 0.0
         locations = []
         distances_list = []
         for k, v in access_points.items():
             locations.append((v['x'],v['y']))
         for k,v in distances.items():
             distances_list.append(v)
-        for access_points, distances in zip(locations,distances_list):
-            print(access_points)
-            print(distances)
+        for aps, d in zip(locations,distances_list):
+            print(aps)
+            print(d)
+            distance_calculated = self.compute_distance_coordinate_system(x,y,aps[0],aps[1])
+            squared_errors += math.pow(distance_calculated - d, 2.0)
+            mse = squared_errors / len(locations)
+        print('MSE FOR POINT: x: ' + str(x) + ", y: " + str(y) + " is " + str(mse))
+        return mse
+
 
 class ProximityAlgorithmsView(APIView):
 
@@ -300,6 +316,17 @@ class PositioningAlgorithmsView(APIView):
 
         return compute_Response(prediction,isClassifier,serializer_context)
 
+
+def compute_Response_Trilateration(prediction,isClassifier,serializer_context):
+    print('prediction', prediction)
+    if len(prediction) != 0:
+            fingerprint = Fingerprint.objects.create(coordinate_X=prediction[0], coordinate_Y=prediction[1])
+            print(fingerprint)
+            print(prediction)
+            serialized = FingerprintSerializer(fingerprint, context=serializer_context)
+            return Response(serialized.data, status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def compute_Response(prediction,isClassifier,serializer_context):

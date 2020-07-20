@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
 from .algorithms import *
 from . import auxiliarFunctions as aux
 
-dataset = pd.read_csv('Notebooks/PROXIMITY/distance_proximity_experiments.csv')
+dataset = pd.read_csv('Notebooks/PROXIMITY/dataset_train_university.csv')
 
 train_X_rssi = None
 train_X_rolling_mean = None
