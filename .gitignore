@@ -12,3 +12,4 @@
 /captures
 .externalNativeBuild
 .cxx
+Server/venv/Lib/site-packages/tensorflow/python/_pywrap_tensorflow_internal.pyd 

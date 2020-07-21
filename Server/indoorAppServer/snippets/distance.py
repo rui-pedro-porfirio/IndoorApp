@@ -51,8 +51,8 @@ room_limit_y_max = 4.0
 access_points = load_access_points_locations()
 display(access_points)
 distances_list = list()
-for i in np.arange(room_limit_x_min,room_limit_x_max,0.5):
-    for j in np.arange(room_limit_y_min,room_limit_y_max,0.5):
+for i in np.arange(room_limit_x_min,room_limit_x_max,1.0):
+    for j in np.arange(room_limit_y_min,room_limit_y_max,1.0):
         distances = {}
         distances[(i,j)] = compute_trilateration(x=i,y=j,access_points=access_points)
         distances_list.append(distances)
