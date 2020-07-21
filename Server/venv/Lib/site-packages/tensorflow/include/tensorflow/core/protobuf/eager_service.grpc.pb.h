@@ -109,6 +109,26 @@ class EagerService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::WaitQueueDoneResponse>> PrepareAsyncWaitQueueDone(::grpc::ClientContext* context, const ::tensorflow::eager::WaitQueueDoneRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::WaitQueueDoneResponse>>(PrepareAsyncWaitQueueDoneRaw(context, request, cq));
     }
+    // This takes an Eager operation and executes it in async mode on the remote
+    // server. Different from EnqueueRequest, ops/functions sent through this
+    // type of requests are allowed to execute in parallel and no ordering is
+    // preserved by RPC stream or executor.
+    // This request type should only be used for executing component functions.
+    // Ordering of component functions should be enforced by their corresponding
+    // main functions. The runtime ensures the following invarients for component
+    // functions (CFs) and their main functions (MFs):
+    // (1) MF1 -> MF2 ==> CF1 -> CF2 ("->" indicates order of execution);
+    // (2) MF1 || MF2 ==> CF1 || CF2 ("||" indicates possible parallel execution);
+    // (3) For CF1 and CF2 that come from the same MF, CF1 || CF2
+    // For executing ops/main functions, use Enqueue or StreamingEnqueue instead
+    // for correct ordering.
+    virtual ::grpc::Status RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::tensorflow::eager::RunComponentFunctionResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::RunComponentFunctionResponse>> AsyncRunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::RunComponentFunctionResponse>>(AsyncRunComponentFunctionRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::RunComponentFunctionResponse>> PrepareAsyncRunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::RunComponentFunctionResponse>>(PrepareAsyncRunComponentFunctionRaw(context, request, cq));
+    }
     // Contexts are always created with a deadline and no RPCs within a deadline
     // will trigger a context garbage collection. KeepAlive calls can be used to
     // delay this. It can also be used to validate the existence of a context ID
@@ -206,6 +226,31 @@ class EagerService final {
       #else
       virtual void WaitQueueDone(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::WaitQueueDoneResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
       #endif
+      // This takes an Eager operation and executes it in async mode on the remote
+      // server. Different from EnqueueRequest, ops/functions sent through this
+      // type of requests are allowed to execute in parallel and no ordering is
+      // preserved by RPC stream or executor.
+      // This request type should only be used for executing component functions.
+      // Ordering of component functions should be enforced by their corresponding
+      // main functions. The runtime ensures the following invarients for component
+      // functions (CFs) and their main functions (MFs):
+      // (1) MF1 -> MF2 ==> CF1 -> CF2 ("->" indicates order of execution);
+      // (2) MF1 || MF2 ==> CF1 || CF2 ("||" indicates possible parallel execution);
+      // (3) For CF1 and CF2 that come from the same MF, CF1 || CF2
+      // For executing ops/main functions, use Enqueue or StreamingEnqueue instead
+      // for correct ordering.
+      virtual void RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void RunComponentFunction(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::RunComponentFunctionResponse* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void RunComponentFunction(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void RunComponentFunction(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // Contexts are always created with a deadline and no RPCs within a deadline
       // will trigger a context garbage collection. KeepAlive calls can be used to
       // delay this. It can also be used to validate the existence of a context ID
@@ -259,6 +304,8 @@ class EagerService final {
     virtual ::grpc::ClientAsyncReaderWriterInterface< ::tensorflow::eager::EnqueueRequest, ::tensorflow::eager::EnqueueResponse>* PrepareAsyncStreamingEnqueueRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::WaitQueueDoneResponse>* AsyncWaitQueueDoneRaw(::grpc::ClientContext* context, const ::tensorflow::eager::WaitQueueDoneRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::WaitQueueDoneResponse>* PrepareAsyncWaitQueueDoneRaw(::grpc::ClientContext* context, const ::tensorflow::eager::WaitQueueDoneRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::RunComponentFunctionResponse>* AsyncRunComponentFunctionRaw(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::RunComponentFunctionResponse>* PrepareAsyncRunComponentFunctionRaw(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::KeepAliveResponse>* AsyncKeepAliveRaw(::grpc::ClientContext* context, const ::tensorflow::eager::KeepAliveRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::KeepAliveResponse>* PrepareAsyncKeepAliveRaw(::grpc::ClientContext* context, const ::tensorflow::eager::KeepAliveRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::tensorflow::eager::CloseContextResponse>* AsyncCloseContextRaw(::grpc::ClientContext* context, const ::tensorflow::eager::CloseContextRequest& request, ::grpc::CompletionQueue* cq) = 0;
@@ -303,6 +350,13 @@ class EagerService final {
     }
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::WaitQueueDoneResponse>> PrepareAsyncWaitQueueDone(::grpc::ClientContext* context, const ::tensorflow::eager::WaitQueueDoneRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::WaitQueueDoneResponse>>(PrepareAsyncWaitQueueDoneRaw(context, request, cq));
+    }
+    ::grpc::Status RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::tensorflow::eager::RunComponentFunctionResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::RunComponentFunctionResponse>> AsyncRunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::RunComponentFunctionResponse>>(AsyncRunComponentFunctionRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::RunComponentFunctionResponse>> PrepareAsyncRunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::RunComponentFunctionResponse>>(PrepareAsyncRunComponentFunctionRaw(context, request, cq));
     }
     ::grpc::Status KeepAlive(::grpc::ClientContext* context, const ::tensorflow::eager::KeepAliveRequest& request, ::tensorflow::eager::KeepAliveResponse* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::KeepAliveResponse>> AsyncKeepAlive(::grpc::ClientContext* context, const ::tensorflow::eager::KeepAliveRequest& request, ::grpc::CompletionQueue* cq) {
@@ -374,6 +428,18 @@ class EagerService final {
       #else
       void WaitQueueDone(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::WaitQueueDoneResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
       #endif
+      void RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response, std::function<void(::grpc::Status)>) override;
+      void RunComponentFunction(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::RunComponentFunctionResponse* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void RunComponentFunction(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void RunComponentFunction(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void RunComponentFunction(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::RunComponentFunctionResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void KeepAlive(::grpc::ClientContext* context, const ::tensorflow::eager::KeepAliveRequest* request, ::tensorflow::eager::KeepAliveResponse* response, std::function<void(::grpc::Status)>) override;
       void KeepAlive(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::tensorflow::eager::KeepAliveResponse* response, std::function<void(::grpc::Status)>) override;
       #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
@@ -420,6 +486,8 @@ class EagerService final {
     ::grpc::ClientAsyncReaderWriter< ::tensorflow::eager::EnqueueRequest, ::tensorflow::eager::EnqueueResponse>* PrepareAsyncStreamingEnqueueRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::WaitQueueDoneResponse>* AsyncWaitQueueDoneRaw(::grpc::ClientContext* context, const ::tensorflow::eager::WaitQueueDoneRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::WaitQueueDoneResponse>* PrepareAsyncWaitQueueDoneRaw(::grpc::ClientContext* context, const ::tensorflow::eager::WaitQueueDoneRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::RunComponentFunctionResponse>* AsyncRunComponentFunctionRaw(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::RunComponentFunctionResponse>* PrepareAsyncRunComponentFunctionRaw(::grpc::ClientContext* context, const ::tensorflow::eager::RunComponentFunctionRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::KeepAliveResponse>* AsyncKeepAliveRaw(::grpc::ClientContext* context, const ::tensorflow::eager::KeepAliveRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::KeepAliveResponse>* PrepareAsyncKeepAliveRaw(::grpc::ClientContext* context, const ::tensorflow::eager::KeepAliveRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::tensorflow::eager::CloseContextResponse>* AsyncCloseContextRaw(::grpc::ClientContext* context, const ::tensorflow::eager::CloseContextRequest& request, ::grpc::CompletionQueue* cq) override;
@@ -429,6 +497,7 @@ class EagerService final {
     const ::grpc::internal::RpcMethod rpcmethod_Enqueue_;
     const ::grpc::internal::RpcMethod rpcmethod_StreamingEnqueue_;
     const ::grpc::internal::RpcMethod rpcmethod_WaitQueueDone_;
+    const ::grpc::internal::RpcMethod rpcmethod_RunComponentFunction_;
     const ::grpc::internal::RpcMethod rpcmethod_KeepAlive_;
     const ::grpc::internal::RpcMethod rpcmethod_CloseContext_;
   };
@@ -461,6 +530,20 @@ class EagerService final {
     // Takes a set of op IDs and waits until those ops are done. Returns any error
     // in the stream so far.
     virtual ::grpc::Status WaitQueueDone(::grpc::ServerContext* context, const ::tensorflow::eager::WaitQueueDoneRequest* request, ::tensorflow::eager::WaitQueueDoneResponse* response);
+    // This takes an Eager operation and executes it in async mode on the remote
+    // server. Different from EnqueueRequest, ops/functions sent through this
+    // type of requests are allowed to execute in parallel and no ordering is
+    // preserved by RPC stream or executor.
+    // This request type should only be used for executing component functions.
+    // Ordering of component functions should be enforced by their corresponding
+    // main functions. The runtime ensures the following invarients for component
+    // functions (CFs) and their main functions (MFs):
+    // (1) MF1 -> MF2 ==> CF1 -> CF2 ("->" indicates order of execution);
+    // (2) MF1 || MF2 ==> CF1 || CF2 ("||" indicates possible parallel execution);
+    // (3) For CF1 and CF2 that come from the same MF, CF1 || CF2
+    // For executing ops/main functions, use Enqueue or StreamingEnqueue instead
+    // for correct ordering.
+    virtual ::grpc::Status RunComponentFunction(::grpc::ServerContext* context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response);
     // Contexts are always created with a deadline and no RPCs within a deadline
     // will trigger a context garbage collection. KeepAlive calls can be used to
     // delay this. It can also be used to validate the existence of a context ID
@@ -574,12 +657,32 @@ class EagerService final {
     }
   };
   template <class BaseClass>
+  class WithAsyncMethod_RunComponentFunction : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_RunComponentFunction() {
+      ::grpc::Service::MarkMethodAsync(5);
+    }
+    ~WithAsyncMethod_RunComponentFunction() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RunComponentFunction(::grpc::ServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRunComponentFunction(::grpc::ServerContext* context, ::tensorflow::eager::RunComponentFunctionRequest* request, ::grpc::ServerAsyncResponseWriter< ::tensorflow::eager::RunComponentFunctionResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithAsyncMethod_KeepAlive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_KeepAlive() {
-      ::grpc::Service::MarkMethodAsync(5);
+      ::grpc::Service::MarkMethodAsync(6);
     }
     ~WithAsyncMethod_KeepAlive() override {
       BaseClassMustBeDerivedFromService(this);
@@ -590,7 +693,7 @@ class EagerService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestKeepAlive(::grpc::ServerContext* context, ::tensorflow::eager::KeepAliveRequest* request, ::grpc::ServerAsyncResponseWriter< ::tensorflow::eager::KeepAliveResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -599,7 +702,7 @@ class EagerService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_CloseContext() {
-      ::grpc::Service::MarkMethodAsync(6);
+      ::grpc::Service::MarkMethodAsync(7);
     }
     ~WithAsyncMethod_CloseContext() override {
       BaseClassMustBeDerivedFromService(this);
@@ -610,10 +713,10 @@ class EagerService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCloseContext(::grpc::ServerContext* context, ::tensorflow::eager::CloseContextRequest* request, ::grpc::ServerAsyncResponseWriter< ::tensorflow::eager::CloseContextResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_CreateContext<WithAsyncMethod_UpdateContext<WithAsyncMethod_Enqueue<WithAsyncMethod_StreamingEnqueue<WithAsyncMethod_WaitQueueDone<WithAsyncMethod_KeepAlive<WithAsyncMethod_CloseContext<Service > > > > > > > AsyncService;
+  typedef WithAsyncMethod_CreateContext<WithAsyncMethod_UpdateContext<WithAsyncMethod_Enqueue<WithAsyncMethod_StreamingEnqueue<WithAsyncMethod_WaitQueueDone<WithAsyncMethod_RunComponentFunction<WithAsyncMethod_KeepAlive<WithAsyncMethod_CloseContext<Service > > > > > > > > AsyncService;
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_CreateContext : public BaseClass {
    private:
@@ -841,6 +944,53 @@ class EagerService final {
       { return nullptr; }
   };
   template <class BaseClass>
+  class ExperimentalWithCallbackMethod_RunComponentFunction : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithCallbackMethod_RunComponentFunction() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(5,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::tensorflow::eager::RunComponentFunctionRequest, ::tensorflow::eager::RunComponentFunctionResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::tensorflow::eager::RunComponentFunctionRequest* request, ::tensorflow::eager::RunComponentFunctionResponse* response) { return this->RunComponentFunction(context, request, response); }));}
+    void SetMessageAllocatorFor_RunComponentFunction(
+        ::grpc::experimental::MessageAllocator< ::tensorflow::eager::RunComponentFunctionRequest, ::tensorflow::eager::RunComponentFunctionResponse>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(5);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::tensorflow::eager::RunComponentFunctionRequest, ::tensorflow::eager::RunComponentFunctionResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~ExperimentalWithCallbackMethod_RunComponentFunction() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RunComponentFunction(::grpc::ServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* RunComponentFunction(
+      ::grpc::CallbackServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* RunComponentFunction(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/)
+    #endif
+      { return nullptr; }
+  };
+  template <class BaseClass>
   class ExperimentalWithCallbackMethod_KeepAlive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -851,7 +1001,7 @@ class EagerService final {
     #else
       ::grpc::Service::experimental().
     #endif
-        MarkMethodCallback(5,
+        MarkMethodCallback(6,
           new ::grpc_impl::internal::CallbackUnaryHandler< ::tensorflow::eager::KeepAliveRequest, ::tensorflow::eager::KeepAliveResponse>(
             [this](
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
@@ -863,9 +1013,9 @@ class EagerService final {
     void SetMessageAllocatorFor_KeepAlive(
         ::grpc::experimental::MessageAllocator< ::tensorflow::eager::KeepAliveRequest, ::tensorflow::eager::KeepAliveResponse>* allocator) {
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(6);
     #else
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(5);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(6);
     #endif
       static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::tensorflow::eager::KeepAliveRequest, ::tensorflow::eager::KeepAliveResponse>*>(handler)
               ->SetMessageAllocator(allocator);
@@ -898,7 +1048,7 @@ class EagerService final {
     #else
       ::grpc::Service::experimental().
     #endif
-        MarkMethodCallback(6,
+        MarkMethodCallback(7,
           new ::grpc_impl::internal::CallbackUnaryHandler< ::tensorflow::eager::CloseContextRequest, ::tensorflow::eager::CloseContextResponse>(
             [this](
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
@@ -910,9 +1060,9 @@ class EagerService final {
     void SetMessageAllocatorFor_CloseContext(
         ::grpc::experimental::MessageAllocator< ::tensorflow::eager::CloseContextRequest, ::tensorflow::eager::CloseContextResponse>* allocator) {
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(6);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(7);
     #else
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(6);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(7);
     #endif
       static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::tensorflow::eager::CloseContextRequest, ::tensorflow::eager::CloseContextResponse>*>(handler)
               ->SetMessageAllocator(allocator);
@@ -935,10 +1085,10 @@ class EagerService final {
       { return nullptr; }
   };
   #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
-  typedef ExperimentalWithCallbackMethod_CreateContext<ExperimentalWithCallbackMethod_UpdateContext<ExperimentalWithCallbackMethod_Enqueue<ExperimentalWithCallbackMethod_StreamingEnqueue<ExperimentalWithCallbackMethod_WaitQueueDone<ExperimentalWithCallbackMethod_KeepAlive<ExperimentalWithCallbackMethod_CloseContext<Service > > > > > > > CallbackService;
+  typedef ExperimentalWithCallbackMethod_CreateContext<ExperimentalWithCallbackMethod_UpdateContext<ExperimentalWithCallbackMethod_Enqueue<ExperimentalWithCallbackMethod_StreamingEnqueue<ExperimentalWithCallbackMethod_WaitQueueDone<ExperimentalWithCallbackMethod_RunComponentFunction<ExperimentalWithCallbackMethod_KeepAlive<ExperimentalWithCallbackMethod_CloseContext<Service > > > > > > > > CallbackService;
   #endif
 
-  typedef ExperimentalWithCallbackMethod_CreateContext<ExperimentalWithCallbackMethod_UpdateContext<ExperimentalWithCallbackMethod_Enqueue<ExperimentalWithCallbackMethod_StreamingEnqueue<ExperimentalWithCallbackMethod_WaitQueueDone<ExperimentalWithCallbackMethod_KeepAlive<ExperimentalWithCallbackMethod_CloseContext<Service > > > > > > > ExperimentalCallbackService;
+  typedef ExperimentalWithCallbackMethod_CreateContext<ExperimentalWithCallbackMethod_UpdateContext<ExperimentalWithCallbackMethod_Enqueue<ExperimentalWithCallbackMethod_StreamingEnqueue<ExperimentalWithCallbackMethod_WaitQueueDone<ExperimentalWithCallbackMethod_RunComponentFunction<ExperimentalWithCallbackMethod_KeepAlive<ExperimentalWithCallbackMethod_CloseContext<Service > > > > > > > > ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_CreateContext : public BaseClass {
    private:
@@ -1025,12 +1175,29 @@ class EagerService final {
     }
   };
   template <class BaseClass>
+  class WithGenericMethod_RunComponentFunction : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_RunComponentFunction() {
+      ::grpc::Service::MarkMethodGeneric(5);
+    }
+    ~WithGenericMethod_RunComponentFunction() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RunComponentFunction(::grpc::ServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
   class WithGenericMethod_KeepAlive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_KeepAlive() {
-      ::grpc::Service::MarkMethodGeneric(5);
+      ::grpc::Service::MarkMethodGeneric(6);
     }
     ~WithGenericMethod_KeepAlive() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1047,7 +1214,7 @@ class EagerService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_CloseContext() {
-      ::grpc::Service::MarkMethodGeneric(6);
+      ::grpc::Service::MarkMethodGeneric(7);
     }
     ~WithGenericMethod_CloseContext() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1159,12 +1326,32 @@ class EagerService final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_RunComponentFunction : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_RunComponentFunction() {
+      ::grpc::Service::MarkMethodRaw(5);
+    }
+    ~WithRawMethod_RunComponentFunction() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RunComponentFunction(::grpc::ServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestRunComponentFunction(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_KeepAlive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_KeepAlive() {
-      ::grpc::Service::MarkMethodRaw(5);
+      ::grpc::Service::MarkMethodRaw(6);
     }
     ~WithRawMethod_KeepAlive() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1175,7 +1362,7 @@ class EagerService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestKeepAlive(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1184,7 +1371,7 @@ class EagerService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_CloseContext() {
-      ::grpc::Service::MarkMethodRaw(6);
+      ::grpc::Service::MarkMethodRaw(7);
     }
     ~WithRawMethod_CloseContext() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1195,7 +1382,7 @@ class EagerService final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCloseContext(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1389,6 +1576,44 @@ class EagerService final {
       { return nullptr; }
   };
   template <class BaseClass>
+  class ExperimentalWithRawCallbackMethod_RunComponentFunction : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithRawCallbackMethod_RunComponentFunction() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(5,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RunComponentFunction(context, request, response); }));
+    }
+    ~ExperimentalWithRawCallbackMethod_RunComponentFunction() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status RunComponentFunction(::grpc::ServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* RunComponentFunction(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* RunComponentFunction(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
+  };
+  template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_KeepAlive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -1399,7 +1624,7 @@ class EagerService final {
     #else
       ::grpc::Service::experimental().
     #endif
-        MarkMethodRawCallback(5,
+        MarkMethodRawCallback(6,
           new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
@@ -1437,7 +1662,7 @@ class EagerService final {
     #else
       ::grpc::Service::experimental().
     #endif
-        MarkMethodRawCallback(6,
+        MarkMethodRawCallback(7,
           new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
@@ -1545,12 +1770,32 @@ class EagerService final {
     virtual ::grpc::Status StreamedWaitQueueDone(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::tensorflow::eager::WaitQueueDoneRequest,::tensorflow::eager::WaitQueueDoneResponse>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
+  class WithStreamedUnaryMethod_RunComponentFunction : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_RunComponentFunction() {
+      ::grpc::Service::MarkMethodStreamed(5,
+        new ::grpc::internal::StreamedUnaryHandler< ::tensorflow::eager::RunComponentFunctionRequest, ::tensorflow::eager::RunComponentFunctionResponse>(std::bind(&WithStreamedUnaryMethod_RunComponentFunction<BaseClass>::StreamedRunComponentFunction, this, std::placeholders::_1, std::placeholders::_2)));
+    }
+    ~WithStreamedUnaryMethod_RunComponentFunction() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status RunComponentFunction(::grpc::ServerContext* /*context*/, const ::tensorflow::eager::RunComponentFunctionRequest* /*request*/, ::tensorflow::eager::RunComponentFunctionResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedRunComponentFunction(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::tensorflow::eager::RunComponentFunctionRequest,::tensorflow::eager::RunComponentFunctionResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_KeepAlive : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_KeepAlive() {
-      ::grpc::Service::MarkMethodStreamed(5,
+      ::grpc::Service::MarkMethodStreamed(6,
         new ::grpc::internal::StreamedUnaryHandler< ::tensorflow::eager::KeepAliveRequest, ::tensorflow::eager::KeepAliveResponse>(std::bind(&WithStreamedUnaryMethod_KeepAlive<BaseClass>::StreamedKeepAlive, this, std::placeholders::_1, std::placeholders::_2)));
     }
     ~WithStreamedUnaryMethod_KeepAlive() override {
@@ -1570,7 +1815,7 @@ class EagerService final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_CloseContext() {
-      ::grpc::Service::MarkMethodStreamed(6,
+      ::grpc::Service::MarkMethodStreamed(7,
         new ::grpc::internal::StreamedUnaryHandler< ::tensorflow::eager::CloseContextRequest, ::tensorflow::eager::CloseContextResponse>(std::bind(&WithStreamedUnaryMethod_CloseContext<BaseClass>::StreamedCloseContext, this, std::placeholders::_1, std::placeholders::_2)));
     }
     ~WithStreamedUnaryMethod_CloseContext() override {
@@ -1584,9 +1829,9 @@ class EagerService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedCloseContext(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::tensorflow::eager::CloseContextRequest,::tensorflow::eager::CloseContextResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_CreateContext<WithStreamedUnaryMethod_UpdateContext<WithStreamedUnaryMethod_Enqueue<WithStreamedUnaryMethod_WaitQueueDone<WithStreamedUnaryMethod_KeepAlive<WithStreamedUnaryMethod_CloseContext<Service > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_CreateContext<WithStreamedUnaryMethod_UpdateContext<WithStreamedUnaryMethod_Enqueue<WithStreamedUnaryMethod_WaitQueueDone<WithStreamedUnaryMethod_RunComponentFunction<WithStreamedUnaryMethod_KeepAlive<WithStreamedUnaryMethod_CloseContext<Service > > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_CreateContext<WithStreamedUnaryMethod_UpdateContext<WithStreamedUnaryMethod_Enqueue<WithStreamedUnaryMethod_WaitQueueDone<WithStreamedUnaryMethod_KeepAlive<WithStreamedUnaryMethod_CloseContext<Service > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_CreateContext<WithStreamedUnaryMethod_UpdateContext<WithStreamedUnaryMethod_Enqueue<WithStreamedUnaryMethod_WaitQueueDone<WithStreamedUnaryMethod_RunComponentFunction<WithStreamedUnaryMethod_KeepAlive<WithStreamedUnaryMethod_CloseContext<Service > > > > > > > StreamedService;
 };
 
 }  // namespace eager
