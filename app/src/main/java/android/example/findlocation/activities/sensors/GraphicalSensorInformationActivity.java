@@ -1,4 +1,4 @@
-package android.example.findlocation.activities;
+package android.example.findlocation.activities.sensors;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;

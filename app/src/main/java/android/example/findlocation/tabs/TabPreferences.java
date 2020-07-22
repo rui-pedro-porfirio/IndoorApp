@@ -1,7 +1,7 @@
 package android.example.findlocation.tabs;
 
 import android.example.findlocation.R;
-import android.example.findlocation.activities.OfflineTabedActivity;
+import android.example.findlocation.activities.fingerprinting.FingerprintingOfflineActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -10,19 +10,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class TabPreferences extends Fragment implements AdapterView.OnItemSelectedListener {
@@ -42,7 +37,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
         zoneClassifier = zones[position];
-        ((OfflineTabedActivity) getActivity()).setZoneClassifier(zoneClassifier);
+        ((FingerprintingOfflineActivity) getActivity()).setZoneClassifier(zoneClassifier);
     }
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
@@ -66,7 +61,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
         preferences.put("X",Float.valueOf(mXCoordinate.getText().toString()));
         EditText mYCoordinate = view.findViewById(R.id.yCoordinateValueId);
         preferences.put("Y",Float.valueOf(mYCoordinate.getText().toString()));
-        ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+        ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
         mNumberOfFingerprints.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -82,7 +77,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
             public void afterTextChanged(Editable s) {
                 if(!s.toString().equals("")) {
                     preferences.put("Number of Fingerprints", Float.valueOf(s.toString()));
-                    ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                    ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
                 }
             }
         });
@@ -100,7 +95,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
             @Override
             public void afterTextChanged(Editable s) {
                 preferences.put("Time between Fingerprints", Float.valueOf(s.toString()));
-                ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
             }
         });
         mXCoordinate.addTextChangedListener(new TextWatcher() {
@@ -118,7 +113,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
             public void afterTextChanged(Editable s) {
                 if(!s.toString().equals("")) {
                     preferences.put("X", Float.valueOf(s.toString()));
-                    ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                    ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
                 }
             }
         });
@@ -137,7 +132,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
             public void afterTextChanged(Editable s) {
                 if(!s.toString().equals("")) {
                     preferences.put("Y", Float.valueOf(s.toString()));
-                    ((OfflineTabedActivity) getActivity()).setPreferences(preferences);
+                    ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
                 }
             }
         });

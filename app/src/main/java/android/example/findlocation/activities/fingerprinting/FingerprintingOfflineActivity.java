@@ -1,5 +1,7 @@
-package android.example.findlocation.activities;
+package android.example.findlocation.activities.fingerprinting;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,8 +9,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.example.findlocation.R;
+import android.example.findlocation.activities.proximity.ProximityDistanceScanActivity;
+import android.example.findlocation.activities.sensors.SensorInformationActivity;
 import android.example.findlocation.adapters.FingerprintAdapter;
+import android.example.findlocation.objects.client.BluetoothDistanceObject;
 import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.Fingerprint;
 import android.example.findlocation.objects.client.SensorObject;
@@ -22,6 +28,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -36,6 +43,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
@@ -80,6 +88,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -89,38 +98,71 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class OfflineTabedActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
+public class FingerprintingOfflineActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
 
-    private List<String> dataTypes;
-    private Map<String, Float> preferences;
-    private List<Fingerprint> fingerprints;
+    // OVERALL CONSTANTS
+    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private static final String ADDRESS = "http://192.168.1.6:8000/";
+    public static final String FINGERPRINT_FILE = "radio_map";
+    private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
+
+    // LOG RELATED CONSTANTS
+    private static final String TAG = "TIMER";
+    private static final String BLE = "BEACON";
+    private static final String LOG = "LOG";
+    private static final String WIFI = "WIFI";
+    private static final String SMARTPHONE_SENSOR = "SMARTPHONE_SENSOR";
+
+    // HTTP CONNECTION
+    private boolean isScanning;
     private OkHttpClient client;
-    private RecyclerView mFingerprintRecyclerView;
-    private FingerprintAdapter mFingerprintAdapter;
-    private String fingerprintId;
-    private int numberOfFingerprints;
-    private int interval;
-    private int sentFingerprints;
+
+    //SENSOR MANAGERS
     private SensorManager mSensorManager;
     private WifiManager wifiManager;
     private BeaconManager beaconManager;
+
+    //SENSOR DATA STRUCTURES
     private List<WifiObject> mAccessPoints;
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
+
+    //DATA STORAGE VARIABLES
     private File targetFile;
     private Writer writer;
+
+    // FINGERPRINT INFORMATION
+    private List<Fingerprint> fingerprints;
+    private String fingerprintId;
+    private int numberOfFingerprints;
+    private int interval;
     private String zoneClassifier;
 
-    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
-    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.4:8000/";
-    public static final String FINGERPRINT_FILE = "radio_map";
+    // SMARTPHONE SENSOR RELATED
+    private final float[] accelerometerReading = new float[3];
+    private final float[] magnetometerReading = new float[3];
+    private final float[] rotationMatrix = new float[9];
+    private final float[] orientationAngles = new float[3];
 
+    // UI RELATED
+    private RecyclerView mFingerprintRecyclerView;
+    private FingerprintAdapter mFingerprintAdapter;
+
+    // VARIABLES DEPENDING ON OTHER FRAGMENTS/ACTIVITIES
+    private List<String> dataTypes;
+    private Map<String, Float> preferences;
+
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_offline_tabed);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        //INITIALIZATION OF TABS ADAPTER
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
@@ -129,6 +171,8 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         tabs.getTabAt(0).setIcon(R.drawable.fingerprinticon);
         tabs.getTabAt(1).setIcon(R.drawable.radiomapicon);
         tabs.getTabAt(2).setIcon(R.drawable.preferencesicon);
+
+        // OVERALL INITIALIZATION OF VARIABLES
         zoneClassifier = null;
         client = new OkHttpClient();
         dataTypes = new ArrayList<String>();
@@ -137,20 +181,131 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         fingerprintId = "";
         interval = 0;
         numberOfFingerprints = 0;
-        sentFingerprints = 0;
+        isScanning = false;
+
+        //FILE STORAGE INITIALIZATION
         targetFile = writeToFile(FINGERPRINT_FILE);
         try {
             writer = new FileWriter(targetFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //TAKEN activateSensorScan method from here
+
+        // SENSOR RELATED INITIALIZATION
+        verifyBluetooth();
+        activateSensorScan();
+        requestPermissions();
+    }
+
+    public void requestPermissions(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                if (this.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    if (this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle("This app needs background location access");
+                        builder.setMessage("Please grant location access so this app can detect beacons in the background.");
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                            @TargetApi(23)
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                        PERMISSION_REQUEST_BACKGROUND_LOCATION);
+                            }
+
+                        });
+                        builder.show();
+                    }
+                    else {
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle("Functionality limited");
+                        builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
+                        builder.setPositiveButton(android.R.string.ok, null);
+                        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                            }
+
+                        });
+                        builder.show();
+                    }
+
+                }
+            } else {
+                if (this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                            PERMISSION_REQUEST_FINE_LOCATION);
+                }
+                else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+
+            }
+        }
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_FINE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "fine location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+                return;
+            }
+            case PERMISSION_REQUEST_BACKGROUND_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "background location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+                return;
+            }
+        }
     }
+
 
     public void populateRecycleView(View view) {
 
@@ -158,13 +313,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         mFingerprintAdapter = new FingerprintAdapter(this, fingerprints);
         mFingerprintRecyclerView.setAdapter(mFingerprintAdapter);
         mFingerprintRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mSensorManager != null)
-            mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -183,6 +331,9 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         catch(IllegalArgumentException ex){
 
         }
+
+        if (mSensorManager != null)
+            mSensorManager.unregisterListener(this);
     }
 
     public void onCheckboxClicked(View view) {
@@ -235,6 +386,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
 
     public void startBackgroundService() {
 
+        int sentFingerprints = fingerprints.size();
         if (sentFingerprints < numberOfFingerprints) {
             if (sentFingerprints != 0) {
                 try {
@@ -244,12 +396,21 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
                 }
             }
             Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
+
             scanData();
         } else {
-            sentFingerprints = 0;
+            Toast.makeText(this,"Finished Scanning", Toast.LENGTH_SHORT).show();
             Gson gson = new Gson();
-            gson.toJson(fingerprints, writer);
+            //gson.toJson(fingerprints, writer);
+            requestCSVFile();
         }
+    }
+
+    public void requestCSVFile(){
+        Gson gson = new Gson();
+        String jsonString = gson.toJson("csv");
+        Toast.makeText(this, "Server creating CSV file with data", Toast.LENGTH_SHORT).show();
+        new SendHTTPRequest(jsonString).execute();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -278,7 +439,6 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
             sendBLERequest(serverBluetoothData);
         }
         Toast.makeText(this, "Fingerprint Created and being sent to Server", Toast.LENGTH_SHORT).show();
-        sentFingerprints++;
         startBackgroundService();
     }
 
@@ -329,7 +489,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
 
     public File writeToFile(String sFileName) {
 
-        File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
+        File root = new File(Environment.getExternalStorageDirectory(), "fingerprintTets");
         // if external memory exists and folder with name Notes
         if (!root.exists()) {
             root.mkdirs(); // this will create folder.
@@ -340,36 +500,91 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     protected void activateSensorScan() {
+        //SMARTPHONE RELATED SENSOR
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorInformationList = new ArrayList<>();
-        getAvailableDeviceSensors();
+        setupSmartphoneSensors();
+        Log.d(SMARTPHONE_SENSOR,"Device sensors configuration ready. Started listening for changes on sensors");
 
         //BLUETOOTH SENSOR
         mBeaconsList = new ArrayList<>();
         beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
+        beaconManager.setBackgroundMode(false);
+        beaconManager.setForegroundScanPeriod(150);
         beaconManager.bind(this);
-        verifyBluetooth();
+        Log.d(BLE, "Alt-Beacon configuration ready. Started advertising packets");
 
         //WI-FI SENSOR
         mAccessPoints = new ArrayList<>();
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        this.registerReceiver(wifiScanReceiver, intentFilter);
+        verifyLocation();
+        handler.post(locationUpdate);
+        Log.d(WIFI,"Access Points configuration ready. Started advertising packets");
+    }
 
-        registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        wifiManager.startScan();
+    final Handler handler = new Handler();
+    final Runnable locationUpdate = new Runnable() {
+        @Override
+        public void run() {
+            wifiManager.startScan();
+            Log.d("START SCAN CALLED", "");
+            handler.postDelayed(locationUpdate, 1000);
+        }
+    };
+
+    public void verifyLocation(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        }
+        final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+            buildAlertMessageNoGps();
+        Log.d(WIFI,"Location Verified");
+    }
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Location seems to be disabled, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    public void resetDataStructures(){
+        mAccessPoints = new ArrayList<>();
+        mSensorInformationList = new ArrayList<>();
+        mBeaconsList = new ArrayList<>();
     }
 
     public void scanData() {
 
+        isScanning = true;
         CountDownTimer waitTimer;
-        activateSensorScan();
         waitTimer = new CountDownTimer(10000, 300) {
 
             public void onTick(long millisUntilFinished) {
             }
+
 
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             public void onFinish() {
@@ -382,42 +597,71 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
                 if (!dataTypes.contains("DeviceData")) {
                     mSensorInformationList = new ArrayList<>();
                 }
-
-                onPostExecute(new Fingerprint(preferences.get("X"), preferences.get("Y"), zoneClassifier, mSensorInformationList, mBeaconsList, mAccessPoints));
+                Fingerprint mNewFingeprint = new Fingerprint(preferences.get("X"), preferences.get("Y"), zoneClassifier, mSensorInformationList, mBeaconsList, mAccessPoints);
+                isScanning = false;
+                resetDataStructures();
+                computeFingerprint(mNewFingeprint);
             }
-        }.start();
+        };
+
+        try {
+            waitTimer.start();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
-    public void getAvailableDeviceSensors() {
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void setupSmartphoneSensors() {
         float[] defaultValues = new float[3];
         defaultValues[0] = 0f;
         defaultValues[1] = 0f;
         defaultValues[2] = 0f;
-        Sensor orientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        mSensorManager.registerListener(this, orientation,
-                SensorManager.SENSOR_DELAY_NORMAL);
-        SensorObject sensorInfo = new SensorObject(orientation.getName(), defaultValues);
+        Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerometer != null) {
+            mSensorManager.registerListener(this, accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        Sensor magneticField = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        if (magneticField != null) {
+            mSensorManager.registerListener(this, magneticField,
+                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        }
+        SensorObject sensorInfo = new SensorObject("ORIENTATION", defaultValues);
         mSensorInformationList.add(sensorInfo);
     }
 
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    protected void onPostExecute(Fingerprint fingerprint) {
-        mSensorManager.unregisterListener(this);
-        beaconManager.unbind(this);
-        unregisterReceiver(wifiScanReceiver);
-        //SEND FINGERPRINT
-        computeFingerprint(fingerprint);
-        System.out.println("Device Data Done");
-    }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        Sensor sensorDetected = event.sensor;
-        for (SensorObject sensorInList : mSensorInformationList) {
-            if (sensorDetected.getName().equals(sensorInList.getName())) {
-                sensorInList.setValue(event.values);
+        if(isScanning) {
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                System.arraycopy(event.values, 0, accelerometerReading,
+                        0, accelerometerReading.length);
+            } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+                System.arraycopy(event.values, 0, magnetometerReading,
+                        0, magnetometerReading.length);
             }
+            updateOrientationAngles();
+        }
+    }
+
+    // Compute the three orientation angles based on the most recent readings from
+    // the device's accelerometer and magnetometer. (ANDROID DEV CODE)
+    public void updateOrientationAngles() {
+        // Update rotation matrix, which is needed to update orientation angles.
+        SensorManager.getRotationMatrix(rotationMatrix, null,
+                accelerometerReading, magnetometerReading);
+
+        // "mRotationMatrix" now has up-to-date information.
+
+        float[] updated_orientation = SensorManager.getOrientation(rotationMatrix, orientationAngles);
+        // "mOrientationAngles" now has up-to-date information.
+        if(mSensorInformationList.size() != 0) {
+            mSensorInformationList.get(0).setValue(updated_orientation);
+            Log.d(SMARTPHONE_SENSOR, "Updated orientation sensor with values");
         }
     }
 
@@ -429,30 +673,47 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (success) {
                 scanSuccess();
+            } else {
+                // scan failure handling
+                scanFailure();
             }
         }
     };
 
+    private void scanFailure() {
+        // handle failure: new scan did NOT succeed
+        // consider using old scan results: these are the OLD results!
+        Log.d(WIFI,"Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
+    }
+
+
     private void scanSuccess() {
         List<ScanResult> results = wifiManager.getScanResults();
-        for (ScanResult result : results
-        ) {
-            int rssi = result.level;
-            boolean found = false;
-            for (int i = 0; i < mAccessPoints.size(); i++) {
-                WifiObject resultInList = mAccessPoints.get(i);
-                if (resultInList.getName().equals(result.BSSID)) {
-                    resultInList.setSingleValue(rssi);
-                    found = true;
-                    break;
+        if(isScanning) {
+            Log.d(WIFI,"Scanned " + results.size() + " access points");
+            for (ScanResult result : results
+            ) {
+                int rssi = result.level;
+                Log.d(WIFI,"Access Point: " + result.BSSID + " with RSSI " + rssi + " dBm");
+                boolean found = false;
+                for (int i = 0; i < mAccessPoints.size(); i++) {
+                    WifiObject resultInList = mAccessPoints.get(i);
+                    if (resultInList.getName().equals(result.BSSID)) {
+                        resultInList.setSingleValue(rssi);
+                        Log.d(WIFI,"Set RSSI value " + rssi + " dBm to the access point's " + result.BSSID + " list.");
+                        found = true;
+                        break;
+                    }
                 }
-            }
 
-            if (found == false) {
-                WifiObject ap = new WifiObject(result.BSSID, result.level);
-                mAccessPoints.add(ap);
+                if (found == false) {
+                    WifiObject ap = new WifiObject(result.BSSID, result.level);
+                    mAccessPoints.add(ap);
+                }
             }
         }
     }
@@ -464,21 +725,22 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                if (beacons.size() > 0) {
-
+                if (beacons.size() > 0 && isScanning) {
+                    Log.d(BLE, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
                     Beacon beaconScanned = beacons.iterator().next();
                     int rss = beaconScanned.getRssi();
                     boolean found = false;
                     for (int i = 0; i < mBeaconsList.size(); i++) {
-                        BluetoothObject beaconfound = mBeaconsList.get(i);
-                        if (beaconfound.getName().equals(beaconScanned.getBluetoothAddress())) {
-                            beaconfound.setSingleValue(rss);
+                        BluetoothObject beaconInList = mBeaconsList.get(i);
+                        if (beaconInList.getName().equals(beaconScanned.getBluetoothAddress())) {
+                            beaconInList.setSingleValue(rss);
+                            Log.d(BLE,"Set RSSI value " + rss + " dBm to the beacon's " + beaconScanned.getBluetoothAddress() + " list.");
                             found = true;
                             break;
                         }
                     }
 
-                    if (found == false) {
+                    if (!found) {
                         BluetoothObject beacon = new BluetoothObject(beaconScanned.getBluetoothAddress(), rss);
                         mBeaconsList.add(beacon);
                     }
@@ -526,6 +788,7 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
             builder.show();
 
         }
+        Log.d(BLE,"Bluetooth verified.");
 
     }
 
@@ -536,6 +799,12 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
         private ServerDeviceData serverDeviceData;
         private ServerWifiData serverWifiData;
         private ServerBluetoothData serverBluetoothData;
+
+        private String json;
+
+        public SendHTTPRequest(String json) {
+            this.json = json;
+        }
 
         private SendHTTPRequest(ServerFingerprint fingerprint) {
             this.serverFingerprint = fingerprint;
@@ -572,6 +841,9 @@ public class OfflineTabedActivity extends AppCompatActivity implements SensorEve
             String fingerprintInJson = null;
 
             try {
+                if(json != null && !json.isEmpty()){
+                    post(ADDRESS +"filter/",json, "");
+                }
                 fingerprintInJson = gson.toJson(serverFingerprint);
 
                 if (serverFingerprint != null) {

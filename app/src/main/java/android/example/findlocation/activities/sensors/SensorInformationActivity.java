@@ -1,4 +1,4 @@
-package android.example.findlocation.activities;
+package android.example.findlocation.activities.sensors;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.example.findlocation.R;
+import android.example.findlocation.activities.ui.MainActivity;
 import android.example.findlocation.adapters.BluetoothAdapterRC;
 import android.example.findlocation.adapters.SensorAdapter;
 import android.example.findlocation.adapters.WiFiAdapter;
@@ -27,6 +28,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
@@ -48,8 +50,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class SensorInformationActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
+
+    private long startTimeNs;
 
     //iBeacon unique identifier for Alt-Beacon
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
@@ -101,31 +106,45 @@ public class SensorInformationActivity extends AppCompatActivity implements Sens
         beaconManager.bind(this);
         verifyBluetooth();
 
+        startTimeNs = System.nanoTime();
         //WI-FI SENSOR
         mAccessPoints = new LinkedList<>();
-        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
 
-        registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        this.registerReceiver(wifiScanReceiver, intentFilter);
 
         if (ActivityCompat.checkSelfPermission(SensorInformationActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
-                    this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                    this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_WIFI_STATE,
+                    Manifest.permission.ACCESS_NETWORK_STATE},1);
         }
         final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             buildAlertMessageNoGps();
-
-        wifiManager.startScan();
-
+        Toast.makeText(this, "Scanning WiFi ...", Toast.LENGTH_SHORT).show();
         //LONG SCAN VARIABLES
         isLongScanning = false;
         mWiFiScanResults = new HashMap<>();
         mDeviceScanResults = new HashMap<>();
         mBluetoothScanResults = new HashMap<>();
+        handler.post(locationUpdate);
 
     }
+
+    final Handler handler = new Handler();
+    final Runnable locationUpdate = new Runnable() {
+        @Override
+        public void run() {
+            wifiManager.startScan();
+            Log.d("START SCAN CALLED", "");
+            handler.postDelayed(locationUpdate, 1000);
+        }
+    };
 
     @Override
     protected void onStart() {
@@ -342,11 +361,25 @@ public class SensorInformationActivity extends AppCompatActivity implements Sens
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+            Toast.makeText(SensorInformationActivity.this, "Scan Complete!", Toast.LENGTH_SHORT).show();
+            long elapsedTimeNs = System.nanoTime() - startTimeNs;
+            Log.d("WIFI", "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (success) {
                 scanSuccess();
+            } else {
+                // scan failure handling
+                scanFailure();
             }
         }
     };
+
+    private void scanFailure() {
+        // handle failure: new scan did NOT succeed
+        // consider using old scan results: these are the OLD results!
+        Log.d("WIFI","Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
+    }
 
      private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -370,6 +403,8 @@ public class SensorInformationActivity extends AppCompatActivity implements Sens
         List<ScanResult> results = wifiManager.getScanResults();
         for (ScanResult result : results
         ) {
+            long elapsedTimeNs = System.nanoTime() - startTimeNs;
+            Log.d("WIFI", "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
             int rssi = result.level;
             boolean found = false;
             for (int i = 0; i < mAccessPoints.size(); i++) {

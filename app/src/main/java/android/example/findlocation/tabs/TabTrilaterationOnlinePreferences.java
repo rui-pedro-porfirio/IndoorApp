@@ -1,8 +1,7 @@
 package android.example.findlocation.tabs;
 
 import android.example.findlocation.R;
-import android.example.findlocation.activities.ProximityOnlineActivity;
-import android.example.findlocation.activities.TrilaterationScreenActivity;
+import android.example.findlocation.activities.trilateration.TrilaterationScreenActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;

@@ -1,8 +1,7 @@
 package android.example.findlocation.tabs;
 
 import android.example.findlocation.R;
-import android.example.findlocation.activities.OnlineActivity;
-import android.example.findlocation.activities.ProximityOnlineActivity;
+import android.example.findlocation.activities.proximity.ProximityOnlineActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;

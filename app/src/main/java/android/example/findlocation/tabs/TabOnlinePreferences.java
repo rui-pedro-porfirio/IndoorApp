@@ -1,30 +1,18 @@
 package android.example.findlocation.tabs;
 
 import android.example.findlocation.R;
-import android.example.findlocation.activities.OfflineTabedActivity;
-import android.example.findlocation.activities.OnlineActivity;
+import android.example.findlocation.activities.fingerprinting.FingerprintingOnlineActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class TabOnlinePreferences extends Fragment{
 
@@ -61,7 +49,7 @@ public class TabOnlinePreferences extends Fragment{
         @Override
         public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
             selectedAlgorithm = algorithms[position];
-            ((OnlineActivity) getActivity()).setAlgorithm(selectedAlgorithm);
+            ((FingerprintingOnlineActivity) getActivity()).setAlgorithm(selectedAlgorithm);
         }
         @Override
         public void onNothingSelected(AdapterView<?> arg0) {
@@ -73,7 +61,7 @@ public class TabOnlinePreferences extends Fragment{
         @Override
         public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
             selectedFilter = filters[position];
-            ((OnlineActivity) getActivity()).setFilter(selectedFilter);
+            ((FingerprintingOnlineActivity) getActivity()).setFilter(selectedFilter);
         }
         @Override
         public void onNothingSelected(AdapterView<?> arg0) {

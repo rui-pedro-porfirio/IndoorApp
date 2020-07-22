@@ -1,4 +1,4 @@
-package android.example.findlocation.activities;
+package android.example.findlocation.activities.proximity;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,19 +12,21 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.example.findlocation.R;
 import android.example.findlocation.objects.client.BluetoothDistanceObject;
-import android.example.findlocation.ui.main.SectionsPagerAdapterOnlineTrilateration;
+import android.example.findlocation.ui.main.SectionsPagerAdapter;
+import android.example.findlocation.ui.main.SectionsPagerAdapterProximityDistance;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
@@ -39,16 +41,15 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
-import org.json.JSONException;
-import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -59,53 +60,51 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class TrilaterationScreenActivity extends AppCompatActivity implements BeaconConsumer {
+public class ProximityDistanceScanActivity extends AppCompatActivity implements BeaconConsumer {
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.43.166:8000/trilateration/position";
-    private static final long SCAN_PERIOD_TIME = 10000;
+    private static final String ADDRESS = "http://192.168.42.55:8000/";
+    private static final long SCAN_PERIOD_TIME = 60000 * 1; // 1 minute of continuous scanning
+    private static final String TAG = "TIMER";
+    private static final String BEACON = "BEACON";
+    private static final String LOG = "LOG";
+    private static final String REGION_UUID = "b9407f30-f5f8-466e-aff9-25556b57fe6d";
 
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
 
-    private String algorithm;
+    private long startTimeNs;
     private OkHttpClient client;
     private BeaconManager beaconManager;
-    private static final String TAG = "TIMER";
-    private static final String LOG = "LOG";
-    private Map<String, BluetoothDistanceObject> mTargetBeacons;
-    private static final String BEACON = "BEACON";
+    private BluetoothDistanceObject mTargetBeacon;
+    private Map<String, Float> preferences;
     private boolean isScanning;
-    private String zoneClassified;
-    private List<Float> coordinates;
-    private long startTimeNs;
+    private Region region;
+    private String zoneClassifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_trilateration_screen);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        SectionsPagerAdapterOnlineTrilateration sectionsPagerAdapter = new SectionsPagerAdapterOnlineTrilateration(this, getSupportFragmentManager());
-        ViewPager viewPager = findViewById(R.id.view_pagerTrilaterationId);
-        viewPager.setAdapter(sectionsPagerAdapter);
-        TabLayout tabs = findViewById(R.id.trilaterationTabsOnlineId);
-        tabs.setupWithViewPager(viewPager);
-        algorithm = null;
-        mTargetBeacons = new HashMap<>();
-        tabs.getTabAt(0).setIcon(R.drawable.map_marker_small);
-        tabs.getTabAt(1).setIcon(R.drawable.preferencesicon);
+        setContentView(R.layout.activity_proximity_distance_scan);
         client = new OkHttpClient();
-        zoneClassified = "";
-        coordinates = new ArrayList<>();
-
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        SectionsPagerAdapterProximityDistance sectionsPagerAdapter = new SectionsPagerAdapterProximityDistance(this, getSupportFragmentManager());
+        ViewPager viewPager = findViewById(R.id.view_pagerDistanceProximityScanId);
+        viewPager.setAdapter(sectionsPagerAdapter); //CHANGE
+        TabLayout tabs = findViewById(R.id.tabsDistanceProximityScanId);
+        tabs.setupWithViewPager(viewPager);
+        tabs.getTabAt(0).setIcon(R.drawable.proximitydistanceicon);
+        tabs.getTabAt(1).setIcon(R.drawable.preferencesicon);
+        preferences = new HashMap<String, Float>();
         isScanning = false;
+        zoneClassifier = null;
         verifyBluetooth();
         activateSensorScan();
         requestPermissions();
     }
 
-    public void requestPermissions() {
+    public void requestPermissions(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -127,7 +126,8 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
 
                         });
                         builder.show();
-                    } else {
+                    }
+                    else {
                         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setTitle("Functionality limited");
                         builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
@@ -148,7 +148,8 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
                     requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                                     Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                             PERMISSION_REQUEST_FINE_LOCATION);
-                } else {
+                }
+                else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Functionality limited");
                     builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
@@ -217,6 +218,10 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
         super.onStop();
     }
 
+    public void setPreferences(Map<String, Float> preferences) {
+        this.preferences = preferences;
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -224,68 +229,17 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
     }
 
     public void resetDataStructures() {
-        this.coordinates = new ArrayList<>();
-        this.zoneClassified = "";
-        this.algorithm = "";
-        for (BluetoothDistanceObject beacon : mTargetBeacons.values()) {
-            beacon.resetValues();
-        }
+        mTargetBeacon.resetValues();
     }
 
-    public void computeNewPosition() {
-        ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.trilateration_progressBarLocationId);
-        mProgressBar.setVisibility(View.INVISIBLE);
-        TextView mTextTitle = (TextView) findViewById(R.id.trilaterationFoundPositionTextViewId);
-        mTextTitle.setVisibility(View.VISIBLE);
-        if (zoneClassified.length() < 1 && coordinates.size() > 1) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.trilaterationLinearLayoutTabPositionRegressionId);
-            mLinearLayout.setVisibility(View.VISIBLE);
-            TextView xTextView = (TextView) findViewById(R.id.trilateration_x_coordinate_positionValueId);
-            xTextView.setText(String.valueOf(coordinates.get(0)));
-            TextView yTextView = (TextView) findViewById(R.id.trilateration_y_coordinate_positionValueId);
-            yTextView.setText(String.valueOf(coordinates.get(1)));
-        } else if (zoneClassified.length() >= 1 && !zoneClassified.equals("")) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.trilaterationLinearLayoutTabPositionClassifierId);
-            mLinearLayout.setVisibility(View.VISIBLE);
-            TextView zoneTextView = (TextView) findViewById(R.id.trilateration_zone_predictionId);
-            zoneTextView.setText(zoneClassified);
-        }
-        resetDataStructures();
+    public void setZoneClassifier(String zoneClassifier) {
+        this.zoneClassifier = zoneClassifier;
     }
 
-    public void setAlgorithm(String algorithm) {
-        this.algorithm = algorithm;
-    }
+    public void startScan(View view) throws InterruptedException {
 
-
-    public void sendScanToServer() {
-        if (mTargetBeacons.size() >= 3) {
-            for (BluetoothDistanceObject beacon : mTargetBeacons.values()) {
-                beacon.setAlgorithm(algorithm);
-                System.err.println("NUMBER OF SCANNED VALUES: " + beacon.getValues().size());
-            }
-            long scanningTime = beaconManager.getForegroundScanPeriod();
-            System.out.println("Time spent in Scanning: " + scanningTime);
-            long scanningPeriod = beaconManager.getForegroundBetweenScanPeriod();
-            System.out.println("Time spent between Scannings: " + scanningPeriod);
-            Log.d(LOG, "Created Copy Cat version of beacon, sending data to server...");
-            Gson gson = new Gson();
-            String jsonString = gson.toJson(mTargetBeacons); // SENDING THE RSSI SCANS FROM EACH BEACON TO THE SERVER
-            Toast.makeText(this, "Sending data to server", Toast.LENGTH_SHORT).show();
-            new SendHTTPRequest(jsonString).execute();
-        } else {
-            Toast.makeText(this, "ERROR: Scanning Beacon not working properly", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void addFindUserPositionListener(View view) throws InterruptedException {
-
-        if (algorithm != null) {
-            Toast.makeText(this, "Finding Your Position", Toast.LENGTH_SHORT).show();
-            Button mButton = (Button) view.findViewById(R.id.trilaterationButtonFindUserPositionId);
-            mButton.setVisibility(View.INVISIBLE);
-            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.trilateration_progressBarLocationId);
-            mProgressBar.setVisibility(View.VISIBLE);
+        if (preferences.size() != 0) {
+            Toast.makeText(this, "Scanning", Toast.LENGTH_SHORT).show();
             scanData();
         } else {
             Toast.makeText(this, "Check preferences", Toast.LENGTH_SHORT).show();
@@ -297,30 +251,12 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.setBackgroundMode(false);
-        beaconManager.setForegroundScanPeriod(200);
+        beaconManager.setForegroundScanPeriod(150);
         beaconManager.bind(this);
         startTimeNs = System.nanoTime();
-        Log.d(BEACON, "Beacons configuration ready. Start advertising");
+        Log.d(BEACON, "Beacon configuration ready. Start advertising");
     }
 
-    public void scanData() {
-
-        isScanning = true;
-        CountDownTimer waitTimer;
-        waitTimer = new CountDownTimer(SCAN_PERIOD_TIME, 300) {
-
-            public void onTick(long millisUntilFinished) {
-                Log.d(TAG, "notify countDown: " + millisUntilFinished + " msecs");
-            }
-
-            public void onFinish() {
-                sendScanToServer();
-                Toast.makeText(getApplicationContext(), "Finished Scanning ", Toast.LENGTH_SHORT).show();
-                isScanning = false;
-            }
-        };
-        waitTimer.start();
-    }
 
     @Override
     public void onBeaconServiceConnect() {
@@ -333,32 +269,24 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
                 if (beacons.size() > 0 && isScanning) {
                     Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
                     Log.d(BEACON, "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
-                    Iterator<Beacon> it = beacons.iterator();
-                    while (it.hasNext()) {
-                        Beacon beaconScanned = it.next();
-                        Log.d(BEACON, "Found beacon " + beaconScanned.getBluetoothAddress());
-                        int rssi = beaconScanned.getRssi(); //RSSI value of beacon
-                        BluetoothDistanceObject beaconInStructure = mTargetBeacons.get(beaconScanned.getBluetoothAddress());
-                        if (beaconInStructure == null) {
-                            Log.d(BEACON, "Beacon" + beaconScanned.getBluetoothAddress() + " initialization");
-                            BluetoothDistanceObject beacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
-                            mTargetBeacons.put(beacon.getName(), beacon);
-                        } else {
-                            if (beaconInStructure.getName().equals(beaconScanned.getBluetoothAddress())) {
-                                beaconInStructure.setSingleValue(rssi);
-                                beaconInStructure.addRSSIValue(rssi);
-                                Log.d(BEACON, "Beacon" + beaconInStructure.getName() + "| RSSI VALUE: " + rssi);
-                            }
-                        }
+                    Beacon beaconScanned = beacons.iterator().next();
+                    Log.d(BEACON, "Found beacon " + beaconScanned.getBluetoothAddress());
+                    int rssi = beaconScanned.getRssi(); //RSSI value of beacon
+                    if (mTargetBeacon == null) {
+                        Log.d(BEACON, "Beacon initialization");
+                        mTargetBeacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
+                    }
+                    if (mTargetBeacon.getName().equals(beaconScanned.getBluetoothAddress())) {
+                        mTargetBeacon.setSingleValue(rssi);
+                        mTargetBeacon.addRSSIValue(rssi);
+                        Log.d(BEACON, "RSSI VALUE: " + rssi);
                     }
                 }
             }
         });
         try {
             beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-        } catch (RemoteException e) {
-        }
-
+        } catch (RemoteException e) {    }
     }
 
     private void verifyBluetooth() {
@@ -398,6 +326,51 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
 
     }
 
+    public void sendScanToServer() {
+        BluetoothDistanceObject mCopyCatBeacon = new BluetoothDistanceObject(mTargetBeacon.getName(), mTargetBeacon.getValues());
+        long scanningTime = beaconManager.getForegroundScanPeriod();
+        System.out.println("Time spent in Scanning: " + scanningTime);
+        long scanningPeriod = beaconManager.getForegroundBetweenScanPeriod();
+        System.out.println("Time spent between Scannings: " + scanningPeriod);
+        System.err.println("NUMBER OF SCANNED VALUES: " + mTargetBeacon.getValues().size());
+        mCopyCatBeacon.setX_coordinate(preferences.get("X"));
+        mCopyCatBeacon.setY_coordinate(preferences.get("Y"));
+        mCopyCatBeacon.setZone(zoneClassifier);
+        Log.d(LOG, "Created Copy Cat version of beacon, sending data to server...");
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(mCopyCatBeacon);
+        Toast.makeText(this, "Sending data to server", Toast.LENGTH_SHORT).show();
+        new SendHTTPRequest(jsonString).execute();
+    }
+
+    public void scanData() {
+
+        isScanning = true;
+        CountDownTimer waitTimer;
+        long tickTimer = preferences.get("Scan Time").longValue();
+        waitTimer = new CountDownTimer(SCAN_PERIOD_TIME, tickTimer) {
+
+            public void onTick(long millisUntilFinished) {
+                Log.d(TAG, "BLE samples scanned at: " + millisUntilFinished + " msecs");
+                if (mTargetBeacon != null) {
+                    Log.d(LOG, "Beacon is up");
+                    sendScanToServer();
+                    mTargetBeacon.resetValues();
+                }
+            }
+
+            public void onFinish() {
+                sendScanToServer();
+                Toast.makeText(getApplicationContext(), "Finished Scanning ", Toast.LENGTH_SHORT).show();
+                isScanning = false;
+                resetDataStructures();
+            }
+        };
+
+        Log.d(TAG, "Starting BLE scanning for" + SCAN_PERIOD_TIME + " msecs");
+        waitTimer.start();
+    }
+
     private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
 
         private String json;
@@ -410,7 +383,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(ADDRESS, json, "");
+                post(ADDRESS + "proximity/distance", json, "");
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -421,7 +394,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
         @Override
         protected void onPostExecute(String message) {
             super.onPostExecute(message);
-            computeNewPosition();
+            System.out.println("LOG MESSAGE: " + message);
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -440,17 +413,11 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
                     System.out.println("RESPONSE: " + responseString);
                 } else {
                     responseString = response.body().string();
-                    JSONObject jsonObject = new JSONObject(responseString);
-                    if (algorithm.contains("Classifi")) {
-                        zoneClassified = jsonObject.getString("zone");
-                    } else {
-                        coordinates.add((float) jsonObject.getDouble("coordinate_X"));
-                        coordinates.add((float) jsonObject.getDouble("coordinate_Y"));
-                    }
+                    System.out.println("RESPONSE: " + responseString);
                 }
                 response.body().close();
             } catch (ConnectException e) {
-
+                e.printStackTrace();
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -459,6 +426,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
                     }
                 });
             } catch (SocketTimeoutException e) {
+                e.printStackTrace();
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -466,8 +434,6 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
                         Toast.makeText(getApplicationContext(), "Failed to connect to the server", Toast.LENGTH_SHORT).show();
                     }
                 });
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
         }
 

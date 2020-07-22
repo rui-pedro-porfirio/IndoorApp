@@ -6,4 +6,4 @@
     android:layout_height="wrap_content"
     android:background="@drawable/logobackground"
     android:id="@+id/welcomeBackground"
-    tools:context=".activities.MainActivity" />
+    tools:context=".activities.ui.MainActivity" />

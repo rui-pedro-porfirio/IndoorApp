@@ -1,8 +1,7 @@
 package android.example.findlocation.tabs;
 
 import android.example.findlocation.R;
-import android.example.findlocation.activities.OfflineTabedActivity;
-import android.example.findlocation.activities.ProximityDistanceScanActivity;
+import android.example.findlocation.activities.proximity.ProximityDistanceScanActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;

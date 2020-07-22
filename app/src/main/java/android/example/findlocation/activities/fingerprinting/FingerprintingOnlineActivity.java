@@ -1,4 +1,4 @@
-package android.example.findlocation.activities;
+package android.example.findlocation.activities.fingerprinting;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -76,7 +76,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class OnlineActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
+public class FingerprintingOnlineActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");

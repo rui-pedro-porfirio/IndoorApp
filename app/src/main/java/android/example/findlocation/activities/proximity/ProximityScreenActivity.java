@@ -1,4 +1,4 @@
-package android.example.findlocation.activities;
+package android.example.findlocation.activities.proximity;
 
 import androidx.appcompat.app.AppCompatActivity;
 

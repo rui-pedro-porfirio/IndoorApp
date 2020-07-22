@@ -1,7 +1,7 @@
 package android.example.findlocation.tabs;
 
 import android.example.findlocation.R;
-import android.example.findlocation.activities.OfflineTabedActivity;
+import android.example.findlocation.activities.fingerprinting.FingerprintingOfflineActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,7 +20,7 @@ public class TabRadioMap extends Fragment {
             @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.tabradiomap, container, false);
-        ((OfflineTabedActivity)getActivity()).populateRecycleView(root);
+        ((FingerprintingOfflineActivity)getActivity()).populateRecycleView(root);
         return root;
     }
 

@@ -1,9 +1,7 @@
 package android.example.findlocation.tabs;
 
-import android.content.Intent;
 import android.example.findlocation.R;
-import android.example.findlocation.activities.OfflineTabedActivity;
-import android.example.findlocation.activities.SensorInformationActivity;
+import android.example.findlocation.activities.fingerprinting.FingerprintingOfflineActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -12,18 +10,11 @@ import android.text.style.BulletSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-
-import org.w3c.dom.Text;
-
-import java.util.HashMap;
 
 public class TabFingerprint extends Fragment {
 
@@ -39,11 +30,11 @@ public class TabFingerprint extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         TextView mSelectedTypes = view.findViewById(R.id.types_selectedId);
-        mSelectedTypes.setText(getResources().getString(R.string.selected_sensor_types_string,((OfflineTabedActivity) getActivity()).getSelectedTypes()));
+        mSelectedTypes.setText(getResources().getString(R.string.selected_sensor_types_string,((FingerprintingOfflineActivity) getActivity()).getSelectedTypes()));
         TextView mSelectedPreferences = view.findViewById(R.id.defaultpreferencesId);
-        mSelectedPreferences.setText(getResources().getString(R.string.general_preferences_string,((OfflineTabedActivity) getActivity()).getPreferences()));
+        mSelectedPreferences.setText(getResources().getString(R.string.general_preferences_string,((FingerprintingOfflineActivity) getActivity()).getPreferences()));
         TextView mSelectedZone = view.findViewById(R.id.zone_selectedId);
-        mSelectedZone.setText(getResources().getString(R.string.selected_zone,((OfflineTabedActivity) getActivity()).getZoneClassifier()));
+        mSelectedZone.setText(getResources().getString(R.string.selected_zone,((FingerprintingOfflineActivity) getActivity()).getZoneClassifier()));
         computeBulletList(view);
     }
 

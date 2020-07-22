@@ -1,4 +1,4 @@
-package android.example.findlocation.activities;
+package android.example.findlocation.activities.fingerprinting;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -8,16 +8,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /*
 Needs Offline and Online Phase buttons
 (Offline phase)Needs filling scrolling, start button and finish button
 (Online phase)Needs current data window and position detected
  */
-public class FingerprintingActivity extends AppCompatActivity {
+public class FingerprintingScreenActivity extends AppCompatActivity {
 
 
 
@@ -26,12 +22,12 @@ public class FingerprintingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fingerprinting);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        listenForOfflineButton();
-        listenForOnlineButton();
+        startOfflineActivity();
+        startOnlineActivity();
     }
 
-    public void listenForOfflineButton(){
-        final Intent offlinePhaseIntent = new Intent(this, OfflineTabedActivity.class);
+    public void startOfflineActivity(){
+        final Intent offlinePhaseIntent = new Intent(this, FingerprintingOfflineActivity.class);
         Button offlineButton = findViewById(R.id.offlineButtonId);
         offlineButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -41,8 +37,8 @@ public class FingerprintingActivity extends AppCompatActivity {
         });
     }
 
-    public void listenForOnlineButton(){
-        final Intent onlinePhaseIntent = new Intent(this, OnlineActivity.class);
+    public void startOnlineActivity(){
+        final Intent onlinePhaseIntent = new Intent(this, FingerprintingOnlineActivity.class);
         Button onlineButton = findViewById(R.id.onlineButtonId);
         onlineButton.setOnClickListener(new View.OnClickListener() {
             @Override
