@@ -40,7 +40,6 @@ def jsonToFile(type):
                                                                          fingerprint_id=fingerprint['id']).values('name','rssi')
                 match_fingerprint = list(chain(match_fingerprint_wifi, match_fingerprint_ble))
 
-
             if len(match_fingerprint) == 0:
                 dictionary_fingerprint[r['name']] = 0
             else:
@@ -49,12 +48,12 @@ def jsonToFile(type):
         list_json_fingerprints.append(dictionary_fingerprint)
     dict_fingerprints = {'fingerprints': list_json_fingerprints}
     try:
-        with open('radiomap' +type +'classifier.csv', 'w') as csvfile:
+        with open('radiomap' +type +'classifier_university_dataset.csv', 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
             writer.writeheader()
             for data in list_json_fingerprints:
                 writer.writerow(data)
     except IOError:
         print("I/O error")
-    with open('radiomap' +type +'.json', 'w') as outfile:
+    with open('radiomap' +type +'classifier_university_dataset.json', 'w') as outfile:
         json.dump(dict_fingerprints, outfile, cls=DjangoJSONEncoder, indent=3)

@@ -103,7 +103,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
     // OVERALL CONSTANTS
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.6:8000/";
+    private static final String ADDRESS = "http://192.168.42.55:8000/";
     public static final String FINGERPRINT_FILE = "radio_map";
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
@@ -400,9 +400,9 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
             scanData();
         } else {
             Toast.makeText(this,"Finished Scanning", Toast.LENGTH_SHORT).show();
-            Gson gson = new Gson();
+            //Gson gson = new Gson();
             //gson.toJson(fingerprints, writer);
-            requestCSVFile();
+            //requestCSVFile();
         }
     }
 
