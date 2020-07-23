@@ -26,7 +26,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
     private Map<String,Float> preferences;
     private String zoneClassifier;
 
-    private String[] zones = {"None","Bedroom", "Bathroom","Living Room","Kitchen"};
+    private String[] zones = {"Personal","Social", "Public"};
     @Override
     public View onCreateView(
             @NonNull LayoutInflater inflater, ViewGroup container,
