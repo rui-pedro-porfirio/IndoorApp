@@ -51,8 +51,8 @@ room_limit_y_max = 4.0
 access_points = load_access_points_locations()
 display(access_points)
 distances_list = list()
-for i in np.arange(room_limit_x_min,room_limit_x_max,1):
-    for j in np.arange(room_limit_y_min,room_limit_y_max,1):
+for i in np.arange(room_limit_x_min,room_limit_x_max,1.0):
+    for j in np.arange(room_limit_y_min,room_limit_y_max,1.0):
         distances = {}
         distances[(i,j)] = compute_trilateration(x=i,y=j,access_points=access_points)
         distances_list.append(distances)
@@ -61,6 +61,7 @@ display(distances_list)
 dataframe_list = list()
 for k, v in access_points.items():
     csv_columns.append(k)
+csv_columns.append('Zone')
 for d in distances_list:
     print(d)
     for k, v in d.items():
@@ -71,8 +72,14 @@ for d in distances_list:
         final_list.append(y)
         for k,v in v.items():
             final_list.append(v)
+        if y >= 3.0:
+            final_list.append('Personal')
+        elif y >= 0.0 and y < 3.0:
+            final_list.append('Social')
+        else:
+            final_list.append('Public')
         dataframe_list.append(final_list)
 display(dataframe_list)
 dataframe = pd.DataFrame(data=dataframe_list,columns=csv_columns)
 display(dataframe)
-dataframe.to_csv(r'.\trilateration_test_v2.csv', index = False)
+dataframe.to_csv(r'.\trilateration_test_classification.csv', index = False)
