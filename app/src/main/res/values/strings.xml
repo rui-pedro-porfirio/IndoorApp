@@ -94,4 +94,10 @@
     <string name="trilateration_technique_string">Trilateration Technique</string>
     <string name="trilaterationUISubtitle">Distance/RSSI Scan for at least 3 beacons in range</string>
     <string name="trilaterationUIPage_online_subtitle">Test Online</string>
+    <string name="register_string">Register</string>
+    <string name="login_string">Login</string>
+    <string name="register_user_string">Register User</string>
+    <string name="login_user_string">Login User</string>
+    <string name="scan_information_string">Scan Information</string>
+    <string name="access_scanning_information_string">Access scanning information</string>
 </resources>

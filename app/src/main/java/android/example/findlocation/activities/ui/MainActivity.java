@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         timer = new Timer();
         timer.schedule(new TimerTask(){
             public void run(){
-                Intent changeScreenIntent = new Intent(MainActivity.this, MainPageActivity.class);
+                Intent changeScreenIntent = new Intent(MainActivity.this, MainSecondPageActivity.class);
                 startActivity(changeScreenIntent);
                 finish();
             }

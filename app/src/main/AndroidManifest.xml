@@ -19,7 +19,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <activity android:name=".activities.trilateration.TrilaterationScreenActivity"
+        <activity android:name=".activities.ui.MainSecondPageActivity"></activity>
+        <activity
+            android:name=".activities.trilateration.TrilaterationScreenActivity"
             android:parentActivityName=".activities.ui.MainPageActivity" />
         <activity
             android:name=".activities.proximity.ProximityOnlineActivity"
@@ -49,7 +51,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.ui.MainPageActivity" />
         </activity>
-        <activity android:name=".activities.ui.MainPageActivity" />
+        <activity android:name=".activities.ui.MainPageActivity"
+            android:parentActivityName=".activities.ui.MainSecondPageActivity" />
         <activity
             android:name=".activities.ui.MainActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
