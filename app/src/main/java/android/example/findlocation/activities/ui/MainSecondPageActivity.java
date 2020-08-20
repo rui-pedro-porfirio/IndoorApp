@@ -32,20 +32,25 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
     public static final int FAILED_RESULT_CODE = 500;
     public static final int FINISHED_CODE = 100;
 
+    private static final String AUTH_CODE_KEY = "Auth Code";
+
     public boolean isAuthenticated;
+    private SharedPreferences applicationPreferences;
     private ServiceResultReceiver mServiceResultReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        applicationPreferences = App.preferences;
         setContentView(R.layout.activity_main_second_page);
         mServiceResultReceiver = new ServiceResultReceiver(new Handler());
         mServiceResultReceiver.setReceiver(this);
         startScanningInformation();
         startRegistrationPhase();
         startLoginPhase();
-        isAuthenticated = false;
-        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_CHECK_AUTH_CODE,OAUTH_ID,null); // REVIEWED
+        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_CHECK_AUTH_CODE,OAUTH_ID,null);
+        String autorizationCode = applicationPreferences.getString(AUTH_CODE_KEY, null);
+        isAuthenticated = autorizationCode != null;
     }
 
 
@@ -80,6 +85,7 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
+
                 if (!isAuthenticated) {
                     OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_REQUEST_AUTH_CODE,OAUTH_ID,null);
                 }

@@ -22,7 +22,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import okhttp3.Credentials;
 import okhttp3.FormBody;
@@ -216,19 +223,21 @@ public class OAuthBackgroundService extends JobIntentService {
         Request request = new Request.Builder()
                 .url(VERIFY_AUTH_DATA)
                 .header("content-type", "application/json")
-                .header("authorization", "Bearer "+accessToken)
+                .header("authorization", "Bearer " + accessToken)
                 .build();
         sendGetHTTPRequest(request);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean isAccessTokenValid() {
-        LocalDateTime expiration = LocalDateTime.parse(expirationDate);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        LocalDateTime expiration = LocalDateTime.parse(expirationDate, formatter);
         LocalDateTime now = LocalDateTime.now();
         if (expiration.isAfter(now)) {
             return true;
         }
         return false;
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -282,11 +291,11 @@ public class OAuthBackgroundService extends JobIntentService {
                 JSONObject responseS = json_params.getJSONObject("response");
                 JSONObject user = responseS.getJSONObject("user");
                 username = user.getString("email");
-                preferencesEditor.putString(USERNAME_KEY,username);
+                preferencesEditor.putString(USERNAME_KEY, username);
                 preferencesEditor.apply();
                 JSONObject access_token_json = responseS.getJSONObject("access_token");
                 expirationDate = access_token_json.getString("expiration_date");
-                preferencesEditor.putString(EXPIRATION_DATE_KEY,expirationDate);
+                preferencesEditor.putString(EXPIRATION_DATE_KEY, expirationDate);
                 preferencesEditor.apply();
                 mainHandler.post(new Runnable() {
                     @Override
