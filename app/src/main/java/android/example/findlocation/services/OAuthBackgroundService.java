@@ -53,6 +53,7 @@ public class OAuthBackgroundService extends JobIntentService {
 
     public static final int ACCESS_TOKEN_CODE = 102;
     public static final int FAILED_RESULT_CODE = 500;
+    public static final int FINISHED_CODE = 100;
 
     private static final String USERNAME_KEY = "Username";
     private static final String ACCESS_TOKEN_KEY = "Access Token";
@@ -92,20 +93,13 @@ public class OAuthBackgroundService extends JobIntentService {
         autorizationCode = applicationPreferences.getString(AUTH_CODE_KEY, null);
         if (expirationDate != null) //Here it is assumed that the access token and refresh token are both existent
             isTokenValid = isAccessTokenValid();
-        if (!isTokenValid)
+        if (!isTokenValid && accessToken != null && refreshToken != null)
             exchangeRefreshToken();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                // Do your stuff here related to UI, e.g. show toast
-                Toast.makeText(getApplicationContext(), "User authenticated. Authentication service completed.", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     /**
@@ -219,9 +213,8 @@ public class OAuthBackgroundService extends JobIntentService {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void requestTokenInfo() {
-        String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
         Request request = new Request.Builder()
-                .url(EXCHANGE_AUTH_ADDRESS)
+                .url(VERIFY_AUTH_DATA)
                 .header("content-type", "application/json")
                 .header("authorization", "Bearer "+accessToken)
                 .build();
@@ -270,7 +263,7 @@ public class OAuthBackgroundService extends JobIntentService {
                 @Override
                 public void run() {
                     // Do your stuff here related to UI, e.g. show toast
-                    Toast.makeText(getApplicationContext(), "Error in Application. Please review line 165 of OAuthBackgroundService.java", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Error in Application. Please review Post Request of OAuthBackgroundService.java", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -286,12 +279,25 @@ public class OAuthBackgroundService extends JobIntentService {
                 mResultReceiver.send(FAILED_RESULT_CODE, bundle);
             } else {
                 JSONObject json_params = new JSONObject(response.body().string());
-                username = json_params.getString("email");
+                JSONObject responseS = json_params.getJSONObject("response");
+                JSONObject user = responseS.getJSONObject("user");
+                username = user.getString("email");
                 preferencesEditor.putString(USERNAME_KEY,username);
                 preferencesEditor.apply();
-                expirationDate = json_params.getString("expiration_date");
+                JSONObject access_token_json = responseS.getJSONObject("access_token");
+                expirationDate = access_token_json.getString("expiration_date");
                 preferencesEditor.putString(EXPIRATION_DATE_KEY,expirationDate);
                 preferencesEditor.apply();
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Do your stuff here related to UI, e.g. show toast
+                        Toast.makeText(getApplicationContext(), "User Authenticated.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                Bundle bundle_auth = new Bundle();
+                bundle_auth.putBoolean("authorized", true);
+                mResultReceiver.send(FINISHED_CODE, bundle_auth);
             }
             response.body().close();
         } catch (IOException | JSONException e) {
@@ -300,7 +306,7 @@ public class OAuthBackgroundService extends JobIntentService {
                 @Override
                 public void run() {
                     // Do your stuff here related to UI, e.g. show toast
-                    Toast.makeText(getApplicationContext(), "Error in Application. Please review line 165 of OAuthBackgroundService.java", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Error in Application. Please review Get Request of OAuthBackgroundService.java", Toast.LENGTH_SHORT).show();
                 }
             });
         }

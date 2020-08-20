@@ -30,6 +30,7 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
 
     public static final int ACCESS_TOKEN_CODE = 102;
     public static final int FAILED_RESULT_CODE = 500;
+    public static final int FINISHED_CODE = 100;
 
     public boolean isAuthenticated;
     private ServiceResultReceiver mServiceResultReceiver;
@@ -106,7 +107,17 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
             case ACCESS_TOKEN_CODE:
                 if(resultData != null){
                     isAuthenticated = resultData.getBoolean("hasAccessToken");
+                    if (!isAuthenticated) {
+                        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_REQUEST_AUTH_CODE,OAUTH_ID,null);
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Already Authenticated.",Toast.LENGTH_LONG).show();
+                    }
                 }
+                break;
+            case FINISHED_CODE:
+                isAuthenticated = resultData.getBoolean("authorized");
+                break;
         }
     }
 
