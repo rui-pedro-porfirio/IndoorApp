@@ -11,5 +11,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         preferences = getSharedPreferences( getPackageName() + "_preferences", MODE_PRIVATE);
+        preferences.edit().clear();
+        preferences.edit().commit();
     }
 }
