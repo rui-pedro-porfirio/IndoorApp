@@ -236,10 +236,23 @@ public class OAuthBackgroundService extends JobIntentService {
         String action = intent.getAction();
         Uri responseUri = intent.getData();
         autorizationCode = responseUri.getQueryParameter("code");
+        String error = responseUri.getQueryParameter("error");
         Log.d(TAG, "CODE: " + autorizationCode);
-        preferencesEditor.putString(AUTH_CODE_KEY, autorizationCode);
-        preferencesEditor.apply();
-        exchangeAuthorizationCode(mResultReceiver);
+        if(autorizationCode == null){
+            String response = null;
+            if(error != null)
+                response = error;
+            else
+                response = "Problem occured during the authentication code retrieval";
+            Bundle bundle = new Bundle();
+            bundle.putString("code_error", "Error in authentication:"+ response);
+            mResultReceiver.send(FAILED_RESULT_CODE, bundle);
+        }
+        else {
+            preferencesEditor.putString(AUTH_CODE_KEY, autorizationCode);
+            preferencesEditor.apply();
+            exchangeAuthorizationCode(mResultReceiver);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
