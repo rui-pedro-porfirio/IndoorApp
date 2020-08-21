@@ -34,6 +34,9 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
 
     private static final String AUTH_CODE_KEY = "Auth Code";
 
+    private static final String OAUTH_BASIC = "Authorization Code Flow";
+    private static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
+
     public boolean isAuthenticated;
     private SharedPreferences applicationPreferences;
     private ServiceResultReceiver mServiceResultReceiver;
@@ -48,7 +51,7 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
         startScanningInformation();
         startRegistrationPhase();
         startLoginPhase();
-        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_CHECK_AUTH_CODE,OAUTH_ID,null);
+        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_CHECK_AUTH_CODE,OAUTH_ID,OAUTH_PKCE,null);
         String autorizationCode = applicationPreferences.getString(AUTH_CODE_KEY, null);
         isAuthenticated = autorizationCode != null;
     }
@@ -87,7 +90,7 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
             public void onClick(View v) {
 
                 if (!isAuthenticated) {
-                    OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_REQUEST_AUTH_CODE,OAUTH_ID,null);
+                    OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_REQUEST_AUTH_CODE,OAUTH_ID,null,null);
                 }
                 else{
                     Toast.makeText(getApplicationContext(),"Already Authenticated.",Toast.LENGTH_LONG).show();
@@ -99,7 +102,7 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this,mServiceResultReceiver,ACTION_REPLY_AUTH_CODE,OAUTH_ID,intent);
+        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this,mServiceResultReceiver,ACTION_REPLY_AUTH_CODE,OAUTH_ID,null,intent);
     }
 
     @Override
@@ -114,7 +117,7 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
                 if(resultData != null){
                     isAuthenticated = resultData.getBoolean("hasAccessToken");
                     if (!isAuthenticated) {
-                        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_REQUEST_AUTH_CODE,OAUTH_ID,null);
+                        OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_REQUEST_AUTH_CODE,OAUTH_ID,null,null);
                     }
                     else{
                         Toast.makeText(getApplicationContext(),"Already Authenticated.",Toast.LENGTH_LONG).show();

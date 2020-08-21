@@ -11,6 +11,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
+
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -22,6 +24,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -67,6 +73,11 @@ public class OAuthBackgroundService extends JobIntentService {
     private static final String REFRESH_TOKEN_KEY = "Refresh Token";
     private static final String EXPIRATION_DATE_KEY = "Expiration Date";
     private static final String AUTH_CODE_KEY = "Auth Code";
+    private static final String AUTH_FLOW_KEY = "Auth Flow";
+    private static final String PKCE_CODE_VERIFIER_KEY = "Code Verifier";
+
+    private static final String OAUTH_BASIC = "Authorization Code Flow";
+    private static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
 
     private Handler mHandler;
     private ResultReceiver mResultReceiver;
@@ -81,6 +92,11 @@ public class OAuthBackgroundService extends JobIntentService {
     private String autorizationCode;
     private boolean isTokenValid;
 
+    //PKCE Related
+    private String code_verifier;
+    private String code_challenge;
+    private String oAuthFlow;
+
     /**
      * method called on the start of the service
      */
@@ -93,11 +109,14 @@ public class OAuthBackgroundService extends JobIntentService {
         mHandler = new Handler();
         retries = 0;
         preferencesEditor = applicationPreferences.edit();
+        code_challenge = null;
+        code_verifier = applicationPreferences.getString(PKCE_CODE_VERIFIER_KEY,null);
         username = applicationPreferences.getString(USERNAME_KEY, null);
         accessToken = applicationPreferences.getString(ACCESS_TOKEN_KEY, null);
         refreshToken = applicationPreferences.getString(REFRESH_TOKEN_KEY, null);
         expirationDate = applicationPreferences.getString(EXPIRATION_DATE_KEY, null);
         autorizationCode = applicationPreferences.getString(AUTH_CODE_KEY, null);
+        oAuthFlow = applicationPreferences.getString(AUTH_FLOW_KEY,null);
         if (expirationDate != null) //Here it is assumed that the access token and refresh token are both existent
             isTokenValid = isAccessTokenValid();
         if (!isTokenValid && accessToken != null && refreshToken != null)
@@ -112,7 +131,7 @@ public class OAuthBackgroundService extends JobIntentService {
     /**
      * Convenience method for enqueuing work in to this service.
      */
-    public static void enqueueWork(Context context, ServiceResultReceiver workerResultReceiver, String action, int id, Intent receivedIntent) {
+    public static void enqueueWork(Context context, ServiceResultReceiver workerResultReceiver, String action, int id, String flow, Intent receivedIntent) {
         Intent intent = new Intent(context, OAuthBackgroundService.class);
         if (receivedIntent != null) {
             int flags = Intent.FILL_IN_DATA |
@@ -124,6 +143,8 @@ public class OAuthBackgroundService extends JobIntentService {
         }
         intent.putExtra(RECEIVER, workerResultReceiver);
         intent.setAction(action);
+        if (flow != null)
+            intent.putExtra("Flow Type", flow);
         enqueueWork(context, OAuthBackgroundService.class, id, intent);
     }
 
@@ -132,12 +153,20 @@ public class OAuthBackgroundService extends JobIntentService {
     protected void onHandleWork(@NonNull Intent intent) {
         Log.d(TAG, "onHandleWork() called with: intent = [" + intent + "]");
         if (intent.getAction() != null) {
+            if(oAuthFlow == null) {
+                oAuthFlow = intent.getStringExtra("Flow Type");
+                preferencesEditor.putString(AUTH_FLOW_KEY, oAuthFlow);
+                preferencesEditor.apply();
+            }
             switch (intent.getAction()) {
                 case ACTION_REQUEST_AUTH_CODE:
                     boolean isAlive = isMyServiceRunning(OAuthBackgroundService.class);
                     Log.d(TAG, "SERVICE IS ALIVE : " + isAlive);
                     if (autorizationCode == null) {
-                        requestAuthorizationCode();
+                        if (oAuthFlow.equals(OAUTH_BASIC))
+                            requestAuthorizationCode();
+                        else
+                            generateCodeVerifierAndChallengePKCE();
                     } else {
                         mHandler.post(new DisplayToast(this, "User already logged in YanuX"));
                     }
@@ -146,7 +175,10 @@ public class OAuthBackgroundService extends JobIntentService {
                     mResultReceiver = intent.getParcelableExtra(RECEIVER);
                     isAlive = isMyServiceRunning(OAuthBackgroundService.class);
                     Log.d(TAG, "SERVICE IS ALIVE : " + isAlive);
-                    structureAuthorizationCode(intent, mResultReceiver);
+                    if (oAuthFlow.equals(OAUTH_BASIC))
+                        structureAuthorizationCode(intent, mResultReceiver);
+                    else
+                        structureAuthorizationCodePKCE(intent, mResultReceiver);
                     break;
                 case ACTION_CHECK_AUTH_CODE:
                     mResultReceiver = intent.getParcelableExtra(RECEIVER);
@@ -161,6 +193,44 @@ public class OAuthBackgroundService extends JobIntentService {
         }
     }
 
+    public void generateCodeVerifierAndChallengePKCE() {
+        //VERIFIER GENERATION
+        SecureRandom sr = new SecureRandom();
+        byte[] code = new byte[32];
+        sr.nextBytes(code);
+        code_verifier = Base64.encodeToString(code, Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
+        preferencesEditor.putString(PKCE_CODE_VERIFIER_KEY,code_verifier);
+        preferencesEditor.apply();
+        //CODE CHALLENGE
+        byte[] bytes = new byte[0];
+        try {
+            bytes = code_verifier.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        md.update(bytes, 0, bytes.length);
+        byte[] digest = md.digest();
+        code_challenge = Base64.encodeToString(digest, Base64.URL_SAFE);
+        requestPKCEAuthorizationCode();
+    }
+
+    private void requestPKCEAuthorizationCode() {
+        String final_uri = AUTHORIZE_ADDRESS +
+                "&code_challenge=" + code_challenge +
+                "&code_challenge_method=S256";
+        Intent authenticationCodeRequirementIntent = new Intent("android.intent.action.VIEW", Uri.parse(final_uri));
+        authenticationCodeRequirementIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        authenticationCodeRequirementIntent.putExtra("Authentication Code Requirement", true);
+        startActivity(authenticationCodeRequirementIntent);
+        retries++;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void structureAuthorizationCode(Intent intent, ResultReceiver mResultReceiver) {
         String action = intent.getAction();
@@ -170,6 +240,54 @@ public class OAuthBackgroundService extends JobIntentService {
         preferencesEditor.putString(AUTH_CODE_KEY, autorizationCode);
         preferencesEditor.apply();
         exchangeAuthorizationCode(mResultReceiver);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void structureAuthorizationCodePKCE(Intent intent, ResultReceiver mResultReceiver) {
+        String action = intent.getAction();
+        Uri responseUri = intent.getData();
+        autorizationCode = responseUri.getQueryParameter("code");
+        String error = responseUri.getQueryParameter("error");
+        Log.d(TAG, "CODE: " + autorizationCode);
+        if(autorizationCode == null){
+            String response = null;
+            if(error != null)
+                response = error;
+            else
+                response = "Problem occured during the authentication code retrieval";
+            Bundle bundle = new Bundle();
+            bundle.putString("code_error", "Error in authentication:"+ response);
+            mResultReceiver.send(FAILED_RESULT_CODE, bundle);
+        }
+        else {
+            preferencesEditor.putString(AUTH_CODE_KEY, autorizationCode);
+            preferencesEditor.apply();
+            exchangeAuthorizationCodePKCE(mResultReceiver);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void exchangeAuthorizationCodePKCE(ResultReceiver mResultReceiver) {
+        if (autorizationCode != null) {
+            String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
+            RequestBody requestBody = new FormBody.Builder()
+                    .add("code", autorizationCode)
+                    .add("grant_type", "authorization_code")
+                    .add("redirect_uri", REDIRECT_URI)
+                    .add("code_verifier", code_verifier)
+                    .build();
+            Request request = new Request.Builder()
+                    .url(EXCHANGE_AUTH_ADDRESS)
+                    .header("Authorization", credentials)
+                    .header("content-type", "application/x-www-form-urlencoded")
+                    .post(requestBody)
+                    .build();
+            sendPostHTTPRequest(request);
+        } else {
+            Bundle bundle = new Bundle();
+            bundle.putString("code_error", "Problem retrieving authorization code");
+            mResultReceiver.send(FAILED_RESULT_CODE, bundle);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -264,6 +382,7 @@ public class OAuthBackgroundService extends JobIntentService {
                 preferencesEditor.putString(REFRESH_TOKEN_KEY, refreshToken);
                 preferencesEditor.apply();
                 requestTokenInfo();
+                cleanAuthCode();
             }
             response.body().close();
         } catch (IOException | JSONException e) {
@@ -319,6 +438,13 @@ public class OAuthBackgroundService extends JobIntentService {
                 }
             });
         }
+    }
+
+    private void cleanAuthCode(){
+        preferencesEditor.remove(AUTH_CODE_KEY);
+        preferencesEditor.apply();
+        preferencesEditor.remove(PKCE_CODE_VERIFIER_KEY);
+        preferencesEditor.apply();
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
