@@ -69,7 +69,7 @@
         android:textColor="@android:color/black"
         android:textSize="36sp"
         android:textStyle="bold"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="30dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="parent"
@@ -112,16 +112,16 @@
         app:layout_constraintTop_toBottomOf="@+id/loginSubtitleId"/>
 
     <TextView
-        android:id="@+id/scanInformationId"
+        android:id="@+id/testInformationId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="40dp"
         android:fontFamily="@font/andada"
-        android:text="@string/scan_information_string"
+        android:text="@string/test_information_string"
         android:textColor="@android:color/black"
         android:textSize="36sp"
         android:textStyle="bold"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="30dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="parent"
@@ -129,11 +129,63 @@
         app:layout_constraintVertical_bias="0.0"/>
 
     <TextView
+        android:id="@+id/testInformationSubtitleId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/andada"
+        android:text="@string/access_test_information_string"
+        android:textColor="#A3A3A3"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        android:layout_marginStart="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testInformationId"
+        app:layout_constraintVertical_bias="0.00999999" />
+
+    <Button
+        android:id="@+id/testButtonId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/holo_blue_dark"
+        android:fontFamily="@font/andada"
+        android:padding="10dp"
+        android:text="@string/test_string"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testInformationSubtitleId"/>
+
+    <TextView
+        android:id="@+id/scanInformationId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:fontFamily="@font/andada"
+        android:text="@string/start_scan"
+        android:textColor="@android:color/black"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:layout_marginTop="30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/testButtonId"
+        app:layout_constraintVertical_bias="0.0"/>
+
+    <TextView
         android:id="@+id/scanInformationSubtitleId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/andada"
-        android:text="@string/access_scanning_information_string"
+        android:text="@string/start_positioning_user"
         android:textColor="#A3A3A3"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -146,13 +198,13 @@
         app:layout_constraintVertical_bias="0.00999999" />
 
     <Button
-        android:id="@+id/scanInformationButtonId"
+        android:id="@+id/startScanButtonId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@android:color/holo_blue_dark"
         android:fontFamily="@font/andada"
         android:padding="10dp"
-        android:text="@string/scan_information_string"
+        android:text="@string/scan_string"
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="18sp"
@@ -169,8 +221,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.75"
-        app:layout_constraintStart_toEndOf="@+id/registerMainTextId"
+        app:layout_constraintHorizontal_bias="0.85"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.05">
 
@@ -178,7 +230,7 @@
             android:id="@+id/tracking_buttonId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_notification_overlay"/>
+            app:srcCompat="@android:drawable/ic_notification_overlay" />
 
         <TextView
             android:id="@+id/tracking_statusId"

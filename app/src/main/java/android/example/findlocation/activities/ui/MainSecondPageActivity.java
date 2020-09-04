@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.example.findlocation.App;
 import android.example.findlocation.R;
+import android.example.findlocation.activities.fingerprinting.FingerprintingOfflineActivity;
 import android.example.findlocation.services.OAuthBackgroundService;
 import android.example.findlocation.services.ServiceResultReceiver;
 import android.graphics.Color;
@@ -16,6 +17,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -51,9 +54,10 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
         setContentView(R.layout.activity_main_second_page);
         mServiceResultReceiver = new ServiceResultReceiver(new Handler());
         mServiceResultReceiver.setReceiver(this);
-        startScanningInformation();
+        startTestingPhase();
         startRegistrationPhase();
         startLoginPhase();
+        startScanningPhase();
         OAuthBackgroundService.enqueueWork(MainSecondPageActivity.this, mServiceResultReceiver,ACTION_CHECK_AUTH_CODE,OAUTH_ID,OAUTH_PKCE,null);
         String autorizationCode = applicationPreferences.getString(AUTH_CODE_KEY, null);
         isAuthenticated = autorizationCode != null;
@@ -62,9 +66,15 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
     @Override
     protected void onStart() {
         super.onStart();
-        TextView trackingView = (TextView) findViewById(R.id.tracking_statusId);
-        ImageView trackingImage = (ImageView) findViewById(R.id.tracking_buttonId);
-        checkTrackingStatus(trackingView,trackingImage);
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                TextView trackingView = (TextView) findViewById(R.id.tracking_statusId);
+                ImageView trackingImage = (ImageView) findViewById(R.id.tracking_buttonId);
+                checkTrackingStatus(trackingView,trackingImage);
+            }
+        },2000);
     }
 
     private void checkTrackingStatus(TextView trackingView, ImageView imageView){
@@ -82,9 +92,20 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
     }
 
 
-    public void startScanningInformation() {
-        final Intent scanStartIntent = new Intent(this, MainPageActivity.class);
-        Button scanButton = (Button) findViewById(R.id.scanInformationButtonId);
+    public void startTestingPhase() {
+        final Intent testStartIntent = new Intent(this, MainPageActivity.class);
+        Button testButton = (Button) findViewById(R.id.testButtonId);
+        testButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(testStartIntent);
+            }
+        });
+    }
+
+    public void startScanningPhase() {
+        final Intent scanStartIntent = new Intent(this, ScanningActivity.class);
+        Button scanButton = (Button) findViewById(R.id.startScanButtonId);
         scanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

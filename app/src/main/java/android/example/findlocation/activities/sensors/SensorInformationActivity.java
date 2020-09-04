@@ -361,7 +361,6 @@ public class SensorInformationActivity extends AppCompatActivity implements Sens
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
-            Toast.makeText(SensorInformationActivity.this, "Scan Complete!", Toast.LENGTH_SHORT).show();
             long elapsedTimeNs = System.nanoTime() - startTimeNs;
             Log.d("WIFI", "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
             boolean success = intent.getBooleanExtra(

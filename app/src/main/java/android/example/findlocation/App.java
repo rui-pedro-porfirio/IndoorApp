@@ -23,8 +23,5 @@ public class App extends Application {
                     + allPrefs.get(s).toString());
         }
         boolean result = preferences.edit().clear().commit();*/
-        SharedPreferences.Editor preferencesEditor = preferences.edit();
-        preferencesEditor.putBoolean("TRACKING_STATUS", false);
-        preferencesEditor.apply();
     }
 }

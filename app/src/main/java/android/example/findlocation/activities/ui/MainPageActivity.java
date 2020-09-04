@@ -1,8 +1,12 @@
 package android.example.findlocation.activities.ui;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.example.findlocation.App;
 import android.example.findlocation.R;
@@ -10,24 +14,27 @@ import android.example.findlocation.activities.fingerprinting.FingerprintingScre
 import android.example.findlocation.activities.proximity.ProximityScreenActivity;
 import android.example.findlocation.activities.sensors.SensorInformationActivity;
 import android.example.findlocation.activities.trilateration.TrilaterationScreenActivity;
+import android.example.findlocation.services.ScanBackgroundService;
+import android.example.findlocation.services.ScanBackgroundService.*;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Screen with options "Analysis" and "Find location of device"
  */
 public class MainPageActivity extends AppCompatActivity {
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //TODO: Start Service
-
-        //TODO: Bind to Service
-
-        //TODO: Start retrieving Data every 5 seconds
-
         setContentView(R.layout.activity_second);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         startScanningData();
@@ -35,6 +42,7 @@ public class MainPageActivity extends AppCompatActivity {
         startProximity();
         startTrilateration();
     }
+
 
     public void startScanningData(){
         final Intent scanStartIntent = new Intent(this, SensorInformationActivity.class);
@@ -80,10 +88,4 @@ public class MainPageActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //TODO: Destroy Service
-        // The Service must only be active while we are handling scanning
-    }
 }
