@@ -100,4 +100,5 @@
     <string name="login_user_string">Login User</string>
     <string name="scan_information_string">Scan Information</string>
     <string name="access_scanning_information_string">Access scanning information</string>
+    <string name="tracking_status">Not Tracking</string>
 </resources>

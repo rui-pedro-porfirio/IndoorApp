@@ -11,12 +11,15 @@ import android.example.findlocation.App;
 import android.example.findlocation.R;
 import android.example.findlocation.services.OAuthBackgroundService;
 import android.example.findlocation.services.ServiceResultReceiver;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import okhttp3.OkHttpClient;
@@ -56,6 +59,27 @@ public class MainSecondPageActivity extends AppCompatActivity implements Service
         isAuthenticated = autorizationCode != null;
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        TextView trackingView = (TextView) findViewById(R.id.tracking_statusId);
+        ImageView trackingImage = (ImageView) findViewById(R.id.tracking_buttonId);
+        checkTrackingStatus(trackingView,trackingImage);
+    }
+
+    private void checkTrackingStatus(TextView trackingView, ImageView imageView){
+        boolean status = applicationPreferences.getBoolean("TRACKING_STATUS",false);
+        if(!status){
+            trackingView.setText("Not Tracking");
+            trackingView.setTextColor(Color.parseColor("#E80A0A"));
+            imageView.setImageResource(android.R.drawable.ic_notification_overlay);
+        }
+        else{
+            trackingView.setText("Tracking");
+            trackingView.setTextColor(Color.parseColor("#4CAF50"));
+            imageView.setImageResource(android.R.drawable.presence_online);
+        }
+    }
 
 
     public void startScanningInformation() {

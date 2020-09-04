@@ -3,6 +3,8 @@ package android.example.findlocation.activities.ui;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.example.findlocation.App;
 import android.example.findlocation.R;
 import android.example.findlocation.activities.fingerprinting.FingerprintingScreenActivity;
 import android.example.findlocation.activities.proximity.ProximityScreenActivity;
@@ -20,6 +22,12 @@ public class MainPageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //TODO: Start Service
+
+        //TODO: Bind to Service
+
+        //TODO: Start retrieving Data every 5 seconds
+
         setContentView(R.layout.activity_second);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         startScanningData();
@@ -70,5 +78,12 @@ public class MainPageActivity extends AppCompatActivity {
                 startActivity(mStartTrilaterationIntent);
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //TODO: Destroy Service
+        // The Service must only be active while we are handling scanning
     }
 }
