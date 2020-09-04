@@ -1,5 +1,7 @@
 package android.example.findlocation.services;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -12,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.example.findlocation.App;
 import android.example.findlocation.R;
 import android.example.findlocation.activities.sensors.SensorInformationActivity;
@@ -35,6 +38,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -67,6 +71,7 @@ import okhttp3.Response;
 public class ScanBackgroundService extends Service implements SensorEventListener, BeaconConsumer {
 
     public static final int NOTIFICATION_ID = 5555;
+    private static final String ADDRESS = "http://192.168.1.5:8000/";
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private final static String CHANNEL_ID = "indoorApp.ScanningService";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -93,6 +98,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
 
     private SharedPreferences applicationPreferences;
 
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -102,7 +108,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
         thread.start();
         latestSizeAP = 0;
         latestSizeBLE = 0;
-        delay = 5000;
+        delay = 1000;
 
         // Get the HandlerThread's Looper and use it for our Handler
         serviceLooper = thread.getLooper();
@@ -147,8 +153,8 @@ public class ScanBackgroundService extends Service implements SensorEventListene
                     latestSizeAP = mAccessPoints.size();
                     latestSizeBLE = mBeaconsList.size();
                 }
-                //TODO: SEND TO SERVER COLLECTED DATA
-                sendToServer();
+                //SEND TO SERVER COLLECTED DATA
+                //sendToServer();
                 serviceHandler.postDelayed(this, delay);
             }
         }, delay);
@@ -162,7 +168,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
         ScanningObject scanningObject = new ScanningObject(username,accessToken,mAccessPoints,mBeaconsList,mSensorInformationList);
         Gson gson = new Gson();
         String json = gson.toJson(scanningObject);
-        sendPostHTTPRequest("example",json,"");
+        sendPostHTTPRequest(ADDRESS+"scanning/",json,"");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -253,9 +259,12 @@ public class ScanBackgroundService extends Service implements SensorEventListene
         //BLUETOOTH SENSOR
         mBeaconsList = new ArrayList<>();
         beaconManager = BeaconManager.getInstanceForApplication(this);
+        beaconManager.setEnableScheduledScanJobs(false);
+        beaconManager.setBackgroundMode(false);
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.bind(this);
+        beaconManager.setForegroundScanPeriod(150);
         verifyBluetooth();
 
         //WI-FI SENSOR

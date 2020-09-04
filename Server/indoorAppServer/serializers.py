@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Fingerprint,DeviceSensor,BluetoothSensor,WiFiSensor
+from .models import Fingerprint,DeviceSensor,BluetoothSensor,WiFiSensor,UserTable
 
 
 class FingerprintSerializer(serializers.HyperlinkedModelSerializer):
@@ -24,3 +24,8 @@ class BluetoothSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = BluetoothSensor
         fields = ('id','url','name','rssi','fingerprint')
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = UserTable
+        fields =('id','url','username')

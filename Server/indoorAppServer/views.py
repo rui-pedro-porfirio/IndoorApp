@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from .models import Fingerprint, DeviceSensor, BluetoothSensor, WiFiSensor
+from .models import Fingerprint, DeviceSensor, BluetoothSensor, WiFiSensor,UserTable
 from rest_framework import viewsets
-from .serializers import FingerprintSerializer, DeviceDataSerializer, WifiDataSerializer, BluetoothSerializer
+from .serializers import FingerprintSerializer, DeviceDataSerializer, WifiDataSerializer, BluetoothSerializer, UserSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,6 +14,11 @@ from enum import Enum
 from .snippets import filters, convertJson,fingerprintPositioning, proximityPositioning
 import json
 import math
+
+class UserView(viewsets.ModelViewSet):
+    queryset = UserTable.objects.all()
+    serializer_class = UserSerializer
+
 
 class FingerprintView(viewsets.ModelViewSet):
     queryset = Fingerprint.objects.all()
@@ -43,6 +48,24 @@ class FilterEnum(Enum):
 class TypeEnum(Enum):
     WIFI = 1
     BLUETOOTH = 2
+
+
+class ScanningView(APIView):
+
+    def post(self,request,format=None):
+        serializer_context = {
+            'request': request,
+        }
+        sample_dict = request.data
+        print(sample_dict)
+        print('HERE')
+        #TODO: Compute decision function to choose best technique
+
+        #TODO: Apply ML algorithm
+
+        #TODO: GET POSITION OF USER
+
+        #TODO: SEND PUBLISH TO YANUX
 
 
 def load_access_points_locations():

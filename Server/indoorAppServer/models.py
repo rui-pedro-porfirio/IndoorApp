@@ -2,6 +2,11 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+class UserTable(models.Model):
+    username = models.CharField(max_length=100)
+
+    def __str__(self):
+        return srt(self.id)
 
 class Fingerprint(models.Model):
     coordinate_X = models.FloatField(null=True)
