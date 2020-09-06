@@ -11,9 +11,14 @@ import pandas as pd
 import numpy as np
 from IPython.core.display import display
 from enum import Enum
-from .snippets import filters, convertJson,fingerprintPositioning, proximityPositioning
+from .snippets import filters, convertJson,fingerprintPositioning, proximityPositioning,decision_system
 import json
 import math
+
+# Initialize configuration functions and variables in Django
+fuzzy_dict = decision_system.create_fuzzy_system()
+fuzzy_system = fuzzy_dict['System']
+fuzzy_technique = fuzzy_dict['Technique MF']
 
 class UserView(viewsets.ModelViewSet):
     queryset = UserTable.objects.all()
@@ -58,9 +63,18 @@ class ScanningView(APIView):
         }
         sample_dict = request.data
         print(sample_dict)
-        print('HERE')
-        #TODO: Compute decision function to choose best technique
+        access_token = sample_dict['accessToken']
+        username = sample_dict['username']
+        access_points = sample_dict['mAccessPoints']
+        beacons = sample_dict['mBeaconsList']
+        sensors = sample_dict['mSensorInformationList']
+        #TODO: Find number of Matching access_points
+        matching_aps = fingerprintPositioning.check_radio_maps_wifi(access_points)
+        #TODO: Find number of Matching beacons
 
+        #TODO: Compute decision function to choose best technique
+        decision_system.test_phase(fuzzy_system,fuzzy_technique)
+        print('here')
         #TODO: Apply ML algorithm
 
         #TODO: GET POSITION OF USER

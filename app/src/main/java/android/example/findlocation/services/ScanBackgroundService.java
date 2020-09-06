@@ -71,7 +71,7 @@ import okhttp3.Response;
 public class ScanBackgroundService extends Service implements SensorEventListener, BeaconConsumer {
 
     public static final int NOTIFICATION_ID = 5555;
-    private static final String ADDRESS = "http://192.168.1.5:8000/";
+    private static final String ADDRESS = "http://192.168.1.2:8000/";
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private final static String CHANNEL_ID = "indoorApp.ScanningService";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -154,7 +154,8 @@ public class ScanBackgroundService extends Service implements SensorEventListene
                     latestSizeBLE = mBeaconsList.size();
                 }
                 //SEND TO SERVER COLLECTED DATA
-                //sendToServer();
+                if(mAccessPoints.size() != 0 || mBeaconsList.size() != 0)
+                    sendToServer();
                 serviceHandler.postDelayed(this, delay);
             }
         }, delay);
@@ -265,7 +266,6 @@ public class ScanBackgroundService extends Service implements SensorEventListene
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.bind(this);
         beaconManager.setForegroundScanPeriod(150);
-        verifyBluetooth();
 
         //WI-FI SENSOR
         mAccessPoints = new ArrayList<>();
@@ -333,42 +333,6 @@ public class ScanBackgroundService extends Service implements SensorEventListene
             beaconManager.startRangingBeaconsInRegion(new Region("uniqueIdRegion", null, null, null));
         } catch (
                 RemoteException e) {
-        }
-    }
-
-    private void verifyBluetooth() {
-
-        try {
-            if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Bluetooth not enabled");
-                builder.setMessage("Please enable bluetooth in settings and restart this application.");
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        //finish();
-                        //System.exit(0);
-                    }
-                });
-                builder.show();
-            }
-        } catch (RuntimeException e) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Bluetooth LE not available");
-            builder.setMessage("Sorry, this device does not support Bluetooth LE.");
-            builder.setPositiveButton(android.R.string.ok, null);
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    //finish();
-                    //System.exit(0);
-                }
-
-            });
-            builder.show();
-
         }
     }
 

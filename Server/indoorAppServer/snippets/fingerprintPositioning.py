@@ -2,7 +2,15 @@ import numpy as np
 import pandas as pd
 from IPython.core.display import display
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
-from .algorithms import *
+from .algorithms import compute_KMeans,compute_KNN_with_Classification,compute_KNN_with_Regression,compute_MLP_with_Classification,compute_MLP_with_Regression,compute_SVM_with_Classification,compute_LinearRegression,compute_RF_Classification,compute_SVM_with_Regression
+import glob
+
+radio_maps = glob.glob('D:/College/5th Year College/TESE\Desenvolvimento/Code\Application/findLocationApp/findLocation/Server/Notebooks/FINGERPRINT/radiomap*.csv')
+
+
+def check_radio_maps_wifi(access_points):
+    #TODO: CHECK MATCHING RADIOMAPS
+    return -1
 
 
 def checkScaler(preprocessingString):

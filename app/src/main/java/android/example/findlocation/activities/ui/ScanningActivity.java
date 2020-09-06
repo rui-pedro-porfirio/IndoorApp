@@ -26,6 +26,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.altbeacon.beacon.BeaconManager;
+
 public class ScanningActivity extends AppCompatActivity {
 
     private ScanBackgroundService mService;
@@ -62,7 +64,44 @@ public class ScanningActivity extends AppCompatActivity {
         TextView trackingView = (TextView) findViewById(R.id.tracking_statusIdP2);
         ImageView trackingImage = (ImageView) findViewById(R.id.tracking_buttonIdP2);
         checkTrackingStatus(trackingView,trackingImage);
+        verifyBluetooth();
         requestPermissions();
+    }
+
+    private void verifyBluetooth() {
+
+        try {
+            if (!BeaconManager.getInstanceForApplication(this).checkAvailability()) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Bluetooth not enabled");
+                builder.setMessage("Please enable bluetooth in settings and restart this application.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        //finish();
+                        //System.exit(0);
+                    }
+                });
+                builder.show();
+            }
+        } catch (RuntimeException e) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Bluetooth LE not available");
+            builder.setMessage("Sorry, this device does not support Bluetooth LE.");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    //finish();
+                    //System.exit(0);
+                }
+
+            });
+            builder.show();
+
+        }
     }
 
     public void requestPermissions(){
