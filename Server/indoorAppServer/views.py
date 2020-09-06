@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from IPython.core.display import display
 from enum import Enum
-from .snippets import filters, convertJson,fingerprintPositioning, proximityPositioning,decision_system
+from .snippets import radiomap,filters, convertJson,fingerprintPositioning, proximityPositioning,decision_system
 import json
 import math
 
@@ -68,17 +68,34 @@ class ScanningView(APIView):
         access_points = sample_dict['mAccessPoints']
         beacons = sample_dict['mBeaconsList']
         sensors = sample_dict['mSensorInformationList']
+        position = None
         #TODO: Find number of Matching access_points
-        matching_aps = fingerprintPositioning.check_radio_maps_wifi(access_points)
+        access_points_scanned = list()
+        for ap_object in access_points:
+            access_points_scanned.append(ap_object['name'])
+        matching_aps = radiomap.get_matching_access_points(access_points_scanned)
         #TODO: Find number of Matching beacons
-
+        beacons_scanned = list()
+        for beacon_object in beacons:
+            beacons_scanned.append(beacon_object['name'])
+        number_beacons = len(beacons_scanned)
+        matching_beacons = radiomap.get_matching_beacons(beacons_scanned)
         #TODO: Compute decision function to choose best technique
-        decision_system.test_phase(fuzzy_system,fuzzy_technique)
-        print('here')
+        position_technique = decision_system.compute_fuzzy_decision(fuzzy_system,fuzzy_technique
+                                                ,number_beacons,matching_aps,matching_beacons)
+        print('DECISION MADE. TECHNIQUE IS ' + position_technique)
         #TODO: Apply ML algorithm
-
+        if position_technique == 'Fingerprinting':
+            #TODO: Apply ML to Fingerprinting
+            print('Fingerprinting')
+        elif position_technique == 'Trilateration':
+            # TODO: Apply ML to Trilateration
+            print('Trilateration')
+        elif position_technique == 'Proximity':
+            # TODO: Apply ML to Proximity
+            print('Proximity')
         #TODO: GET POSITION OF USER
-
+        position = 0.5
         #TODO: SEND PUBLISH TO YANUX
 
 
