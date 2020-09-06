@@ -108,7 +108,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
         thread.start();
         latestSizeAP = 0;
         latestSizeBLE = 0;
-        delay = 1000;
+        delay = 5000;
 
         // Get the HandlerThread's Looper and use it for our Handler
         serviceLooper = thread.getLooper();

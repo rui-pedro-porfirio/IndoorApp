@@ -69,22 +69,35 @@ class ScanningView(APIView):
         beacons = sample_dict['mBeaconsList']
         sensors = sample_dict['mSensorInformationList']
         position = None
-        #TODO: Find number of Matching access_points
+        # Find number of Matching access_points
         access_points_scanned = list()
         for ap_object in access_points:
             access_points_scanned.append(ap_object['name'])
         matching_aps = radiomap.get_matching_access_points(access_points_scanned)
-        #TODO: Find number of Matching beacons
+        input_aps = -1
+        empty_dict_aps = not bool(matching_aps)
+        if empty_dict_aps == True:
+            input_aps = 0
+        else:
+            input_aps = matching_aps['length']
+        print('Number of Matching access_points')
+        #Find number of Matching beacons
         beacons_scanned = list()
         for beacon_object in beacons:
             beacons_scanned.append(beacon_object['name'])
         number_beacons = len(beacons_scanned)
         matching_beacons = radiomap.get_matching_beacons(beacons_scanned)
-        #TODO: Compute decision function to choose best technique
+        input_beacons = -1
+        empty_dict_beacons = not bool(matching_beacons)
+        if empty_dict_beacons == True:
+            input_beacons = 0
+        else:
+            input_beacons = matching_beacons['length']
+        #Compute decision function to choose best technique
         position_technique = decision_system.compute_fuzzy_decision(fuzzy_system,fuzzy_technique
-                                                ,number_beacons,matching_aps,matching_beacons)
+                                                ,number_beacons,input_aps,input_beacons)
         print('DECISION MADE. TECHNIQUE IS ' + position_technique)
-        #TODO: Apply ML algorithm
+        #Apply ML algorithm
         if position_technique == 'Fingerprinting':
             #TODO: Apply ML to Fingerprinting
             print('Fingerprinting')
