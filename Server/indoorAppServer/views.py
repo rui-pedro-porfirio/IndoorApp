@@ -68,48 +68,48 @@ class ScanningView(APIView):
         access_points = sample_dict['mAccessPoints']
         beacons = sample_dict['mBeaconsList']
         sensors = sample_dict['mSensorInformationList']
-        position = None
+        positionRegression = None
+        positionClassification = None
+        isClassifier = False
         # Find number of Matching access_points
         access_points_scanned = list()
         for ap_object in access_points:
             access_points_scanned.append(ap_object['name'])
-        matching_aps = radiomap.get_matching_access_points(access_points_scanned)
-        input_aps = -1
-        empty_dict_aps = not bool(matching_aps)
-        if empty_dict_aps == True:
-            input_aps = 0
-        else:
-            input_aps = matching_aps['length']
-        print('Number of Matching access_points')
-        #Find number of Matching beacons
-        beacons_scanned = list()
+            beacons_scanned = list()
         for beacon_object in beacons:
             beacons_scanned.append(beacon_object['name'])
         number_beacons = len(beacons_scanned)
-        matching_beacons = radiomap.get_matching_beacons(beacons_scanned)
-        input_beacons = -1
-        empty_dict_beacons = not bool(matching_beacons)
-        if empty_dict_beacons == True:
-            input_beacons = 0
+        matching_data = radiomap.compute_matching_data(access_points_scanned,beacons_scanned)
+        empty_dict = not bool(matching_data)
+        if matching_data == None or empty_dict == True:
+            raise Exception('Impossible to get data. No data returned from BLE and Wifi')
         else:
-            input_beacons = matching_beacons['length']
-        #Compute decision function to choose best technique
-        position_technique = decision_system.compute_fuzzy_decision(fuzzy_system,fuzzy_technique
-                                                ,number_beacons,input_aps,input_beacons)
-        print('DECISION MADE. TECHNIQUE IS ' + position_technique)
-        #Apply ML algorithm
-        if position_technique == 'Fingerprinting':
-            #TODO: Apply ML to Fingerprinting
-            print('Fingerprinting')
-        elif position_technique == 'Trilateration':
-            # TODO: Apply ML to Trilateration
-            print('Trilateration')
-        elif position_technique == 'Proximity':
-            # TODO: Apply ML to Proximity
-            print('Proximity')
-        #TODO: GET POSITION OF USER
-        position = 0.5
-        #TODO: SEND PUBLISH TO YANUX
+            isClassifier = matching_data['isClassifier']
+            input_aps = matching_data['length_wifi']
+            print('Number of Matching access_points: ' + str(input_aps))
+            input_beacons = matching_data['length_ble']
+            print('Number of Matching beacons: ' + str(input_beacons))
+            #Compute decision function to choose best technique
+            position_technique = decision_system.compute_fuzzy_decision(fuzzy_system,fuzzy_technique
+                                                    ,number_beacons,input_aps,input_beacons)
+            print('DECISION MADE. TECHNIQUE IS ' + position_technique)
+            #Apply ML algorithm
+            if position_technique == 'Fingerprinting':
+                print('Fingerprinting chosen. Applying Random Forest Algorithm')
+                #TODO: Apply RF to Regression
+                positionRegression = fingerprintPositioning.apply_rf_regressor_scanning(matching_data['dataset'],access_points,beacons)
+                #TODO: Apply RF to Classification
+                if isClassifier:
+                    positionClassification = fingerprintPositioning.apply_rf_classification_scanning(matching_data['dataset'],access_points,beacons)
+            elif position_technique == 'Trilateration':
+                # TODO: Apply ML to Trilateration
+                print('Trilateration')
+            elif position_technique == 'Proximity':
+                # TODO: Apply ML to Proximity
+                print('Proximity')
+            #TODO: GET POSITION OF USER
+            position = 0.5
+            #TODO: SEND PUBLISH TO YANUX
 
 
 def load_access_points_locations():

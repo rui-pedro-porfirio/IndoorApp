@@ -1,4 +1,5 @@
 import numpy as np
+import sklearn
 import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
@@ -11,7 +12,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier,RandomForestRegressor
 
 
 def compute_KNN_with_Classification(trainX_data=None, trainY_data=None, testX_data=None, scaler=None, n_neighbors=4,
@@ -197,6 +198,50 @@ def compute_RF_Classification(trainX_data=None, trainY_data=None, testX_data=Non
                               max_depth_parameter = None,min_samples_split_parameter = 2,
                               min_samples_leaf_parameter = 1,max_features_parameter = 'auto',
                               bootstrap_parameter = True, random_state_parameter = 6):
+    random_forest_estimator = RandomForestClassifier(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
+                                                     max_features=max_features_parameter, max_depth=max_depth_parameter,
+                                                     min_samples_leaf=min_samples_leaf_parameter,
+                                                     min_samples_split=min_samples_split_parameter,
+                                                     bootstrap=bootstrap_parameter, random_state=random_state_parameter)
+    if scaler is not None:
+        # Make pipeline using scaler transformation
+        main_estimator = make_pipeline(scaler, random_forest_estimator)
+    else:
+        main_estimator = random_forest_estimator
+    # Fit the training data
+    main_estimator.fit(trainX_data, trainY_data)
+    # Predict the results of the testing data features
+    predict_test = main_estimator.predict(testX_data)
+
+    return predict_test
+
+def compute_RF_Regression_Scanning(trainX_data=None, trainY_data=None, testX_data=None,
+                              scaler=StandardScaler(),n_estimators_parameter = 2000, criterion_parameter = 'mse',
+                              max_depth_parameter = None,min_samples_split_parameter = 2,
+                              min_samples_leaf_parameter = 1,max_features_parameter = 'auto',
+                              bootstrap_parameter = True, random_state_parameter = 42):
+    random_forest_estimator = RandomForestRegressor(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
+                                                     max_features=max_features_parameter, max_depth=max_depth_parameter,
+                                                     min_samples_leaf=min_samples_leaf_parameter,
+                                                     min_samples_split=min_samples_split_parameter,
+                                                     bootstrap=bootstrap_parameter, random_state=random_state_parameter)
+    if scaler is not None:
+        # Make pipeline using scaler transformation
+        main_estimator = make_pipeline(scaler, random_forest_estimator)
+    else:
+        main_estimator = random_forest_estimator
+    # Fit the training data
+    main_estimator.fit(trainX_data, trainY_data)
+    # Predict the results of the testing data features
+    predict_test = main_estimator.predict(testX_data)
+
+    return predict_test
+
+def compute_RF_Classification_Scanning(trainX_data=None, trainY_data=None, testX_data=None,
+                              scaler=StandardScaler(),n_estimators_parameter = 100, criterion_parameter = 'gini',
+                              max_depth_parameter = 110.0,min_samples_split_parameter = 2,
+                              min_samples_leaf_parameter = 1,max_features_parameter = 'auto',
+                              bootstrap_parameter = True, random_state_parameter = 42):
     random_forest_estimator = RandomForestClassifier(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
                                                      max_features=max_features_parameter, max_depth=max_depth_parameter,
                                                      min_samples_leaf=min_samples_leaf_parameter,

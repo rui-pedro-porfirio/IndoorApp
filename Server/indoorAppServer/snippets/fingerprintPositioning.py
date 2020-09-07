@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 from IPython.core.display import display
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
-from .algorithms import compute_KMeans,compute_KNN_with_Classification,compute_KNN_with_Regression,compute_MLP_with_Classification,compute_MLP_with_Regression,compute_SVM_with_Classification,compute_LinearRegression,compute_RF_Classification,compute_SVM_with_Regression
+from sklearn.preprocessing import OneHotEncoder,LabelEncoder
+from .algorithms import *
+
+label_encoder = LabelEncoder()
+
 
 def checkScaler(preprocessingString):
     if preprocessingString == 'MaxAbsScaler':
@@ -13,6 +17,14 @@ def checkScaler(preprocessingString):
         return MinMaxScaler()
     else:
         return None
+
+
+def compute_encoder(categorical_data,flag):
+    if flag == 0:
+        labels = label_encoder.fit_transform(categorical_data)
+    else:
+        labels = label_encoder.transform(categorical_data)
+    return labels
 
 
 def find_beacon_index(dataset):
@@ -345,4 +357,77 @@ def apply_kmeans_knn_classifier(types, access_points, beacons, deviceData):
     result = compute_KMeans(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,labels=labels['label'],
                             scaler=preprocessing, n_clusters=k_parameter, init_parameter=init_param,
                             algorithms=algorithm, precompute_distances=distance)
+    return result
+
+def apply_rf_regressor_scanning(dataset_string, access_points, beacons):
+    dataset = pd.read_csv(dataset_string)
+    columns = list(dataset.columns)
+    first_beacon_index = -1
+    X_train = None
+    train_Y = None
+    for ap in dataset.iloc[:, 3:]:
+        if ap.islower() == False:
+            first_beacon_index = list(dataset).index(ap)
+            break
+    X_train = dataset.iloc[:,3:]
+    train_Y = dataset.iloc[:,1:3]
+    sample_list = list()
+    for column in X_train:
+        if column in access_points:
+            sample_list.append(access_points[column])
+        else:
+            sample_list.append(0)
+        if column in beacons:
+            sample_list.append(beacons[column])
+    sample_2dlist = list()
+    sample_2dlist.append(sample_list)
+    X_test_list = np.array(sample_2dlist)
+    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
+    X_test.replace(0, np.nan)
+    numpy_arr_wifi = X_test.iloc[:, 3:first_beacon_index].to_numpy()
+    numpy_arr_ble = dataset.iloc[:, first_beacon_index:].to_numpy()
+    nan_filler_wifi = np.nanmin(numpy_arr_wifi) * 1.010
+    nan_filler_ble = np.nanmin(numpy_arr_ble) * 1.010
+    X_test.iloc[:, first_beacon_index:] = X_test.iloc[:, first_beacon_index:].fillna(nan_filler_ble)
+    X_test.iloc[:, 3:first_beacon_index] = X_test.iloc[:, 3:first_beacon_index].fillna(nan_filler_wifi)
+    result = compute_RF_Regression_Scanning(trainX_data=X_train, trainY_data=train_Y, testX_data=X_test)
+    return result
+
+def apply_rf_classification_scanning(dataset_string, access_points, beacons):
+    dataset = pd.read_csv(dataset_string)
+    columns = list(dataset.columns)
+    first_beacon_index = -1
+    X_train = None
+    train_Y = None
+    zone_index = dataset.columns.get_loc('zone')
+    print('zone: ' + str(zone_index))
+    for ap in dataset.iloc[:, zone_index + 1:]:
+        if ap.islower() == False:
+            first_beacon_index = list(dataset).index(ap)
+            break
+    X_train = dataset.iloc[:,zone_index:]
+    categorical_zone = dataset[['zone']]
+    zone_changed = compute_encoder(categorical_zone, 0)
+    dataset['labels'] = zone_changed
+    train_Y = dataset['labels'].values.reshape(-1, 1)
+    sample_list = list()
+    for column in X_train:
+        if column in access_points:
+            sample_list.append(access_points[column])
+        else:
+            sample_list.append(0)
+        if column in beacons:
+            sample_list.append(beacons[column])
+    sample_2dlist = list()
+    sample_2dlist.append(sample_list)
+    X_test_list = np.array(sample_2dlist)
+    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
+    X_test.replace(0, np.nan)
+    numpy_arr_wifi = X_test.iloc[:, zone_index+1:first_beacon_index].to_numpy()
+    numpy_arr_ble = dataset.iloc[:, first_beacon_index:].to_numpy()
+    nan_filler_wifi = np.nanmin(numpy_arr_wifi) * 1.010
+    nan_filler_ble = np.nanmin(numpy_arr_ble) * 1.010
+    X_test.iloc[:, first_beacon_index:] = X_test.iloc[:, first_beacon_index:].fillna(nan_filler_ble)
+    X_test.iloc[:, zone_index+1:first_beacon_index] = X_test.iloc[:, zone_index+1:first_beacon_index].fillna(nan_filler_wifi)
+    result = compute_RF_Classification_Scanning(trainX_data=X_train, trainY_data=train_Y, testX_data=X_test)
     return result

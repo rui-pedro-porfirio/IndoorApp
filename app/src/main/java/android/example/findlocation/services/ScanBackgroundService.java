@@ -108,7 +108,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
         thread.start();
         latestSizeAP = 0;
         latestSizeBLE = 0;
-        delay = 5000;
+        delay = 10000;
 
         // Get the HandlerThread's Looper and use it for our Handler
         serviceLooper = thread.getLooper();
@@ -156,7 +156,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
                 //SEND TO SERVER COLLECTED DATA
                 if(mAccessPoints.size() != 0 || mBeaconsList.size() != 0)
                     sendToServer();
-                serviceHandler.postDelayed(this, delay);
+                //serviceHandler.postDelayed(this, delay);
             }
         }, delay);
         return START_NOT_STICKY;
