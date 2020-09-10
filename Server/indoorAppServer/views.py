@@ -71,13 +71,17 @@ class ScanningView(APIView):
         positionRegression = None
         positionClassification = None
         isClassifier = False
+        access_points_ml = {}
+        beacons_ml = {}
         # Find number of Matching access_points
         access_points_scanned = list()
         for ap_object in access_points:
             access_points_scanned.append(ap_object['name'])
-            beacons_scanned = list()
+            access_points_ml[ap_object['name']] = ap_object['singleValue']
+        beacons_scanned = list()
         for beacon_object in beacons:
             beacons_scanned.append(beacon_object['name'])
+            beacons_ml[beacon_object['name']] = beacon_object['singleValue']
         number_beacons = len(beacons_scanned)
         matching_data = radiomap.compute_matching_data(access_points_scanned,beacons_scanned)
         empty_dict = not bool(matching_data)
@@ -96,17 +100,19 @@ class ScanningView(APIView):
             #Apply ML algorithm
             if position_technique == 'Fingerprinting':
                 print('Fingerprinting chosen. Applying Random Forest Algorithm')
-                #TODO: Apply RF to Regression
-                positionRegression = fingerprintPositioning.apply_rf_regressor_scanning(matching_data['dataset'],access_points,beacons)
-                #TODO: Apply RF to Classification
+                #Apply RF to Regression
+                positionRegression = fingerprintPositioning.apply_rf_regressor_scanning(matching_data['dataset'],access_points_ml,beacons_ml)
+                #Apply RF to Classification
                 if isClassifier:
-                    positionClassification = fingerprintPositioning.apply_rf_classification_scanning(matching_data['dataset'],access_points,beacons)
+                    positionClassification = fingerprintPositioning.apply_rf_classification_scanning(matching_data['dataset'],access_points_ml,beacons_ml)
+                print('ML Algorithm done running.')
             elif position_technique == 'Trilateration':
                 # TODO: Apply ML to Trilateration
                 print('Trilateration')
             elif position_technique == 'Proximity':
                 # TODO: Apply ML to Proximity
-                print('Proximity')
+                print('Proximity chosen. Applying KNN Algorithm')
+                #TODO: Apply KNN to Regression
             #TODO: GET POSITION OF USER
             position = 0.5
             #TODO: SEND PUBLISH TO YANUX
@@ -123,6 +129,7 @@ def load_access_points_locations():
             print('Y: ', v['y'])
             print('')
         return access_points
+
 
 def compute_csv(request):
     csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']

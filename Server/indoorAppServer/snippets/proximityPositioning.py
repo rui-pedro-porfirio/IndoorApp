@@ -48,8 +48,7 @@ def data_cleaning(dataset,flag):
     print("After One Hot Encoder")
     dataset['labels'] = zone_changed
 
-def prepare_dataset(test_datadf):
-    global dataset
+def prepare_dataset(dataset,test_datadf):
     global train_Y
     global test_Y
     positions = dataset['coordinate_Y']

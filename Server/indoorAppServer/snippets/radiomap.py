@@ -63,7 +63,7 @@ def compute_matching_data(scannedAps,scannedBeacons):
         for k, v in sorted(size_dataset.items(), key=lambda item: item[1], reverse=True):
             if k in similar_radio_maps:
                 result['isClassifier'] = classification_holder[k]
-                result['dataset'] = matching_radio_maps_wifi[k].extend(matching_radio_maps_ble)
+                result['dataset'] = k
                 result[k] = matching_radio_maps_wifi[k].extend(matching_radio_maps_ble)
                 n = ap_columns_dataset[k]
                 result['length_wifi'] = math.floor((len(matching_radio_maps_wifi[k]) / n) * 100)
@@ -74,7 +74,7 @@ def compute_matching_data(scannedAps,scannedBeacons):
             for k, v in sorted(size_dataset.items(), key=lambda item: item[1], reverse=True):
                 if k in matching_radio_maps_wifi:
                     result['isClassifier'] = classification_holder[k]
-                    result['dataset'] = matching_radio_maps_wifi[k]
+                    result['dataset'] = k
                     result[k] = matching_radio_maps_wifi[k]
                     n = ap_columns_dataset[k]
                     result['length_wifi'] = math.floor((len(matching_radio_maps_wifi[k]) / n) * 100)
@@ -84,7 +84,7 @@ def compute_matching_data(scannedAps,scannedBeacons):
             for k, v in sorted(size_dataset.items(), key=lambda item: item[1], reverse=True):
                 if k in matching_radio_maps_ble:
                     result['isClassifier'] = classification_holder[k]
-                    result['dataset'] = matching_radio_maps_ble[k]
+                    result['dataset'] = k
                     result[k] = matching_radio_maps_ble[k]
                     result['length_wifi'] =0
                     result['length_ble'] = 3

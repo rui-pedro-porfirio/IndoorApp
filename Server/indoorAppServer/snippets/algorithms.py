@@ -258,3 +258,35 @@ def compute_RF_Classification_Scanning(trainX_data=None, trainY_data=None, testX
     predict_test = main_estimator.predict(testX_data)
 
     return predict_test
+
+
+def compute_KNN_Classification_Scanning(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(), n_neighbors=3,
+                                    weights='distance', algorithm='auto', metric='canberra',n_jobs=-1):
+    # Init the KNN Regressor Estimator
+    knn_classifier_estimator = KNeighborsClassifier(n_neighbors, weights, algorithm, metric,n_jobs)
+    if scaler is not None:
+        # Make pipeline using scaler transformation
+        main_estimator = make_pipeline(scaler, knn_classifier_estimator)
+    else:
+        main_estimator = knn_classifier_estimator
+    # Fit the training data
+    main_estimator.fit(trainX_data, trainY_data)
+    # Predict the results of the testing data features
+    predict_test = main_estimator.predict(testX_data)
+    return predict_test
+
+
+def compute_KNN_Regression_Scanning(trainX_data=None, trainY_data=None, testX_data=None, scaler=None, n_neighbors=10,
+                                weights='distance', algorithm='auto', metric='canberra',n_jobs=-1):
+    # Init the KNN Regressor Estimator
+    knn_regression_estimator = KNeighborsRegressor(n_neighbors, weights, algorithm, metric,n_jobs)
+    if scaler is not None:
+        # Make pipeline using scaler transformation
+        main_estimator = make_pipeline(scaler, knn_regression_estimator)
+    else:
+        main_estimator = knn_regression_estimator
+    # Fit the training data
+    main_estimator.fit(trainX_data, trainY_data)
+    # Predict the results of the testing data features
+    predict_test = main_estimator.predict(testX_data)
+    return predict_test
