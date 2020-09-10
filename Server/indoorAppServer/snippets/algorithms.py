@@ -15,12 +15,10 @@ from keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
 from sklearn.ensemble import RandomForestClassifier,RandomForestRegressor
 
 
-def compute_KNN_with_Classification(trainX_data=None, trainY_data=None, testX_data=None, scaler=None, n_neighbors=4,
-                                    weights='uniform', algorithm='auto', leaf_size=30, p=2, metric='minkowski',
-                                    metric_params=None, n_jobs=-1):
+def compute_KNN_with_Classification(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(), n_neighbors=12,
+                                    weights='uniform', algorithm='auto',metric='canberra', n_jobs=-1):
     # Init the KNN Regressor Estimator
-    knn_classifier_estimator = KNeighborsClassifier(n_neighbors, weights, algorithm, leaf_size, p, metric,
-                                                    metric_params, n_jobs)
+    knn_classifier_estimator = KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm,metric=metric,n_jobs= n_jobs)
     if scaler is not None:
         # Make pipeline using scaler transformation
         main_estimator = make_pipeline(scaler, knn_classifier_estimator)
@@ -68,12 +66,10 @@ def compute_SVM_with_Regression(trainX_data=None, trainY_data=None, testX_data=N
     return predict_test
 
 
-def compute_KNN_with_Regression(trainX_data=None, trainY_data=None, testX_data=None, scaler=None, n_neighbors=5,
-                                weights='uniform', algorithm='auto', leaf_size=30, p=2, metric='minkowski',
-                                metric_params=None, n_jobs=-1):
+def compute_KNN_with_Regression(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(), n_neighbors=30,
+                                weights='uniform', algorithm='auto', metric='braycurtis', n_jobs=-1):
     # Init the KNN Regressor Estimator
-    knn_regression_estimator = KNeighborsRegressor(n_neighbors, weights, algorithm, leaf_size, p, metric, metric_params,
-                                                   n_jobs)
+    knn_regression_estimator = KNeighborsRegressor(n_neighbors=n_neighbors,weights=weights,algorithm=algorithm, metric=metric,n_jobs=n_jobs)
     if scaler is not None:
         # Make pipeline using scaler transformation
         main_estimator = make_pipeline(scaler, knn_regression_estimator)

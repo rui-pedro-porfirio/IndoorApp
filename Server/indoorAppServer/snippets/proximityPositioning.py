@@ -2,11 +2,12 @@ import numpy as np
 import pandas as pd
 from IPython.core.display import display
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
+from sklearn.preprocessing import OneHotEncoder,LabelEncoder
 from .algorithms import *
 from . import auxiliarFunctions as aux
 
 dataset = pd.read_csv('Notebooks/PROXIMITY/dataset_train_university.csv')
-
+label_encoder = LabelEncoder()
 train_X_rssi = None
 train_X_rolling_mean = None
 combination_features_X = None
@@ -14,6 +15,13 @@ train_Y = None
 test_X_rssi = None
 test_X_rolling_mean = None
 test_combination_features_X = None
+
+def compute_encoder(categorical_data,flag):
+    if flag == 0:
+        labels = label_encoder.fit_transform(categorical_data)
+    else:
+        labels = label_encoder.transform(categorical_data)
+    return labels
 
 def initialize_testing_data(test_dataframe):
     global test_X_rssi
@@ -185,3 +193,82 @@ def apply_randomForest_classifier(test_data_df):
         prediction = aux.decode(result)
         print("PREDICTION: ", prediction[0])
     return prediction
+
+
+def replace_features_nan(dataset):
+    dataset['rssi_Value'] = dataset['rssi_Value'].replace(0, np.nan)
+    dataset['rolling_mean_rssi'] = dataset['rolling_mean_rssi'].replace(0, np.nan)
+    return dataset
+
+
+def compute_data_cleaning(dataset,feature):
+    nan_filler = dataset[feature].min()*1.010
+    dataset[feature] = dataset[feature].fillna(nan_filler) # Fill missing values
+
+
+def apply_knn_classification_scanning(train_dataset,test_dataset):
+    # Initialize Dataset
+    dataset = pd.read_csv(train_dataset)
+    positions = dataset['coordinate_Y']
+    dataset['distance'] = positions
+    zone_index = dataset.columns.get_loc('zone')
+    # Replace 0 values with nan
+    dataset = replace_features_nan(dataset)
+    display(dataset)
+    display(dataset.shape)
+    # Init variables
+    combination_features_X = None
+    train_Y = None
+    # Clean missing values
+    compute_data_cleaning(dataset, 'rssi_Value')
+    compute_data_cleaning(dataset, 'rolling_mean_rssi')
+    #Assign training values
+    combination_features_X = dataset[['rssi_Value', 'rolling_mean_rssi']]
+    display(combination_features_X.shape)
+    categorical_zone = dataset[['zone']]
+    zone_changed = compute_encoder(categorical_zone, 0)
+    dataset['labels'] = zone_changed
+    train_Y = dataset['labels'].values.reshape(-1, 1)
+    #Init testing dataset
+    test_combination_features_X = test_dataset[['rssi_Value', 'rolling_mean_rssi']]
+    display(test_combination_features_X.shape)
+    display('DATAFRAMES----------------------------------------------------CLASSIFICATION')
+    display(train_Y)
+    display(combination_features_X)
+    display('DATAFRAMES-TEST---------------------------------------------------CLASSIFICATION')
+    display(test_combination_features_X)
+    # Compute Algorithm
+    result = compute_KNN_with_Classification(trainX_data=combination_features_X, trainY_data=train_Y.ravel(), testX_data=test_combination_features_X)
+    return label_encoder.inverse_transform(result)
+
+
+def apply_knn_regression_scanning(train_dataset,test_dataset):
+    # Initialize Dataset
+    dataset = pd.read_csv(train_dataset)
+    positions = dataset['coordinate_Y']
+    dataset['distance'] = positions
+    # Replace 0 values with nan
+    dataset = replace_features_nan(dataset)
+    display(dataset)
+    display(dataset.shape)
+    # Init variables
+    combination_features_X = None
+    train_Y = None
+    # Clean missing values
+    compute_data_cleaning(dataset, 'rssi_Value')
+    compute_data_cleaning(dataset, 'rolling_mean_rssi')
+    #Assign training values
+    combination_features_X = dataset[['rssi_Value', 'rolling_mean_rssi']]
+    display(combination_features_X.shape)
+    train_Y = pd.DataFrame(dataset['distance'])
+    #Init testing dataset
+    test_combination_features_X = test_dataset[['rssi_Value', 'rolling_mean_rssi']]
+    display(test_combination_features_X.shape)
+    display('DATAFRAMES----------------------------------------------------CLASSIFICATION')
+    display(train_Y)
+    display(combination_features_X)
+    display('DATAFRAMES-TEST---------------------------------------------------CLASSIFICATION')
+    display(test_combination_features_X)
+    # Compute Algorithm
+    result = compute_KNN_with_Regression(trainX_data=combination_features_X, trainY_data=train_Y, testX_data=test_combination_features_X)
+    return result

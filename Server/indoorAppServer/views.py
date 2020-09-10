@@ -81,7 +81,10 @@ class ScanningView(APIView):
         beacons_scanned = list()
         for beacon_object in beacons:
             beacons_scanned.append(beacon_object['name'])
-            beacons_ml[beacon_object['name']] = beacon_object['singleValue']
+            single_list = beacon_object['singleValue']
+            rolling_list = beacon_object['values']
+            extending_tp = (single_list,rolling_list)
+            beacons_ml[beacon_object['name']] = extending_tp
         number_beacons = len(beacons_scanned)
         matching_data = radiomap.compute_matching_data(access_points_scanned,beacons_scanned)
         empty_dict = not bool(matching_data)
@@ -96,6 +99,7 @@ class ScanningView(APIView):
             #Compute decision function to choose best technique
             position_technique = decision_system.compute_fuzzy_decision(fuzzy_system,fuzzy_technique
                                                     ,number_beacons,input_aps,input_beacons)
+            position_technique = 'Proximity'
             print('DECISION MADE. TECHNIQUE IS ' + position_technique)
             #Apply ML algorithm
             if position_technique == 'Fingerprinting':
@@ -110,9 +114,22 @@ class ScanningView(APIView):
                 # TODO: Apply ML to Trilateration
                 print('Trilateration')
             elif position_technique == 'Proximity':
-                # TODO: Apply ML to Proximity
+                isClassifier = True
+                matching_data['dataset'] = 'D:/College/5th Year College/TESE/Desenvolvimento/Code/Application/findLocationApp/findLocation/Server/Notebooks/PROXIMITY/dataset_train_university.csv'
+                sample = {}
+                sorted_dict = sorted(beacons_ml, key=lambda k: len(beacons_ml[k][1]), reverse=True)
+                highest_beacon = beacons_ml[sorted_dict[0]]
+                sample['singleValue'] = highest_beacon[0]
+                sample['values'] = highest_beacon[1]
+                test_df = compute_csv_sample(sample)
+                # Apply ML to Proximity
                 print('Proximity chosen. Applying KNN Algorithm')
-                #TODO: Apply KNN to Regression
+                # Apply ML to Regression
+                positionRegression = proximityPositioning.apply_knn_regression_scanning(matching_data['dataset'],test_df)
+                # Apply ML to Classification
+                if isClassifier:
+                    positionClassification = proximityPositioning.apply_knn_classification_scanning(matching_data['dataset'],test_df)
+                print('ML Algorithm done running')
             #TODO: GET POSITION OF USER
             position = 0.5
             #TODO: SEND PUBLISH TO YANUX
@@ -129,6 +146,37 @@ def load_access_points_locations():
             print('Y: ', v['y'])
             print('')
         return access_points
+
+
+def compute_csv_sample(sample):
+    csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
+    if 'zone' in sample:
+        zone = sample['zone']
+    else:
+        zone = ''
+    single_value_scanned = sample['singleValue']
+    valuesScanned = sample['values']
+    aux_list = list()
+    '''rolling_mean_list = list()
+    for value in valuesScanned:
+        aux_list.append(value)
+        rolling_mean_list.append(np.mean(aux_list))'''
+    rolling_mean = np.mean(valuesScanned)
+    print(rolling_mean)
+    x_coordinate = 0.0
+    y_coordinate = 0.0
+    results_list_2d = list()
+    results_list = list()
+    results_list.append(x_coordinate)
+    results_list.append(y_coordinate)
+    results_list.append(single_value_scanned)
+    results_list.append(rolling_mean)
+    results_list.append(zone)
+    results_list_2d.append(results_list)
+    display(results_list_2d)
+    df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
+    display(df)
+    return df
 
 
 def compute_csv(request):

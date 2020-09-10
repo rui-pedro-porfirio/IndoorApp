@@ -317,6 +317,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
                         BluetoothObject beaconfound = mBeaconsList.get(i);
                         if (beaconfound.getName().equals(beaconScanned.getBluetoothAddress())) {
                             beaconfound.setSingleValue(rss);
+                            beaconfound.addValue(rss);
                             found = true;
                             break;
                         }
@@ -324,6 +325,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
 
                     if (found == false) {
                         BluetoothObject beacon = new BluetoothObject(beaconScanned.getBluetoothAddress(), rss);
+                        beacon.addValue(rss);
                         mBeaconsList.add(beacon);
                     }
                 }
