@@ -8,6 +8,7 @@ def create_fuzzy_system():
     number_beacons = ctrl.Antecedent(np.arange(0, 6, 1), 'number_beacons')
     matching_aps = ctrl.Antecedent(np.arange(0,101, 1), 'matching_aps')
     matching_beacons = ctrl.Antecedent(np.arange(0, 4, 1), 'matching_beacons')
+    beacons_locations = ctrl.Antecedent(np.arange(0, 10, 1), 'beacons_locations')
     technique = ctrl.Consequent(np.arange(0, 11, 1), 'technique')
 
     # Membership Functions Definition for Antecedents
@@ -18,6 +19,8 @@ def create_fuzzy_system():
     matching_aps['Enough'] = fuzz.trapmf(matching_aps.universe, [51,51,100,100])
     matching_beacons['Not Enough'] = fuzz.trapmf(matching_beacons.universe, [0,0,0,3])
     matching_beacons['Enough'] = fuzz.trapmf(matching_beacons.universe, [2,3,3,3])
+    beacons_locations['Not Available'] = fuzz.trapmf(beacons_locations.universe, [0,0,0,3])
+    beacons_locations['Available'] = fuzz.trapmf(beacons_locations.universe, [2,3,10,10])
 
     # Membership Function Definition for Consequent
     technique['Proximity'] = fuzz.gaussmf(technique.universe,1,0.1)
@@ -28,6 +31,7 @@ def create_fuzzy_system():
     number_beacons['Medium'].view()
     matching_aps.view()
     matching_beacons.view()
+    beacons_locations.view()
     technique.view()
 
     #Rule Base Definition
@@ -35,23 +39,25 @@ def create_fuzzy_system():
     rule2 = ctrl.Rule(number_beacons['Good'] & matching_aps['Enough'] & matching_beacons['Enough'], technique['Fingerprinting'])
     rule3 = ctrl.Rule(number_beacons['Medium'] & matching_aps['Enough'] & matching_beacons['Not Enough'], technique['Fingerprinting'])
     rule4 = ctrl.Rule(number_beacons['Good'] & matching_aps['Not Enough'] & matching_beacons['Enough'], technique['Fingerprinting'])
-    rule5 = ctrl.Rule(number_beacons['Good'] & matching_aps['Not Enough'] & matching_beacons['Not Enough'], technique['Trilateration'])
+    rule5 = ctrl.Rule(number_beacons['Good'] & matching_aps['Not Enough'] & matching_beacons['Not Enough'] & beacons_locations['Available'], technique['Trilateration'])
     rule6 = ctrl.Rule(number_beacons['Medium'] & matching_aps['Not Enough'] & matching_beacons['Not Enough'], technique['Proximity'])
+    rule7 = ctrl.Rule(number_beacons['Good'] & matching_aps['Not Enough'] & matching_beacons['Not Enough']& beacons_locations['Not Available'], technique['Proximity'])
 
     rule1.view()
 
     #Control System Creation
     position_technique_ctrl = ctrl.ControlSystem([rule1,rule2,rule3,
-                                                  rule4,rule5,rule6])
+                                                  rule4,rule5,rule6,rule7])
     return {'System':position_technique_ctrl,'Technique MF':technique}
 
-def compute_fuzzy_decision(position_technique_ctrl,technique,number_beacons,matching_aps,matching_beacons):
+def compute_fuzzy_decision(position_technique_ctrl,technique,number_beacons,matching_aps,matching_beacons,beacons_locations):
     #Control System Simulation
     simulation = ctrl.ControlSystemSimulation(position_technique_ctrl)
 
     simulation.input['number_beacons'] = number_beacons
     simulation.input['matching_aps'] = matching_aps
     simulation.input['matching_beacons'] = matching_beacons
+    simulation.input['beacons_locations'] = beacons_locations
 
     simulation.compute()
 
@@ -73,15 +79,17 @@ def compute_fuzzy_decision(position_technique_ctrl,technique,number_beacons,matc
 def test_phase(control_system,technique):
 
     #TESTING PHASE
-    test_rule1 = compute_fuzzy_decision(control_system,technique,0,51,0)
+    test_rule1 = compute_fuzzy_decision(control_system,technique,0,51,0,2)
     assert test_rule1 == 'Fingerprinting'
-    test_rule2 = compute_fuzzy_decision(control_system,technique,3,51,3)
+    test_rule2 = compute_fuzzy_decision(control_system,technique,3,51,3,3)
     assert test_rule2 == 'Fingerprinting'
-    test_rule3 = compute_fuzzy_decision(control_system,technique,1,51,0)
+    test_rule3 = compute_fuzzy_decision(control_system,technique,1,51,0,2)
     assert test_rule3 == 'Fingerprinting'
-    test_rule4 = compute_fuzzy_decision(control_system,technique,3,50,3)
+    test_rule4 = compute_fuzzy_decision(control_system,technique,3,50,3,2)
     assert test_rule4 == 'Fingerprinting'
-    test_rule5 = compute_fuzzy_decision(control_system,technique,3,40,2)
+    test_rule5 = compute_fuzzy_decision(control_system,technique,3,40,2,3)
     assert test_rule5 == 'Trilateration'
-    test_rule6 = compute_fuzzy_decision(control_system,technique,2,25,2)
+    test_rule6 = compute_fuzzy_decision(control_system,technique,2,25,2,2)
     assert test_rule6 == 'Proximity'
+    test_rule7 = compute_fuzzy_decision(control_system,technique,3,25,2,2)
+    assert test_rule7 == 'Proximity'

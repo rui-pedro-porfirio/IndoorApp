@@ -5,6 +5,7 @@ from .serializers import FingerprintSerializer, DeviceDataSerializer, WifiDataSe
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import json
 import os.path
 from os import path
 import pandas as pd
@@ -19,6 +20,7 @@ import math
 fuzzy_dict = decision_system.create_fuzzy_system()
 fuzzy_system = fuzzy_dict['System']
 fuzzy_technique = fuzzy_dict['Technique MF']
+decision_system.test_phase(fuzzy_system,fuzzy_technique)
 
 class UserView(viewsets.ModelViewSet):
     queryset = UserTable.objects.all()
@@ -96,10 +98,16 @@ class ScanningView(APIView):
             print('Number of Matching access_points: ' + str(input_aps))
             input_beacons = matching_data['length_ble']
             print('Number of Matching beacons: ' + str(input_beacons))
+            access_points_file = 'D:/College/5th Year College/TESE/Desenvolvimento/Code/Application/findLocationApp/findLocation/Server/Notebooks/TRILATERATION/access_points_location.json'
+            beacons_positions = {}
+            with open(access_points_file) as json_file:
+                data = json.load(json_file)
+                for k,v in data.items():
+                    beacons_positions[k] = (v['x'],v['y'])
+            beacons_locations_length = len(beacons_positions)
             #Compute decision function to choose best technique
             position_technique = decision_system.compute_fuzzy_decision(fuzzy_system,fuzzy_technique
-                                                    ,number_beacons,input_aps,input_beacons)
-            position_technique = 'Proximity'
+                                                    ,number_beacons,input_aps,input_beacons,beacons_locations_length)
             print('DECISION MADE. TECHNIQUE IS ' + position_technique)
             #Apply ML algorithm
             if position_technique == 'Fingerprinting':
