@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import json
+import scipy.optimize as opt
 import os.path
 from os import path
 import pandas as pd
@@ -65,7 +66,6 @@ class ScanningView(APIView):
         }
         sample_dict = request.data
         print(sample_dict)
-        access_token = sample_dict['accessToken']
         username = sample_dict['username']
         access_points = sample_dict['mAccessPoints']
         beacons = sample_dict['mBeaconsList']
@@ -95,19 +95,15 @@ class ScanningView(APIView):
         else:
             isClassifier = matching_data['isClassifier']
             input_aps = matching_data['length_wifi']
-            print('Number of Matching access_points: ' + str(input_aps))
+            print('Number of Matching access_points: ' + str(input_aps)) #TODO: BUG VALUE ABNORMALLY HIGH
             input_beacons = matching_data['length_ble']
-            print('Number of Matching beacons: ' + str(input_beacons))
-            access_points_file = 'D:/College/5th Year College/TESE/Desenvolvimento/Code/Application/findLocationApp/findLocation/Server/Notebooks/TRILATERATION/access_points_location.json'
-            beacons_positions = {}
-            with open(access_points_file) as json_file:
-                data = json.load(json_file)
-                for k,v in data.items():
-                    beacons_positions[k] = (v['x'],v['y'])
+            print('Number of Matching beacons: ' + str(input_beacons)) #TODO: BUG VALUE ABNORMALLY HIGH
+            beacons_positions = load_access_points_locations()
             beacons_locations_length = len(beacons_positions)
             #Compute decision function to choose best technique
             position_technique = decision_system.compute_fuzzy_decision(fuzzy_system,fuzzy_technique
                                                     ,number_beacons,input_aps,input_beacons,beacons_locations_length)
+            position_technique = 'Trilateration'
             print('DECISION MADE. TECHNIQUE IS ' + position_technique)
             #Apply ML algorithm
             if position_technique == 'Fingerprinting':
@@ -121,6 +117,44 @@ class ScanningView(APIView):
             elif position_technique == 'Trilateration':
                 # TODO: Apply ML to Trilateration
                 print('Trilateration')
+                isClassifier = True
+                matching_data['dataset'] = 'D:/College/5th Year College/TESE/Desenvolvimento/Code/Application/findLocationApp/findLocation/Server/Notebooks/PROXIMITY/dataset_train_university.csv'
+                prediction = None
+                min_distance = float('inf')
+                closest_location = None
+                sorted_dict = sorted(beacons_ml, key=lambda k: len(beacons_ml[k][1]), reverse=True)
+                test_df = compute_csv_sample_trilat(sorted_dict,beacons_ml)
+                display(test_df)
+                distance_predictions= {}
+                rfv = test_df.groupby(['BLE Beacon'])
+                for k, v in rfv:
+                    print("K: " + str(k))
+                    print("V: " + str(v))
+                    distance_prediction = proximityPositioning.apply_knn_regression_scanning(matching_data['dataset'],v)
+                    distance_predictions[k] = distance_prediction[0,0]
+                print('DISTANCE PREDICTION: ' + str(distance_predictions))
+                for k,v in distance_predictions.items():
+                    if v < min_distance:
+                        min_distance = v
+                        closest_location = beacons_positions[k]
+                initial_location = closest_location
+                initial_location_tuple = (initial_location['x'], initial_location['y'])
+                result = opt.minimize(
+                    mse,  # The error function
+                    initial_location_tuple,# The initial guess
+                    args=(rfv,
+                    distance_predictions,
+                    beacons_positions),
+                    method='L-BFGS-B',  # The optimisation algorithm
+                    options={
+                        'ftol': 1e-5,  # Tolerance
+                        'maxiter': 1e+7  # Maximum iterations
+                    })
+                prediction = result.x
+                print("GUESSED: " + str(prediction))
+                positionRegression = (prediction[0],prediction[1])
+                if isClassifier:
+                    positionClassification = check_zone(prediction[1])
             elif position_technique == 'Proximity':
                 isClassifier = True
                 matching_data['dataset'] = 'D:/College/5th Year College/TESE/Desenvolvimento/Code/Application/findLocationApp/findLocation/Server/Notebooks/PROXIMITY/dataset_train_university.csv'
@@ -154,6 +188,70 @@ def load_access_points_locations():
             print('Y: ', v['y'])
             print('')
         return access_points
+
+
+def check_zone(y):
+    if y >= 3.0:
+        return 'Personal'
+    elif y >= 0.0 and y < 3.0:
+        return 'Social'
+    else:
+        return 'Public'
+
+
+def mse(x,rfv,distances,beacons):
+    squared_errors = 0.0
+    empty_list = {}
+    x= (x[0],x[1])
+    for k, v in rfv:
+        distance_known = distances[k]
+        distance_computed = compute_distance_coordinate_system(x[0],x[1],beacons[k]['x'],beacons[k]['y'])
+        squared_errors += compute_squared_errors(distance_known,distance_computed)
+    mse = squared_errors / len(rfv)
+    return mse
+
+
+def compute_squared_errors(d1,d2):
+    squared_errors = math.pow(d1 - d2, 2.0)
+    return squared_errors
+
+
+def compute_distance_coordinate_system(x1,y1,x2,y2):
+    dist = math.hypot(x2 - x1, y2 - y1)
+    return dist
+
+
+def compute_csv_sample_trilat(sample_dict,beacons_ml):
+    csv_columns = ['BLE Beacon','coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
+    sample = {}
+    results_list_2d = list()
+    for k in sample_dict:
+        beacon = beacons_ml[k]
+        sample['singleValue'] = beacon[0]
+        sample['values'] = beacon[1]
+        if 'zone' in sample:
+            zone = sample['zone']
+        else:
+            zone = ''
+        single_value_scanned = sample['singleValue']
+        valuesScanned = sample['values']
+        rolling_mean = np.mean(valuesScanned)
+        print(rolling_mean)
+        x_coordinate = 0.0
+        y_coordinate = 0.0
+        results_list = list()
+        results_list.append(k)
+        results_list.append(x_coordinate)
+        results_list.append(y_coordinate)
+        results_list.append(single_value_scanned)
+        results_list.append(rolling_mean)
+        results_list.append(zone)
+        results_list_2d.append(results_list)
+    display(results_list_2d)
+    df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
+    display(df)
+    return df
+
 
 
 def compute_csv_sample(sample):
