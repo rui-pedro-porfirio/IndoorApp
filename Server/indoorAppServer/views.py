@@ -13,15 +13,17 @@ import pandas as pd
 import numpy as np
 from IPython.core.display import display
 from enum import Enum
-from .snippets import radiomap,filters, convertJson,fingerprintPositioning, proximityPositioning,decision_system
+from .snippets import radiomap,filters, convertJson,fingerprintPositioning, proximityPositioning,decision_system, websockets
 import json
 import math
+from os import environ
 
 # Initialize configuration functions and variables in Django
 fuzzy_dict = decision_system.create_fuzzy_system()
 fuzzy_system = fuzzy_dict['System']
 fuzzy_technique = fuzzy_dict['Technique MF']
 decision_system.test_phase(fuzzy_system,fuzzy_technique)
+websockets.publish('RPP','Personal')
 
 class UserView(viewsets.ModelViewSet):
     queryset = UserTable.objects.all()
@@ -56,6 +58,7 @@ class FilterEnum(Enum):
 class TypeEnum(Enum):
     WIFI = 1
     BLUETOOTH = 2
+
 
 
 class ScanningView(APIView):

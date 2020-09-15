@@ -1,0 +1,20 @@
+{
+    "pid": 1420, 
+    "argv": [
+        "crossbar", 
+        "start"
+    ], 
+    "options": {
+        "debug_lifecycle": false, 
+        "debug_programflow": false, 
+        "command": "start", 
+        "color": false, 
+        "loglevel": "info", 
+        "logformat": "standard", 
+        "logdir": null, 
+        "logtofile": false, 
+        "cbdir": "D:\\College\\5th Year College\\TESE\\Desenvolvimento\\Code\\Application\\findLocationApp\\findLocation\\Server\\venv\\Scripts\\.crossbar", 
+        "config": "config.json", 
+        "shutdownafter": null
+    }
+}
