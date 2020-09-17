@@ -1,6 +1,5 @@
 from autobahn.twisted import sleep
 from autobahn.twisted.wamp import ApplicationSession
-# or: from autobahn.asyncio.wamp import ApplicationSession
 import requests
 
 from django.db import models
