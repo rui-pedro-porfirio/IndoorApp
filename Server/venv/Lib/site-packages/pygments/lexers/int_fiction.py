@@ -5,7 +5,7 @@
 
     Lexers for interactive fiction languages.
 
-    :copyright: Copyright 2006-2019 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2020 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -38,10 +38,10 @@ class Inform6Lexer(RegexLexer):
     # Inform 7 maps these four character classes to their ASCII
     # equivalents. To support Inform 6 inclusions within Inform 7,
     # Inform6Lexer maps them too.
-    _dash = u'\\-\u2010-\u2014'
-    _dquote = u'"\u201c\u201d'
-    _squote = u"'\u2018\u2019"
-    _newline = u'\\n\u0085\u2028\u2029'
+    _dash = '\\-\u2010-\u2014'
+    _dquote = '"\u201c\u201d'
+    _squote = "'\u2018\u2019"
+    _newline = '\\n\u0085\u2028\u2029'
 
     tokens = {
         'root': [
@@ -118,7 +118,7 @@ class Inform6Lexer(RegexLexer):
             include('_whitespace'),
             # Strings
             (r'[%s][^@][%s]' % (_squote, _squote), String.Char, '#pop'),
-            (r'([%s])(@\{[0-9a-fA-F]{1,4}\})([%s])' % (_squote, _squote),
+            (r'([%s])(@\{[0-9a-fA-F]*\})([%s])' % (_squote, _squote),
              bygroups(String.Char, String.Escape, String.Char), '#pop'),
             (r'([%s])(@.{2})([%s])' % (_squote, _squote),
              bygroups(String.Char, String.Escape, String.Char), '#pop'),
@@ -180,7 +180,7 @@ class Inform6Lexer(RegexLexer):
             (r'[~^]+', String.Escape),
             (r'[^~^\\@({%s]+' % _squote, String.Single),
             (r'[({]', String.Single),
-            (r'@\{[0-9a-fA-F]{,4}\}', String.Escape),
+            (r'@\{[0-9a-fA-F]*\}', String.Escape),
             (r'@.{2}', String.Escape),
             (r'[%s]' % _squote, String.Single, '#pop')
         ],
@@ -191,7 +191,7 @@ class Inform6Lexer(RegexLexer):
             (r'\\', String.Escape),
             (r'@(\\\s*[%s]\s*)*@((\\\s*[%s]\s*)*[0-9])*' %
              (_newline, _newline), String.Escape),
-            (r'@(\\\s*[%s]\s*)*\{((\\\s*[%s]\s*)*[0-9a-fA-F]){,4}'
+            (r'@(\\\s*[%s]\s*)*\{((\\\s*[%s]\s*)*[0-9a-fA-F])*'
              r'(\\\s*[%s]\s*)*\}' % (_newline, _newline, _newline),
              String.Escape),
             (r'@(\\\s*[%s]\s*)*.(\\\s*[%s]\s*)*.' % (_newline, _newline),
@@ -257,8 +257,8 @@ class Inform6Lexer(RegexLexer):
             (r'(?i)(extend|verb)\b', Keyword, 'grammar'),
             (r'(?i)fake_action\b', Keyword, ('default', '_constant')),
             (r'(?i)import\b', Keyword, 'manifest'),
-            (r'(?i)(include|link)\b', Keyword,
-             ('default', 'before-plain-string')),
+            (r'(?i)(include|link|origsource)\b', Keyword,
+             ('default', 'before-plain-string?')),
             (r'(?i)(lowstring|undef)\b', Keyword, ('default', '_constant')),
             (r'(?i)message\b', Keyword, ('default', 'diagnostic')),
             (r'(?i)(nearby|object)\b', Keyword,
@@ -365,11 +365,12 @@ class Inform6Lexer(RegexLexer):
         'diagnostic': [
             include('_whitespace'),
             (r'[%s]' % _dquote, String.Double, ('#pop', 'message-string')),
-            default(('#pop', 'before-plain-string', 'directive-keyword?'))
+            default(('#pop', 'before-plain-string?', 'directive-keyword?'))
         ],
-        'before-plain-string': [
+        'before-plain-string?': [
             include('_whitespace'),
-            (r'[%s]' % _dquote, String.Double, ('#pop', 'plain-string'))
+            (r'[%s]' % _dquote, String.Double, ('#pop', 'plain-string')),
+            default('#pop')
         ],
         'message-string': [
             (r'[~^]+', String.Escape),
@@ -386,6 +387,7 @@ class Inform6Lexer(RegexLexer):
                 'replace', 'reverse', 'scope', 'score', 'special', 'string', 'table', 'terminating',
                 'time', 'topic', 'warning', 'with'), suffix=r'\b'),
              Keyword, '#pop'),
+            (r'static\b', Keyword),
             (r'[%s]{1,2}>|[+=]' % _dash, Punctuation, '#pop')
         ],
         '_directive-keyword': [
@@ -856,7 +858,7 @@ class Tads3Lexer(RegexLexer):
 
     tokens = {
         'root': [
-            (u'\ufeff', Text),
+            ('\ufeff', Text),
             (r'\{', Punctuation, 'object-body'),
             (r';+', Punctuation),
             (r'(?=(argcount|break|case|catch|continue|default|definingobj|'
