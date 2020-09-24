@@ -15,7 +15,7 @@ app = Application('monitoring')
 # from the outside. You should change this value
 # to the IP of the machine you put Crossbar.io
 # and Django.
-SERVER = '127.0.0.1'
+SERVER = 'indoorlocationapp.herokuapp.com'
 
 
 @app.signal('onjoined')
@@ -37,5 +37,5 @@ def update_configuration(args):
 
 # We start our client.
 if __name__ == '__main__':
-    app.run(url=u"ws://%s:8080/ws" % SERVER)
+    app.run(url=u"ws://%s/ws" % SERVER)
     # app.run(url='ws://{}:8080/ws'.format(SERVER))

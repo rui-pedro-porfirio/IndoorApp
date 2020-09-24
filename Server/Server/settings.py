@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +26,7 @@ SECRET_KEY = 'hs_954!a_gw-b#&%(fqxt0kcp79z#@3x9nn%!z!v0n-wma1i&8'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2','127.0.0.1','localhost','0.0.0.0','192.168.1.7','192.168.1.8','192.168.42.55','192.168.43.166']
+ALLOWED_HOSTS = ['indoorlocationapp.herokuapp.com','10.0.2.2','127.0.0.1','localhost','0.0.0.0','192.168.1.7','192.168.1.11','192.168.42.55','192.168.43.166']
 
 
 # Application definition
@@ -119,5 +120,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
+STATIC_ROOT= os.path.join(BASE_DIR,'staticfiles')
 STATIC_URL = '/static/'
+
+# Configure Django App for Heroku.
+django_heroku.settings(locals())

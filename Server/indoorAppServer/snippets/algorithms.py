@@ -9,9 +9,6 @@ from sklearn.svm import SVC, SVR
 from sklearn.cluster import KMeans
 from IPython.core.display import display
 from sklearn.metrics import classification_report, confusion_matrix
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
 from sklearn.ensemble import RandomForestClassifier,RandomForestRegressor
 
 
@@ -80,7 +77,7 @@ def compute_KNN_with_Regression(trainX_data=None, trainY_data=None, testX_data=N
     # Predict the results of the testing data features
     predict_test = main_estimator.predict(testX_data)
     return predict_test
-
+'''
 
 # Function to create model, required for KerasClassifier
 def create_model_classification(dim=2, num_neurons=180, activation='relu', optimizer='adam'):
@@ -141,7 +138,7 @@ def compute_MLP_with_Regression(num_neurons_basic, dim=2,
     # Predict the results of the testing data features
     predict_test = main_estimator.predict(testX_data)
     print("The MSE is:", format(np.power(trainY_data - predict_test, 2).mean()))
-    return predict_test
+    return predict_test'''
 
 
 statistical_cols_knn = ['mae', 'mse', 'rmse', 'precision', 'accuracy', 'f1-score']

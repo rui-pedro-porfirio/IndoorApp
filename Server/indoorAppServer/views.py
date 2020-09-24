@@ -491,10 +491,10 @@ class ProximityAlgorithmsView(APIView):
         elif algorithm == 'KNN Classifier':
             prediction = proximityPositioning.apply_knn_classifier(df)
             isClassifier = True
-        elif algorithm == 'MLP Regression':
-            prediction = proximityPositioning.apply_mlp_regressor(df)
+        #elif algorithm == 'MLP Regression':
+            #prediction = proximityPositioning.apply_mlp_regressor(df)
         elif algorithm == 'MLP Classifier':
-            prediction = proximityPositioning.apply_mlp_classifier(df)
+            #prediction = proximityPositioning.apply_mlp_classifier(df)
             isClassifier = True
         elif algorithm == 'SVM Classifier':
             prediction = proximityPositioning.apply_svm_classifier(df)
@@ -533,10 +533,10 @@ class PositioningAlgorithmsView(APIView):
         elif algorithm == 'KNN Classifier':
             prediction = fingerprintPositioning.apply_knn_classifier(dataTypes, sample['aps'], sample['beacons'], sample['deviceData'])
             isClassifier = True
-        elif algorithm == 'MLP Regression':
-            prediction = fingerprintPositioning.apply_mlp_regressor(dataTypes, sample['aps'], sample['beacons'], sample['deviceData'])
+#       elif algorithm == 'MLP Regression':
+            #prediction = fingerprintPositioning.apply_mlp_regressor(dataTypes, sample['aps'], sample['beacons'], sample['deviceData'])
         elif algorithm == 'MLP Classifier':
-            prediction = fingerprintPositioning.apply_mlp_classifier(dataTypes, sample['aps'], sample['beacons'], sample['deviceData'])
+           # prediction = fingerprintPositioning.apply_mlp_classifier(dataTypes, sample['aps'], sample['beacons'], sample['deviceData'])
             isClassifier = True
         elif algorithm == 'K-Means Classifier':
             prediction = fingerprintPositioning.apply_kmeans_knn_classifier(dataTypes, sample['aps'], sample['beacons'], sample['deviceData'])

@@ -142,7 +142,7 @@ def apply_knn_regressor(types, access_points, beacons, deviceData):
                                          metric=distance)
     return result
 
-
+'''
 def apply_mlp_classifier(types, access_points, beacons, deviceData):
     dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFiclassifier.csv')
     parameters = pd.read_csv('Notebooks/parameters_neural_networks_results.csv')
@@ -251,7 +251,7 @@ def apply_mlp_regressor(types, access_points, beacons, deviceData):
                                          alpha_value=alpha, learning_rate_value=learning_rate,
                                          momentum_value=momentum, max_iterations=iterations)
     return result
-
+'''
 
 def apply_svm_classifier(types, access_points, beacons, deviceData):
     dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFiclassifier.csv')

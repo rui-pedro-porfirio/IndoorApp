@@ -6,7 +6,7 @@ from sklearn.preprocessing import OneHotEncoder,LabelEncoder
 from .algorithms import *
 from . import auxiliarFunctions as aux
 
-dataset = pd.read_csv('Notebooks/PROXIMITY/dataset_train_university.csv')
+dataset = pd.read_csv('/app/Notebooks/PROXIMITY/dataset_train_university.csv')
 label_encoder = LabelEncoder()
 train_X_rssi = None
 train_X_rolling_mean = None
@@ -120,7 +120,7 @@ def apply_knn_regressor(test_data_df):
                                          metric='manhattan')
     return result
 
-
+'''
 def apply_mlp_classifier(test_data_df):
     prepare_dataset(test_data_df)  # initialized dataset including training set and testing set
     trainX_data = combination_features_X
@@ -143,7 +143,7 @@ def apply_mlp_regressor(test_data_df):
     result = compute_MLP_with_Regression(num_neurons_basic=len(trainX_data), trainX_data=trainX_data,
                                          trainY_data=train_Y, testX_data=testX_data,
                                          scaler=StandardScaler(), verbose=1)
-    return result
+    return result'''
 
 
 def apply_svm_classifier(test_data_df):
