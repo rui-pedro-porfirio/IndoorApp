@@ -1,10 +1,11 @@
 package android.example.findlocation.services;
 
-import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.example.findlocation.IndoorApp;
+import android.example.findlocation.exceptions.HTTPRequestException;
+import android.example.findlocation.interfaces.SharedPreferencesInterface;
 import android.example.findlocation.ui.common.DisplayToast;
 import android.net.Uri;
 import android.os.Build;
@@ -38,14 +39,14 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class OAuthBackgroundService extends JobIntentService {
-
-    private static final String AUTHORIZE_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/authorize?response_type=code&client_id=indoor-location-app&redirect_uri=indoorapp://auth/redirect";
-    private static final String EXCHANGE_AUTH_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/token";
-    private static final String VERIFY_AUTH_DATA = "https://yanux-auth.herokuapp.com/api/verify_oauth2";
-    private static final String REDIRECT_URI = "indoorapp://auth/redirect";
+public class OAuthBackgroundService extends JobIntentService implements SharedPreferencesInterface {
 
     private static final String TAG = OAuthBackgroundService.class.getSimpleName();
+
+    static final String AUTHORIZE_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/authorize?response_type=code&client_id=indoor-location-app&redirect_uri=indoorapp://auth/redirect";
+    static final String EXCHANGE_AUTH_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/token";
+    static final String VERIFY_AUTH_DATA_ADDRESS = "https://yanux-auth.herokuapp.com/api/verify_oauth2";
+    static final String REDIRECT_URI = "indoorapp://auth/redirect";
 
     public static final String RECEIVER = "receiver";
 
@@ -58,147 +59,173 @@ public class OAuthBackgroundService extends JobIntentService {
 
     private static final int NUMBER_OF_TRIES = 3;
 
-    public static final int ACCESS_TOKEN_CODE = 102;
+    public static final int AUTH_VALIDITY = 102;
     public static final int FAILED_RESULT_CODE = 500;
-    public static final int FINISHED_CODE = 100;
 
-    private static final String USERNAME_KEY = "Username";
-    private static final String ACCESS_TOKEN_KEY = "Access Token";
-    private static final String REFRESH_TOKEN_KEY = "Refresh Token";
-    private static final String EXPIRATION_DATE_KEY = "Expiration Date";
-    private static final String AUTH_CODE_KEY = "Auth Code";
-    private static final String AUTH_FLOW_KEY = "Auth Flow";
-    private static final String PKCE_CODE_VERIFIER_KEY = "Code Verifier";
+    private static final String PREF_USERNAME = "PREF_USERNAME";
+    private static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
+    private static final String PREF_REFRESH_TOKEN = "PREF_REFRESH_TOKEN";
+    private static final String PREF_EXPIRATION_DATE = "PREF_EXPIRATION_DATE";
+    private static final String PREF_AUTH_CODE = "PREF_AUTH_CODE";
+    private static final String PREF_AUTH_FLOW = "PREF_AUTH_FLOW";
+    private static final String PREF_PKCE_CODE_VERIFIER_KEY = "PREF_PKCE_CODE_VERIFIER_KEY";
 
     private static final String OAUTH_BASIC = "Authorization Code Flow";
     private static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
 
     private Handler mHandler;
-    private ResultReceiver mResultReceiver;
-    private SharedPreferences applicationPreferences;
-    private SharedPreferences.Editor preferencesEditor;
-    private OkHttpClient client;
-    private int retries;
-    private String accessToken;
-    private String refreshToken;
-    private String username;
-    private String expirationDate;
-    private String autorizationCode;
-    private boolean isTokenValid;
+    private SharedPreferences mApplicationPreferences;
+    private SharedPreferences.Editor mPreferencesEditor;
+    private OkHttpClient mHttpClient;
+    private int mAuthRetries;
+    private String mAccessToken;
+    private String mRefreshToken;
+    private String mUsername;
+    private String mExpirationDate;
+    private String mAutorizationCode;
+    private boolean mIsTokenValid;
 
     //PKCE Related
-    private String code_verifier;
-    private String code_challenge;
-    private String oAuthFlow;
+    private String mCodeVerifier;
+    private String mCodeChallenge;
+    private String mOAuthFlow;
 
-    /**
-     * method called on the start of the service
-     */
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onCreate() {
         super.onCreate();
-        client = new OkHttpClient();
-        applicationPreferences = IndoorApp.preferences;
+        initializeSharedPreferences();
+        mHttpClient = new OkHttpClient();
         mHandler = new Handler();
-        retries = 0;
-        preferencesEditor = applicationPreferences.edit();
-        code_challenge = null;
-        code_verifier = applicationPreferences.getString(PKCE_CODE_VERIFIER_KEY,null);
-        username = applicationPreferences.getString(USERNAME_KEY, null);
-        accessToken = applicationPreferences.getString(ACCESS_TOKEN_KEY, null);
-        refreshToken = applicationPreferences.getString(REFRESH_TOKEN_KEY, null);
-        expirationDate = applicationPreferences.getString(EXPIRATION_DATE_KEY, null);
-        autorizationCode = applicationPreferences.getString(AUTH_CODE_KEY, null);
-        oAuthFlow = applicationPreferences.getString(AUTH_FLOW_KEY,null);
-        if (expirationDate != null) //Here it is assumed that the access token and refresh token are both existent
-            isTokenValid = isAccessTokenValid();
-        if (!isTokenValid && accessToken != null && refreshToken != null)
+        mAuthRetries = 0;
+        mCodeChallenge = null;
+        initializeSharedPreferences();
+        checkExpirationTokenValidity();
+        if (!mIsTokenValid && mAccessToken != null && mRefreshToken != null)
             exchangeRefreshToken();
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void initializeSharedPreferences() {
+        mApplicationPreferences = IndoorApp.appPreferences;
+        mPreferencesEditor = mApplicationPreferences.edit();
+    }
+
+    @Override
+    public void loadVariablesFromSharedPreferences() {
+        mCodeVerifier = mApplicationPreferences.getString(PREF_PKCE_CODE_VERIFIER_KEY, null);
+        mUsername = mApplicationPreferences.getString(PREF_USERNAME, null);
+        mAccessToken = mApplicationPreferences.getString(PREF_ACCESS_TOKEN, null);
+        mRefreshToken = mApplicationPreferences.getString(PREF_REFRESH_TOKEN, null);
+        mExpirationDate = mApplicationPreferences.getString(PREF_EXPIRATION_DATE, null);
+        mAutorizationCode = mApplicationPreferences.getString(PREF_AUTH_CODE, null);
+        mOAuthFlow = mApplicationPreferences.getString(PREF_AUTH_FLOW, null);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void checkExpirationTokenValidity() {
+        if (mExpirationDate != null) //Here it is assumed that the access token and refresh token are both existent
+            mIsTokenValid = isAccessTokenValid();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private boolean isAccessTokenValid() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        LocalDateTime expiration = LocalDateTime.parse(mExpirationDate, formatter);
+        LocalDateTime now = LocalDateTime.now();
+        if (expiration.isAfter(now)) {
+            return true;
+        }
+        return false;
     }
 
     /**
-     * Convenience method for enqueuing work in to this service.
+     * Convenience method for enqueuing work into this service.
      */
-    public static void enqueueWork(Context context, ServiceResultReceiver workerResultReceiver, String action, int id, String flow, Intent receivedIntent) {
+    public static void enqueueWork(Context context, ServiceResultReceiver workerResultReceiver, String action, int id, String authFlow, Intent receivedIntent) {
         Intent intent = new Intent(context, OAuthBackgroundService.class);
         if (receivedIntent != null) {
             int flags = Intent.FILL_IN_DATA |
                     Intent.FILL_IN_CATEGORIES |
                     Intent.FILL_IN_PACKAGE |
                     Intent.FILL_IN_COMPONENT;
-
             intent.fillIn(receivedIntent, flags);
         }
         intent.putExtra(RECEIVER, workerResultReceiver);
         intent.setAction(action);
-        if (flow != null)
-            intent.putExtra("Flow Type", flow);
+        if (authFlow != null) intent.putExtra("Flow Type", authFlow);
         enqueueWork(context, OAuthBackgroundService.class, id, intent);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-        Log.d(TAG, "onHandleWork() called with: intent = [" + intent + "]");
+        Log.i(TAG, "onHandleWork() called with: intent = [" + intent + "]");
         if (intent.getAction() != null) {
-            if(oAuthFlow == null) {
-                oAuthFlow = intent.getStringExtra("Flow Type");
-                preferencesEditor.putString(AUTH_FLOW_KEY, oAuthFlow);
-                preferencesEditor.apply();
+            if (mOAuthFlow == null) {
+                mOAuthFlow = intent.getStringExtra("Flow Type");
+                mPreferencesEditor.putString(PREF_AUTH_FLOW, mOAuthFlow);
+                mPreferencesEditor.apply();
             }
             switch (intent.getAction()) {
                 case ACTION_REQUEST_AUTH_CODE:
-                    boolean isAlive = isMyServiceRunning(OAuthBackgroundService.class);
-                    Log.d(TAG, "SERVICE IS ALIVE : " + isAlive);
-                    if (autorizationCode == null) {
-                        if (oAuthFlow.equals(OAUTH_BASIC))
+                    if (mAutorizationCode == null) {
+                        if (mOAuthFlow.equals(OAUTH_BASIC))
                             requestAuthorizationCode();
                         else
                             generateCodeVerifierAndChallengePKCE();
                     } else {
-                        mHandler.post(new DisplayToast(this, "User already logged in YanuX"));
+                        mHandler.post(new DisplayToast(this, "User already logged in YanuX."));
+                        exchangeAuthorizationCode();
                     }
                     break;
                 case ACTION_REPLY_AUTH_CODE:
-                    mResultReceiver = intent.getParcelableExtra(RECEIVER);
-                    isAlive = isMyServiceRunning(OAuthBackgroundService.class);
-                    Log.d(TAG, "SERVICE IS ALIVE : " + isAlive);
-                    if (oAuthFlow.equals(OAUTH_BASIC))
-                        structureAuthorizationCode(intent, mResultReceiver);
-                    else
-                        structureAuthorizationCodePKCE(intent, mResultReceiver);
+                    ResultReceiver mResultReceiver = intent.getParcelableExtra(RECEIVER);
+                    structureAuthorizationCode(intent, mResultReceiver);
                     break;
                 case ACTION_CHECK_AUTH_CODE:
                     mResultReceiver = intent.getParcelableExtra(RECEIVER);
-                    isAlive = isMyServiceRunning(OAuthBackgroundService.class);
-                    Log.d(TAG, "SERVICE IS ALIVE : " + isAlive);
-                    boolean hasAccessToken = accessToken != null;
+                    boolean hasAccessToken = mAccessToken != null;
                     Bundle bundle_token = new Bundle();
                     bundle_token.putBoolean("hasAccessToken", hasAccessToken);
-                    mResultReceiver.send(ACCESS_TOKEN_CODE, bundle_token);
+                    mResultReceiver.send(AUTH_VALIDITY, bundle_token);
                     break;
             }
         }
     }
 
-    public void generateCodeVerifierAndChallengePKCE() {
-        //VERIFIER GENERATION
+    private void requestAuthorizationCode() {
+        computeAuthorizationRequest(AUTHORIZE_ADDRESS);
+    }
+
+    private void computeAuthorizationRequest(String authorizeAddress) {
+        Intent authenticationCodeRequirementIntent = new Intent("android.intent.action.VIEW", Uri.parse(authorizeAddress));
+        authenticationCodeRequirementIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        authenticationCodeRequirementIntent.putExtra("Authentication Code Requirement", true);
+        startActivity(authenticationCodeRequirementIntent);
+        mAuthRetries++;
+    }
+
+    private void generateCodeVerifierAndChallengePKCE() {
+        generateCodeVerifier();
+        generateCodeChallenge();
+        requestPKCEAuthorizationCode();
+    }
+
+    private void generateCodeVerifier() {
         SecureRandom sr = new SecureRandom();
         byte[] code = new byte[32];
         sr.nextBytes(code);
-        code_verifier = Base64.encodeToString(code, Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
-        preferencesEditor.putString(PKCE_CODE_VERIFIER_KEY,code_verifier);
-        preferencesEditor.apply();
-        //CODE CHALLENGE
+        mCodeVerifier = Base64.encodeToString(code, Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
+        mPreferencesEditor.putString(PREF_PKCE_CODE_VERIFIER_KEY, mCodeVerifier);
+        mPreferencesEditor.apply();
+    }
+
+    private void generateCodeChallenge() {
         byte[] bytes = new byte[0];
         try {
-            bytes = code_verifier.getBytes("US-ASCII");
+            bytes = mCodeVerifier.getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -210,120 +237,88 @@ public class OAuthBackgroundService extends JobIntentService {
         }
         md.update(bytes, 0, bytes.length);
         byte[] digest = md.digest();
-        code_challenge = Base64.encodeToString(digest, Base64.URL_SAFE);
-        requestPKCEAuthorizationCode();
+        mCodeChallenge = Base64.encodeToString(digest, Base64.URL_SAFE);
     }
 
     private void requestPKCEAuthorizationCode() {
         String final_uri = AUTHORIZE_ADDRESS +
-                "&code_challenge=" + code_challenge +
+                "&code_challenge=" + mCodeChallenge +
                 "&code_challenge_method=S256";
-        Intent authenticationCodeRequirementIntent = new Intent("android.intent.action.VIEW", Uri.parse(final_uri));
-        authenticationCodeRequirementIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        authenticationCodeRequirementIntent.putExtra("Authentication Code Requirement", true);
-        startActivity(authenticationCodeRequirementIntent);
-        retries++;
+        computeAuthorizationRequest(final_uri);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void structureAuthorizationCode(Intent intent, ResultReceiver mResultReceiver) {
-        String action = intent.getAction();
+    private void structureAuthorizationCode(Intent intent, ResultReceiver mResultReceiver) {
         Uri responseUri = intent.getData();
-        autorizationCode = responseUri.getQueryParameter("code");
+        mAutorizationCode = responseUri.getQueryParameter("code");
         String error = responseUri.getQueryParameter("error");
-        Log.d(TAG, "CODE: " + autorizationCode);
-        if(autorizationCode == null){
-            String response = null;
-            if(error != null)
-                response = error;
-            else
-                response = "Problem occured during the authentication code retrieval";
-            Bundle bundle = new Bundle();
-            bundle.putString("code_error", "Error in authentication:"+ response);
-            mResultReceiver.send(FAILED_RESULT_CODE, bundle);
-        }
-        else {
-            preferencesEditor.putString(AUTH_CODE_KEY, autorizationCode);
-            preferencesEditor.apply();
-            exchangeAuthorizationCode(mResultReceiver);
+        Log.d(TAG, "Authorization Code: " + mAutorizationCode);
+        if (mAutorizationCode == null) {
+            sendAuthorizationErrorMessageBackToUI(responseUri, mResultReceiver);
+        } else {
+            mPreferencesEditor.putString(PREF_AUTH_CODE, mAutorizationCode);
+            mPreferencesEditor.apply();
+            if (mOAuthFlow.equals(OAUTH_BASIC)) exchangeAuthorizationCode();
+            else exchangeAuthorizationCodePKCE();
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void structureAuthorizationCodePKCE(Intent intent, ResultReceiver mResultReceiver) {
-        String action = intent.getAction();
-        Uri responseUri = intent.getData();
-        autorizationCode = responseUri.getQueryParameter("code");
+    private void sendAuthorizationErrorMessageBackToUI(Uri responseUri, ResultReceiver mResultReceiver) {
         String error = responseUri.getQueryParameter("error");
-        Log.d(TAG, "CODE: " + autorizationCode);
-        if(autorizationCode == null){
-            String response = null;
-            if(error != null)
-                response = error;
-            else
-                response = "Problem occured during the authentication code retrieval";
-            Bundle bundle = new Bundle();
-            bundle.putString("code_error", "Error in authentication:"+ response);
-            mResultReceiver.send(FAILED_RESULT_CODE, bundle);
-        }
-        else {
-            preferencesEditor.putString(AUTH_CODE_KEY, autorizationCode);
-            preferencesEditor.apply();
-            exchangeAuthorizationCodePKCE(mResultReceiver);
-        }
+        String response;
+        if (error != null)
+            response = error;
+        else
+            response = "Problem occured during the authentication code retrieval";
+        Bundle bundle = new Bundle();
+        bundle.putString("code_error", "Error in authentication:" + response);
+        mResultReceiver.send(FAILED_RESULT_CODE, bundle);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void exchangeAuthorizationCodePKCE(ResultReceiver mResultReceiver) {
-        if (autorizationCode != null) {
-            String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
-            RequestBody requestBody = new FormBody.Builder()
-                    .add("code", autorizationCode)
-                    .add("grant_type", "authorization_code")
-                    .add("redirect_uri", REDIRECT_URI)
-                    .add("code_verifier", code_verifier)
-                    .build();
-            Request request = new Request.Builder()
-                    .url(EXCHANGE_AUTH_ADDRESS)
-                    .header("Authorization", credentials)
-                    .header("content-type", "application/x-www-form-urlencoded")
-                    .post(requestBody)
-                    .build();
-            sendPostHTTPRequest(request);
-        } else {
-            Bundle bundle = new Bundle();
-            bundle.putString("code_error", "Problem retrieving authorization code");
-            mResultReceiver.send(FAILED_RESULT_CODE, bundle);
-        }
+    private void exchangeAuthorizationCode() {
+        requestAccessToken(buildBodyAuthBasic());
+    }
+
+    private RequestBody buildBodyAuthBasic() {
+        return new FormBody.Builder()
+                .add("code", mAutorizationCode)
+                .add("grant_type", "authorization_code")
+                .add("redirect_uri", REDIRECT_URI)
+                .build();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void exchangeAuthorizationCode(ResultReceiver mResultReceiver) {
-        if (autorizationCode != null) {
-            String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
-            RequestBody requestBody = new FormBody.Builder()
-                    .add("code", autorizationCode)
-                    .add("grant_type", "authorization_code")
-                    .add("redirect_uri", REDIRECT_URI)
-                    .build();
-            Request request = new Request.Builder()
-                    .url(EXCHANGE_AUTH_ADDRESS)
-                    .header("Authorization", credentials)
-                    .post(requestBody)
-                    .build();
-            sendPostHTTPRequest(request);
-        } else {
-            Bundle bundle = new Bundle();
-            bundle.putString("code_error", "Problem retrieving authorization code");
-            mResultReceiver.send(FAILED_RESULT_CODE, bundle);
-        }
+    public void exchangeAuthorizationCodePKCE() {
+        requestAccessToken(buildBodyPKCE());
+    }
+
+    private RequestBody buildBodyPKCE() {
+        return new FormBody.Builder()
+                .add("code", mAutorizationCode)
+                .add("grant_type", "authorization_code")
+                .add("redirect_uri", REDIRECT_URI)
+                .add("code_verifier", mCodeVerifier)
+                .build();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private void requestAccessToken(RequestBody requestBody) {
+        String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
+        Request request = new Request.Builder()
+                .url(EXCHANGE_AUTH_ADDRESS)
+                .header("Authorization", credentials)
+                .header("content-type", "application/x-www-form-urlencoded")
+                .post(requestBody)
+                .build();
+        sendPostHTTPRequest(request);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void exchangeRefreshToken() {
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
         RequestBody requestBody = new FormBody.Builder()
-                .add("refresh_token", refreshToken)
+                .add("refresh_token", mRefreshToken)
                 .add("grant_type", "refresh_token")
                 .add("redirect_uri", REDIRECT_URI)
                 .build();
@@ -335,13 +330,6 @@ public class OAuthBackgroundService extends JobIntentService {
         sendPostHTTPRequest(request);
     }
 
-    public void requestAuthorizationCode() {
-        Intent authenticationCodeRequirementIntent = new Intent("android.intent.action.VIEW", Uri.parse(AUTHORIZE_ADDRESS));
-        authenticationCodeRequirementIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        authenticationCodeRequirementIntent.putExtra("Authentication Code Requirement", true);
-        startActivity(authenticationCodeRequirementIntent);
-        retries++;
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void requestTokenInfo() {
@@ -353,46 +341,30 @@ public class OAuthBackgroundService extends JobIntentService {
         sendGetHTTPRequest(request);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private boolean isAccessTokenValid() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        LocalDateTime expiration = LocalDateTime.parse(expirationDate, formatter);
-        LocalDateTime now = LocalDateTime.now();
-        if (expiration.isAfter(now)) {
-            return true;
-        }
-        return false;
-
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void sendPostHTTPRequest(Request request) {
         Handler mainHandler = new Handler(getMainLooper());
-        try (Response response = client.newCall(request).execute()) {
+
+        try (Response response = mHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                if (retries == NUMBER_OF_TRIES) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("code_error", "Reached maximum limit of attempts to authenticate. Please login again.");
-                    mResultReceiver.send(FAILED_RESULT_CODE, bundle);
+                if (mAuthRetries >= NUMBER_OF_TRIES) {
+                    throw new HTTPRequestException("Exception raised in exceeding the limit tries of authorization flow.");
                 } else {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("code_error", "Problem exchanging code. Asking user to authenticate again.");
-                    mResultReceiver.send(FAILED_RESULT_CODE, bundle);
-                    requestAuthorizationCode();
+                    throw new HTTPRequestException("Exception raised in unexpected failure on communication.");
                 }
             } else {
                 JSONObject json_params = new JSONObject(response.body().string());
-                accessToken = json_params.getString("access_token");
-                refreshToken = json_params.getString("refresh_token");
-                preferencesEditor.putString(ACCESS_TOKEN_KEY, accessToken);
-                preferencesEditor.apply();
-                preferencesEditor.putString(REFRESH_TOKEN_KEY, refreshToken);
-                preferencesEditor.apply();
+                mAccessToken = json_params.getString("access_token");
+                mPreferencesEditor.putString(PREF_ACCESS_TOKEN, mAccessToken);
+                mPreferencesEditor.apply();
+                mRefreshToken = json_params.getString("refresh_token");
+                mPreferencesEditor.putString(PREF_REFRESH_TOKEN, mRefreshToken);
+                mPreferencesEditor.apply();
                 requestTokenInfo();
                 cleanAuthCode();
             }
             response.body().close();
-        } catch (IOException | JSONException e) {
+        } catch (IOException | JSONException | HTTPRequestException e) {
             e.printStackTrace();
             mainHandler.post(new Runnable() {
                 @Override
@@ -430,9 +402,6 @@ public class OAuthBackgroundService extends JobIntentService {
                         Toast.makeText(getApplicationContext(), "User Authenticated.", Toast.LENGTH_SHORT).show();
                     }
                 });
-                Bundle bundle_auth = new Bundle();
-                bundle_auth.putBoolean("authorized", true);
-                mResultReceiver.send(FINISHED_CODE, bundle_auth);
             }
             response.body().close();
         } catch (IOException | JSONException e) {
@@ -447,21 +416,11 @@ public class OAuthBackgroundService extends JobIntentService {
         }
     }
 
-    private void cleanAuthCode(){
-        preferencesEditor.remove(AUTH_CODE_KEY);
-        preferencesEditor.apply();
-        preferencesEditor.remove(PKCE_CODE_VERIFIER_KEY);
-        preferencesEditor.apply();
-    }
-
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
+    private void cleanAuthCode() {
+        mPreferencesEditor.remove(PREF_AUTH_CODE);
+        mPreferencesEditor.apply();
+        mPreferencesEditor.remove(PREF_PKCE_CODE_VERIFIER_KEY);
+        mPreferencesEditor.apply();
     }
 
 }

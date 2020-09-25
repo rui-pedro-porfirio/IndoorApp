@@ -107,4 +107,5 @@
     <string name="start_positioning_user">Start Positioning User</string>
     <string name="scan_string">Scan</string>
     <string name="scanning_data_string">Scanning Data ...</string>
+    <string name="experimental_title_string">Experimental</string>
 </resources>

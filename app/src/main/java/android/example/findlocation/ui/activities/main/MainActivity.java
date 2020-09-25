@@ -1,26 +1,26 @@
 package android.example.findlocation.ui.activities.main;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.example.findlocation.IndoorApp;
 import android.example.findlocation.R;
+import android.example.findlocation.exceptions.HTTPRequestException;
+import android.example.findlocation.interfaces.SharedPreferencesInterface;
 import android.example.findlocation.services.OAuthBackgroundService;
 import android.example.findlocation.services.ServiceResultReceiver;
 import android.example.findlocation.ui.activities.scanning.ScanningActivity;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,129 +33,84 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity implements ServiceResultReceiver.Receiver {
+public class MainActivity extends AppCompatActivity implements ServiceResultReceiver.Receiver, SharedPreferencesInterface {
+
+    static final String TAG = MainActivity.class.getSimpleName();
+
+    static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
 
     static final int OAUTH_ID = 1010;
-    private static final String ACTION_REQUEST_AUTH_CODE = "action.REQUEST_AUTH_CODE";
-    private static final String ACTION_REPLY_AUTH_CODE = "action.REPLY_AUTH_CODE";
-    private static final String ACTION_CHECK_AUTH_CODE = "action.CHECK_AUTH_CODE";
+    static final String ACTION_REQUEST_AUTH_CODE = "action.REQUEST_AUTH_CODE";
+    static final String ACTION_REPLY_AUTH_CODE = "action.REPLY_AUTH_CODE";
+    static final String ACTION_CHECK_AUTH_CODE = "action.CHECK_AUTH_CODE";
+    static final int FAILED_RESULT_CODE = 500;
+    public static final int AUTH_VALIDITY = 102;
 
-    public static final int ACCESS_TOKEN_CODE = 102;
-    public static final int FAILED_RESULT_CODE = 500;
-    public static final int FINISHED_CODE = 100;
+    static final String OAUTH_BASIC = "Authorization Code Flow";
+    static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
 
-    private static final String AUTH_CODE_KEY = "Auth Code";
+    static final String DEVICE_UUID_ADDRESS = "http://localhost:3003/deviceInfo";
 
-    private static final String OAUTH_BASIC = "Authorization Code Flow";
-    private static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
-
-    private static final String DEVICE_UUID_ADDRESS = "http://localhost:3003/deviceInfo";
-    private static final String DEVICE_UUID_KEY = "Device UUID";
-
-    public boolean isAuthenticated;
-    private SharedPreferences applicationPreferences;
-    private SharedPreferences.Editor preferencesEditor;
+    private boolean isAuthenticated;
+    private SharedPreferences mAppPreferences;
+    private SharedPreferences.Editor mPreferencesEditor;
     private ServiceResultReceiver mServiceResultReceiver;
-    private OkHttpClient client;
-    private String uuid;
+    private OkHttpClient mHttpClient;
+    private String mDeviceUuid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        applicationPreferences = IndoorApp.preferences;
-        preferencesEditor = applicationPreferences.edit();
-        setContentView(R.layout.activity_main_second_page);
-        client = new OkHttpClient();
+        setContentView(R.layout.activity_main_activity);
+        initializeSharedPreferences();
+        this.mHttpClient = new OkHttpClient();
         mServiceResultReceiver = new ServiceResultReceiver(new Handler());
         mServiceResultReceiver.setReceiver(this);
-        uuid = applicationPreferences.getString(DEVICE_UUID_KEY, null);
-        startTestingPhase();
-        startRegistrationPhase();
-        startLoginPhase();
-        startScanningPhase();
-        OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_CHECK_AUTH_CODE, OAUTH_ID, OAUTH_PKCE, null);
-        String autorizationCode = applicationPreferences.getString(AUTH_CODE_KEY, null);
-        isAuthenticated = autorizationCode != null;
-        if (uuid == null)
-            getDeviceUUID();
-    }
-
-    protected void getDeviceUUID() {
-        new SendHTTPRequest().execute();
+        loadVariablesFromSharedPreferences();
+        startOAuthJob();
+        if (mDeviceUuid == null) getDeviceUUID();
+        startButtonListeners();
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                TextView trackingView = (TextView) findViewById(R.id.tracking_statusId);
-                ImageView trackingImage = (ImageView) findViewById(R.id.tracking_buttonId);
-                checkTrackingStatus(trackingView, trackingImage);
-            }
-        }, 2000);
+    public void initializeSharedPreferences() {
+        mAppPreferences = IndoorApp.appPreferences;
+        mPreferencesEditor = mAppPreferences.edit();
     }
 
-    private void checkTrackingStatus(TextView trackingView, ImageView imageView) {
-        boolean status = applicationPreferences.getBoolean("TRACKING_STATUS", false);
-        if (!status) {
-            trackingView.setText("Not Tracking");
-            trackingView.setTextColor(Color.parseColor("#E80A0A"));
-            imageView.setImageResource(android.R.drawable.ic_notification_overlay);
-        } else {
-            trackingView.setText("Tracking");
-            trackingView.setTextColor(Color.parseColor("#4CAF50"));
-            imageView.setImageResource(android.R.drawable.presence_online);
-        }
+    @Override
+    public void loadVariablesFromSharedPreferences() {
+        mDeviceUuid = mAppPreferences.getString(PREF_DEVICE_UUID, null);
     }
 
-
-    public void startTestingPhase() {
-        final Intent testStartIntent = new Intent(this, MainPageActivity.class);
-        Button testButton = (Button) findViewById(R.id.testButtonId);
-        testButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(testStartIntent);
-            }
-        });
+    protected void startButtonListeners() {
+        handleRegisterButton();
+        handleLoginButton();
+        handleExperimentButton();
+        handleScanButton();
     }
 
-    public void startScanningPhase() {
-        final Intent scanStartIntent = new Intent(this, ScanningActivity.class);
-        Button scanButton = (Button) findViewById(R.id.startScanButtonId);
-        scanButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(scanStartIntent);
-            }
-        });
-    }
-
-    public void startRegistrationPhase() {
-        String uri = "https://yanux-auth.herokuapp.com/auth/register";
-        final Intent registerStartIntent = new Intent("android.intent.action.VIEW", Uri.parse(uri));
-        Button mRegisterButton = findViewById(R.id.registerButtonId);
+    public void handleRegisterButton() {
+        String yanuxRegisterUri = "https://yanux-auth.herokuapp.com/auth/register";
+        final Intent mStartRegisterIntent = new Intent("android.intent.action.VIEW", Uri.parse(yanuxRegisterUri));
+        Button mRegisterButton = findViewById(R.id.button_registerButton);
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(registerStartIntent);
+                startActivity(mStartRegisterIntent);
             }
         });
     }
 
-    public void startLoginPhase() {
-        Button mLoginButton = findViewById(R.id.loginButtonId);
-        final Intent intent = new Intent(this, OAuthBackgroundService.class);
+    public void handleLoginButton() {
+        Button mLoginButton = findViewById(R.id.button_loginButton);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
-
                 if (!isAuthenticated) {
-                    OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
+                    OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver,
+                            ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
                 } else {
                     Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
                 }
@@ -163,81 +118,127 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
         });
     }
 
+    public void handleExperimentButton() {
+        final Intent mStartExperimentIntent = new Intent(this, MainPageActivity.class);
+        Button mExperimentButton = (Button) findViewById(R.id.button_experimentButton);
+        mExperimentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(mStartExperimentIntent);
+            }
+        });
+    }
+
+    public void handleScanButton() {
+        final Intent mStartScanIntent = new Intent(this, ScanningActivity.class);
+        Button mScanButton = (Button) findViewById(R.id.button_scanButton);
+        mScanButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(mStartScanIntent);
+            }
+        });
+    }
+
+    private void startOAuthJob() {
+        if (!isAuthenticated) {
+            Log.i(TAG, "Starting OAuth Background Service.");
+            OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_CHECK_AUTH_CODE, OAUTH_ID, OAUTH_PKCE, null);
+                    OAUTH_ID, OAUTH_PKCE, null);
+        } else
+            Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
+    }
+
+    /*
+    This method is called after the user authorizes the application to get its data
+     */
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        // Start OAuth procedure for exchanging authorization code and retrieve the access token
         OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REPLY_AUTH_CODE, OAUTH_ID, null, intent);
     }
 
+    /*
+    This method receives results from the OAuth service
+     */
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
-        switch (resultCode) {
-            case FAILED_RESULT_CODE:
-                if (resultData != null) {
-                    Toast.makeText(this, resultData.getString("code_error"), Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case ACCESS_TOKEN_CODE:
-                if (resultData != null) {
-                    isAuthenticated = resultData.getBoolean("hasAccessToken");
-                    if (!isAuthenticated) {
-                        OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
-                    }
-                }
-                break;
-            case FINISHED_CODE:
-                isAuthenticated = resultData.getBoolean("authorized");
-                break;
+        if (resultData == null)
+            throw new NullPointerException("Result received from OAuth with null data.");
+        if (resultCode == FAILED_RESULT_CODE) {
+            String errorMessage = resultData.getString("code_error");
+            Log.e(TAG, errorMessage);
+            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+        }
+        else if(resultCode == AUTH_VALIDITY){
+            isAuthenticated = resultData.getBoolean("hasAccessToken");
+            if (!isAuthenticated) {
+                OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
+            } else {
+                Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
-    private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
+    private void getDeviceUUID() {
+        Log.i(TAG, "Start retrieving device UUID.");
+        new HTTPGetRequest(DEVICE_UUID_ADDRESS).execute();
+    }
 
-        private String json;
+    private class HTTPGetRequest extends AsyncTask<Void, Void, String> {
 
+        private final String TAG = LauncherActivity.class.getSimpleName();
+        private String mIpAddress;
+
+        public HTTPGetRequest(String address) {
+            this.mIpAddress = address;
+        }
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                get(DEVICE_UUID_ADDRESS);
+                Log.i(TAG, "Making Get Request to server.");
+                return get(mIpAddress);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return "200";
+            return null;
         }
 
         @Override
-        protected void onPostExecute(String message) {
-            super.onPostExecute(message);
+        protected void onPostExecute(String response) {
+            super.onPostExecute(response);
         }
 
+
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-        protected void get(String url) throws IOException {
+        protected String get(String url) throws IOException {
             Handler mainHandler = new Handler(getMainLooper());
             Request request = new Request.Builder()
                     .url(url)
                     .build();
-            try (Response response = client.newCall(request).execute()) {
+            try (Response response = mHttpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     throw new IOException("Unexpected code " + response);
-                } else {
-                    String responseString = response.body().string();
-                    JSONObject jsonObject = new JSONObject(responseString);
-                    uuid = jsonObject.getString("deviceUuid");
-                    preferencesEditor.putString(DEVICE_UUID_KEY, uuid);
-                    preferencesEditor.apply();
                 }
-                response.body().close();
+                String responseString = response.body().string();
+                if (responseString.isEmpty()) {
+                    throw new HTTPRequestException("Exception raised on empty response in HTTP Get Request.");
+                }
+                Log.i(TAG, "Received response from the server with populated data.");
+                JSONObject jsonObject = new JSONObject(responseString);
+                mDeviceUuid = jsonObject.getString("deviceUuid");
+                mPreferencesEditor.putString(PREF_DEVICE_UUID, mDeviceUuid);
+                mPreferencesEditor.apply();
+                return String.valueOf(response.code());
             } catch (ConnectException e) {
-
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         // Do your stuff here related to UI, e.g. show toast
-                        Toast.makeText(getApplicationContext(), "Failed to connect to the server", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Connection Error.Failed to connect to the server", Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (SocketTimeoutException e) {
@@ -245,13 +246,19 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
                     @Override
                     public void run() {
                         // Do your stuff here related to UI, e.g. show toast
-                        Toast.makeText(getApplicationContext(), "Failed to connect to the server", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Socket Timeout.Failed to connect to the server", Toast.LENGTH_SHORT).show();
                     }
                 });
+            } catch (HTTPRequestException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            return null;
         }
+
     }
 
 }
