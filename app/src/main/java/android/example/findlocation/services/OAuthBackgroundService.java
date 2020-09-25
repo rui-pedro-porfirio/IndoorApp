@@ -1,18 +1,17 @@
 package android.example.findlocation.services;
 
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.example.findlocation.BuildConfig;
 import android.example.findlocation.IndoorApp;
 import android.example.findlocation.exceptions.HTTPRequestException;
 import android.example.findlocation.interfaces.SharedPreferencesInterface;
-import android.example.findlocation.ui.common.DisplayToast;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
-
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
@@ -127,6 +126,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     private void checkExpirationTokenValidity() {
         if (mExpirationDate != null) //Here it is assumed that the access token and refresh token are both existent
             mIsTokenValid = isAccessTokenValid();
+        Log.i(TAG, "Token validity: " + mIsTokenValid);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -165,18 +165,20 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         if (intent.getAction() != null) {
             if (mOAuthFlow == null) {
                 mOAuthFlow = intent.getStringExtra("Flow Type");
+                Log.i(TAG, "OAuth Flow: " + mOAuthFlow);
                 mPreferencesEditor.putString(PREF_AUTH_FLOW, mOAuthFlow);
                 mPreferencesEditor.apply();
             }
             switch (intent.getAction()) {
                 case ACTION_REQUEST_AUTH_CODE:
                     if (mAutorizationCode == null) {
+                        Log.i(TAG, "Received call for initiating OAuth procedure. Requesting authorization code...");
                         if (mOAuthFlow.equals(OAUTH_BASIC))
                             requestAuthorizationCode();
                         else
                             generateCodeVerifierAndChallengePKCE();
                     } else {
-                        mHandler.post(new DisplayToast(this, "User already logged in YanuX."));
+                        Log.i(TAG, "User already has authorization code. Request access token");
                         exchangeAuthorizationCode();
                     }
                     break;
@@ -188,7 +190,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                     mResultReceiver = intent.getParcelableExtra(RECEIVER);
                     boolean hasAccessToken = mAccessToken != null;
                     Bundle bundle_token = new Bundle();
-                    bundle_token.putBoolean("hasAccessToken", hasAccessToken);
+                    bundle_token.putBoolean("isValid", hasAccessToken);
                     mResultReceiver.send(AUTH_VALIDITY, bundle_token);
                     break;
             }
@@ -200,11 +202,13 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     }
 
     private void computeAuthorizationRequest(String authorizeAddress) {
+        Log.i(TAG, "Retrieving authorization code. Redirecting to authentication page.");
         Intent authenticationCodeRequirementIntent = new Intent("android.intent.action.VIEW", Uri.parse(authorizeAddress));
         authenticationCodeRequirementIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         authenticationCodeRequirementIntent.putExtra("Authentication Code Requirement", true);
         startActivity(authenticationCodeRequirementIntent);
         mAuthRetries++;
+        if (mAuthRetries >= NUMBER_OF_TRIES) throw new RuntimeException("Exception raised in exceeding the limit tries of authorization flow.");
     }
 
     private void generateCodeVerifierAndChallengePKCE() {
@@ -252,10 +256,11 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         Uri responseUri = intent.getData();
         mAutorizationCode = responseUri.getQueryParameter("code");
         String error = responseUri.getQueryParameter("error");
-        Log.d(TAG, "Authorization Code: " + mAutorizationCode);
+        if (BuildConfig.DEBUG) Log.d(TAG, "Authorization Code: " + mAutorizationCode);
         if (mAutorizationCode == null) {
             sendAuthorizationErrorMessageBackToUI(responseUri, mResultReceiver);
         } else {
+            Log.i(TAG, "Successfully retrieved authorization code. Requesting access token.");
             mPreferencesEditor.putString(PREF_AUTH_CODE, mAutorizationCode);
             mPreferencesEditor.apply();
             if (mOAuthFlow.equals(OAUTH_BASIC)) exchangeAuthorizationCode();
@@ -304,6 +309,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void requestAccessToken(RequestBody requestBody) {
+        Log.i(TAG, "Requesting access token...");
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
         Request request = new Request.Builder()
                 .url(EXCHANGE_AUTH_ADDRESS)
@@ -316,6 +322,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void exchangeRefreshToken() {
+        Log.i(TAG, "Access Token is obsolete. Updating token validity.");
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
         RequestBody requestBody = new FormBody.Builder()
                 .add("refresh_token", mRefreshToken)
@@ -333,10 +340,11 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void requestTokenInfo() {
+        Log.i(TAG, "Requesting (GET) information about token including username and expiration date.");
         Request request = new Request.Builder()
-                .url(VERIFY_AUTH_DATA)
+                .url(VERIFY_AUTH_DATA_ADDRESS)
                 .header("content-type", "application/json")
-                .header("authorization", "Bearer " + accessToken)
+                .header("authorization", "Bearer " + mAccessToken)
                 .build();
         sendGetHTTPRequest(request);
     }
@@ -344,20 +352,17 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void sendPostHTTPRequest(Request request) {
         Handler mainHandler = new Handler(getMainLooper());
-
+        Log.i(TAG, "Post Request started.");
         try (Response response = mHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                if (mAuthRetries >= NUMBER_OF_TRIES) {
-                    throw new HTTPRequestException("Exception raised in exceeding the limit tries of authorization flow.");
-                } else {
-                    throw new HTTPRequestException("Exception raised in unexpected failure on communication.");
-                }
+                throw new HTTPRequestException("Response was not successfully retrieved. Code: " + response.code());
             } else {
-                JSONObject json_params = new JSONObject(response.body().string());
-                mAccessToken = json_params.getString("access_token");
+                JSONObject mJsonObject = new JSONObject(response.body().string());
+                Log.i(TAG, "Successfully received POST response.");
+                mAccessToken = mJsonObject.getString("access_token");
                 mPreferencesEditor.putString(PREF_ACCESS_TOKEN, mAccessToken);
                 mPreferencesEditor.apply();
-                mRefreshToken = json_params.getString("refresh_token");
+                mRefreshToken = mJsonObject.getString("refresh_token");
                 mPreferencesEditor.putString(PREF_REFRESH_TOKEN, mRefreshToken);
                 mPreferencesEditor.apply();
                 requestTokenInfo();
@@ -369,7 +374,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    // Do your stuff here related to UI, e.g. show toast
                     Toast.makeText(getApplicationContext(), "Error in Application. Please review Post Request of OAuthBackgroundService.java", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -379,37 +383,36 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void sendGetHTTPRequest(Request request) {
         Handler mainHandler = new Handler(getMainLooper());
-        try (Response response = client.newCall(request).execute()) {
+
+        Log.i(TAG, "Get Request started.");
+        try (Response response = mHttpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                Bundle bundle = new Bundle();
-                bundle.putString("code_error", "Problem getting information about token.");
-                mResultReceiver.send(FAILED_RESULT_CODE, bundle);
+                throw new HTTPRequestException("Response was not successfully retrieved. Code: " + response.code());
             } else {
-                JSONObject json_params = new JSONObject(response.body().string());
-                JSONObject responseS = json_params.getJSONObject("response");
-                JSONObject user = responseS.getJSONObject("user");
-                username = user.getString("email");
-                preferencesEditor.putString(USERNAME_KEY, username);
-                preferencesEditor.apply();
-                JSONObject access_token_json = responseS.getJSONObject("access_token");
-                expirationDate = access_token_json.getString("expiration_date");
-                preferencesEditor.putString(EXPIRATION_DATE_KEY, expirationDate);
-                preferencesEditor.apply();
+                Log.i(TAG, "Successfully received GET response.");
+                JSONObject mJsonObject = new JSONObject(response.body().string());
+                JSONObject mResponseObject = mJsonObject.getJSONObject("response");
+                JSONObject mUserObject = mResponseObject.getJSONObject("user");
+                mUsername = mUserObject.getString("email");
+                mPreferencesEditor.putString(PREF_USERNAME, mUsername);
+                mPreferencesEditor.apply();
+                JSONObject mAccessTokenObject = mResponseObject.getJSONObject("access_token");
+                mExpirationDate = mAccessTokenObject.getString("expiration_date");
+                mPreferencesEditor.putString(PREF_EXPIRATION_DATE, mExpirationDate);
+                mPreferencesEditor.apply();
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        // Do your stuff here related to UI, e.g. show toast
                         Toast.makeText(getApplicationContext(), "User Authenticated.", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
             response.body().close();
-        } catch (IOException | JSONException e) {
+        } catch (IOException | JSONException | HTTPRequestException e) {
             e.printStackTrace();
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    // Do your stuff here related to UI, e.g. show toast
                     Toast.makeText(getApplicationContext(), "Error in Application. Please review Get Request of OAuthBackgroundService.java", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -417,6 +420,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     }
 
     private void cleanAuthCode() {
+        Log.i(TAG, "Cleaning cache objects.");
         mPreferencesEditor.remove(PREF_AUTH_CODE);
         mPreferencesEditor.apply();
         mPreferencesEditor.remove(PREF_PKCE_CODE_VERIFIER_KEY);

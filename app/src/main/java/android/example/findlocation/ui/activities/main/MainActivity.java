@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleRegisterButton() {
+        Log.i(TAG,"Clicked register button.");
         String yanuxRegisterUri = "https://yanux-auth.herokuapp.com/auth/register";
         final Intent mStartRegisterIntent = new Intent("android.intent.action.VIEW", Uri.parse(yanuxRegisterUri));
         Button mRegisterButton = findViewById(R.id.button_registerButton);
@@ -103,15 +104,18 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleLoginButton() {
+        Log.i(TAG,"Clicked login button.");
         Button mLoginButton = findViewById(R.id.button_loginButton);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
                 if (!isAuthenticated) {
+                    Log.i(TAG,"User not authenticated after login click. Initializing OAuth service.");
                     OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver,
                             ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
                 } else {
+                    Log.i(TAG, "User already authenticated after login click.");
                     Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
                 }
             }
@@ -119,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleExperimentButton() {
+        Log.i(TAG,"Clicked experiment button.");
         final Intent mStartExperimentIntent = new Intent(this, MainPageActivity.class);
         Button mExperimentButton = (Button) findViewById(R.id.button_experimentButton);
         mExperimentButton.setOnClickListener(new View.OnClickListener() {
@@ -130,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleScanButton() {
+        Log.i(TAG,"Clicked scan button.");
         final Intent mStartScanIntent = new Intent(this, ScanningActivity.class);
         Button mScanButton = (Button) findViewById(R.id.button_scanButton);
         mScanButton.setOnClickListener(new View.OnClickListener() {
@@ -144,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
         if (!isAuthenticated) {
             Log.i(TAG, "Starting OAuth Background Service.");
             OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_CHECK_AUTH_CODE, OAUTH_ID, OAUTH_PKCE, null);
-                    OAUTH_ID, OAUTH_PKCE, null);
         } else
             Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
     }
@@ -154,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
      */
     @Override
     protected void onNewIntent(Intent intent) {
+        Log.i(TAG, "User accepted the terms. Authorization Code retrieved.");
         super.onNewIntent(intent);
         // Start OAuth procedure for exchanging authorization code and retrieve the access token
         OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REPLY_AUTH_CODE, OAUTH_ID, null, intent);
@@ -172,10 +178,12 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
         }
         else if(resultCode == AUTH_VALIDITY){
-            isAuthenticated = resultData.getBoolean("hasAccessToken");
+            isAuthenticated = resultData.getBoolean("isValid");
             if (!isAuthenticated) {
+                Log.i(TAG,"User not authenticated after validity check. Initializing OAuth service.");
                 OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
             } else {
+                Log.i(TAG, "User already authenticated after validity check.");
                 Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
             }
         }
@@ -237,7 +245,6 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        // Do your stuff here related to UI, e.g. show toast
                         Toast.makeText(getApplicationContext(), "Connection Error.Failed to connect to the server", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -245,7 +252,6 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        // Do your stuff here related to UI, e.g. show toast
                         Toast.makeText(getApplicationContext(), "Socket Timeout.Failed to connect to the server", Toast.LENGTH_SHORT).show();
                     }
                 });
