@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
-        android:name=".App"
+        android:name=".IndoorApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -23,8 +23,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
-        <activity android:name=".activities.ui.ScanningActivity"
-            android:parentActivityName=".activities.ui.MainSecondPageActivity"></activity>
+        <activity android:name=".ui.activities.scanning.ScanningActivity"
+            android:parentActivityName=".ui.activities.main.MainActivity"></activity>
 
         <service
             android:name=".services.OAuthBackgroundService"
@@ -35,7 +35,7 @@
             android:foregroundServiceType="location" />
 
         <activity
-            android:name=".activities.ui.MainSecondPageActivity"
+            android:name=".ui.activities.main.MainActivity"
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -50,41 +50,41 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.trilateration.TrilaterationScreenActivity"
-            android:parentActivityName=".activities.ui.MainPageActivity" />
+            android:name=".ui.activities.trilateration.TrilaterationScreenActivity"
+            android:parentActivityName=".ui.activities.main.MainPageActivity" />
         <activity
-            android:name=".activities.proximity.ProximityOnlineActivity"
-            android:parentActivityName=".activities.proximity.ProximityScreenActivity" />
+            android:name=".ui.activities.proximity.ProximityOnlineActivity"
+            android:parentActivityName=".ui.activities.proximity.ProximityScreenActivity" />
         <activity
-            android:name=".activities.proximity.ProximityDistanceScanActivity"
-            android:parentActivityName=".activities.proximity.ProximityScreenActivity" />
+            android:name=".ui.activities.proximity.ProximityDistanceScanActivity"
+            android:parentActivityName=".ui.activities.proximity.ProximityScreenActivity" />
         <activity
-            android:name=".activities.proximity.ProximityScreenActivity"
-            android:parentActivityName=".activities.ui.MainPageActivity" />
+            android:name=".ui.activities.proximity.ProximityScreenActivity"
+            android:parentActivityName=".ui.activities.main.MainPageActivity" />
         <activity
-            android:name=".activities.fingerprinting.FingerprintingOnlineActivity"
-            android:parentActivityName=".activities.fingerprinting.FingerprintingScreenActivity" />
+            android:name=".ui.activities.fingerprinting.FingerprintingOnlineActivity"
+            android:parentActivityName=".ui.activities.fingerprinting.FingerprintingScreenActivity" />
         <activity
-            android:name=".activities.fingerprinting.FingerprintingOfflineActivity"
-            android:parentActivityName=".activities.fingerprinting.FingerprintingScreenActivity" />
+            android:name=".ui.activities.fingerprinting.FingerprintingOfflineActivity"
+            android:parentActivityName=".ui.activities.fingerprinting.FingerprintingScreenActivity" />
         <activity
-            android:name=".activities.fingerprinting.FingerprintingScreenActivity"
-            android:parentActivityName=".activities.ui.MainPageActivity" />
+            android:name=".ui.activities.fingerprinting.FingerprintingScreenActivity"
+            android:parentActivityName=".ui.activities.main.MainPageActivity" />
         <activity
-            android:name=".activities.sensors.GraphicalSensorInformationActivity"
-            android:parentActivityName=".activities.ui.MainPageActivity" />
+            android:name=".ui.activities.sensors.GraphicalSensorInformationActivity"
+            android:parentActivityName=".ui.activities.main.MainPageActivity" />
         <activity
-            android:name=".activities.sensors.SensorInformationActivity"
-            android:parentActivityName=".activities.ui.MainPageActivity">
+            android:name=".ui.activities.sensors.SensorInformationActivity"
+            android:parentActivityName=".ui.activities.main.MainPageActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.ui.MainPageActivity" />
+                android:value=".ui.activities.main.MainPageActivity" />
         </activity>
         <activity
-            android:name=".activities.ui.MainPageActivity"
-            android:parentActivityName=".activities.ui.MainSecondPageActivity" />
+            android:name=".ui.activities.main.MainPageActivity"
+            android:parentActivityName=".ui.activities.main.MainActivity" />
         <activity
-            android:name=".activities.ui.MainActivity"
+            android:name=".ui.activities.main.LauncherActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,8 +1,5 @@
 package android.example.findlocation.services;
 
-import android.Manifest;
-import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,15 +7,12 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.example.findlocation.App;
+import android.example.findlocation.IndoorApp;
 import android.example.findlocation.R;
-import android.example.findlocation.activities.sensors.SensorInformationActivity;
-import android.example.findlocation.activities.ui.MainSecondPageActivity;
+import android.example.findlocation.ui.activities.main.MainActivity;
 import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
@@ -31,14 +25,11 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.Message;
 import android.os.RemoteException;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -52,8 +43,6 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -103,7 +92,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
     public void onCreate() {
         super.onCreate();
         client = new OkHttpClient();
-        applicationPreferences = App.preferences;
+        applicationPreferences = IndoorApp.preferences;
         HandlerThread thread = new HandlerThread("ServiceStartArguments");
         thread.start();
         latestSizeAP = 0;
@@ -128,7 +117,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
-        Intent notificationIntent = new Intent(this, MainSecondPageActivity.class);
+        Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(this, 0, notificationIntent, 0);
@@ -143,10 +132,10 @@ public class ScanBackgroundService extends Service implements SensorEventListene
 
         startForeground(NOTIFICATION_ID, notification);
         activateSensorScan();
-        serviceHandler.postDelayed(new Runnable(){
-            public void run(){
+        serviceHandler.postDelayed(new Runnable() {
+            public void run() {
                 //UPDATE NOTIFICATION
-                if(latestSizeAP != mAccessPoints.size() || latestSizeBLE != mBeaconsList.size()) {
+                if (latestSizeAP != mAccessPoints.size() || latestSizeBLE != mBeaconsList.size()) {
                     builder.setContentText("Access Points Detected: " + mAccessPoints.size() + " | Beacons Detected: " + mBeaconsList.size());
                     NotificationManager notificationManager = getSystemService(NotificationManager.class);
                     notificationManager.notify(NOTIFICATION_ID, builder.build());
@@ -154,7 +143,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
                     latestSizeBLE = mBeaconsList.size();
                 }
                 //SEND TO SERVER COLLECTED DATA
-                if(mAccessPoints.size() != 0 || mBeaconsList.size() != 0)
+                if (mAccessPoints.size() != 0 || mBeaconsList.size() != 0)
                     sendToServer();
                 //serviceHandler.postDelayed(this, delay);
             }
@@ -163,13 +152,13 @@ public class ScanBackgroundService extends Service implements SensorEventListene
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void sendToServer(){
+    public void sendToServer() {
         String username = applicationPreferences.getString(USERNAME_KEY, null);
-        String deviceUuid = applicationPreferences.getString(DEVICE_UUID_KEY,null);
-        ScanningObject scanningObject = new ScanningObject(username,deviceUuid,mAccessPoints,mBeaconsList,mSensorInformationList);
+        String deviceUuid = applicationPreferences.getString(DEVICE_UUID_KEY, null);
+        ScanningObject scanningObject = new ScanningObject(username, deviceUuid, mAccessPoints, mBeaconsList, mSensorInformationList);
         Gson gson = new Gson();
         String json = gson.toJson(scanningObject);
-        sendPostHTTPRequest(ADDRESS+"scanning/",json,"");
+        sendPostHTTPRequest(ADDRESS + "scanning/", json, "");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -182,7 +171,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
                 .post(body)
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()){
+            if (!response.isSuccessful()) {
                 throw new IOException("Unexpected code " + response);
             } else {
                 System.out.println("RESPONSE: " + response.body().string());

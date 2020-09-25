@@ -4,8 +4,8 @@ import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.example.findlocation.App;
-import android.example.findlocation.activities.ui.DisplayToast;
+import android.example.findlocation.IndoorApp;
+import android.example.findlocation.ui.common.DisplayToast;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,14 +28,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import okhttp3.Credentials;
 import okhttp3.FormBody;
@@ -105,7 +99,7 @@ public class OAuthBackgroundService extends JobIntentService {
     public void onCreate() {
         super.onCreate();
         client = new OkHttpClient();
-        applicationPreferences = App.preferences;
+        applicationPreferences = IndoorApp.preferences;
         mHandler = new Handler();
         retries = 0;
         preferencesEditor = applicationPreferences.edit();
