@@ -71,12 +71,12 @@ import okhttp3.Response;
 public class ScanBackgroundService extends Service implements SensorEventListener, BeaconConsumer {
 
     public static final int NOTIFICATION_ID = 5555;
-    private static final String ADDRESS = "http://192.168.1.8:8000/";
+    private static final String ADDRESS = "http://192.168.1.4:8080/";
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private final static String CHANNEL_ID = "indoorApp.ScanningService";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String USERNAME_KEY = "Username";
-    private static final String ACCESS_TOKEN_KEY = "Access Token";
+    private static final String DEVICE_UUID_KEY = "Device UUID";
     private Notification.Builder builder;
     private Looper serviceLooper;
     private ServiceHandler serviceHandler;
@@ -165,8 +165,8 @@ public class ScanBackgroundService extends Service implements SensorEventListene
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void sendToServer(){
         String username = applicationPreferences.getString(USERNAME_KEY, null);
-        String accessToken = applicationPreferences.getString(ACCESS_TOKEN_KEY, null);
-        ScanningObject scanningObject = new ScanningObject(username,accessToken,mAccessPoints,mBeaconsList,mSensorInformationList);
+        String deviceUuid = applicationPreferences.getString(DEVICE_UUID_KEY,null);
+        ScanningObject scanningObject = new ScanningObject(username,deviceUuid,mAccessPoints,mBeaconsList,mSensorInformationList);
         Gson gson = new Gson();
         String json = gson.toJson(scanningObject);
         sendPostHTTPRequest(ADDRESS+"scanning/",json,"");

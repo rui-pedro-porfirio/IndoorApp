@@ -23,7 +23,9 @@ fuzzy_dict = decision_system.create_fuzzy_system()
 fuzzy_system = fuzzy_dict['System']
 fuzzy_technique = fuzzy_dict['Technique MF']
 decision_system.test_phase(fuzzy_system,fuzzy_technique)
-websockets.publish('RPP','Personal')
+uuid = '123456'
+position_dict = {'Regression':(0.5,0.3),'Classification':'Personal'}
+websockets.publish('RPP',uuid,position_dict)
 
 class UserView(viewsets.ModelViewSet):
     queryset = UserTable.objects.all()
@@ -70,6 +72,7 @@ class ScanningView(APIView):
         sample_dict = request.data
         print(sample_dict)
         username = sample_dict['username']
+        uuid = sample_dict['uuid']
         access_points = sample_dict['mAccessPoints']
         beacons = sample_dict['mBeaconsList']
         sensors = sample_dict['mSensorInformationList']
@@ -175,9 +178,13 @@ class ScanningView(APIView):
                 if isClassifier:
                     positionClassification = proximityPositioning.apply_knn_classification_scanning(matching_data['dataset'],test_df)
                 print('ML Algorithm done running')
-            #TODO: GET POSITION OF USER
-            position = 0.5
             #TODO: SEND PUBLISH TO YANUX
+            position_dict = {}
+            if positionRegression != None:
+                position_dict['Regression'] = positionRegression
+            if positionClassification != None:
+                position_dict['Classification'] = positionClassification
+            websockets.publish(username,uuid,position_dict)
 
 
 def load_access_points_locations():
