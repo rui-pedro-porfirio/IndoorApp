@@ -7,7 +7,7 @@
     tools:context=".ui.activities.scanning.ScanningActivity">
 
     <ProgressBar
-        android:id="@+id/scanProgressBarId"
+        android:id="@+id/progress_ActiveScanBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -18,41 +18,14 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/text_ActiveScanSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/scanning_data_string"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scanProgressBarId"
+        app:layout_constraintTop_toBottomOf="@+id/progress_ActiveScanBar"
         app:layout_constraintVertical_bias="0.0" />
 
-
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.85"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.05">
-
-        <ImageView
-            android:id="@+id/tracking_buttonIdP2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_notification_overlay" />
-
-        <TextView
-            android:id="@+id/tracking_statusIdP2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:layout_toEndOf="@+id/tracking_buttonIdP2"
-            android:text="@string/tracking_status"
-            android:textColor="#E80A0A"
-            android:textSize="10sp" />
-    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
