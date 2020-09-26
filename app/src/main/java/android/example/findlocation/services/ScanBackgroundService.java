@@ -92,7 +92,7 @@ public class ScanBackgroundService extends Service implements SensorEventListene
     public void onCreate() {
         super.onCreate();
         client = new OkHttpClient();
-        applicationPreferences = IndoorApp.preferences;
+        applicationPreferences = IndoorApp.appPreferences;
         HandlerThread thread = new HandlerThread("ServiceStartArguments");
         thread.start();
         latestSizeAP = 0;

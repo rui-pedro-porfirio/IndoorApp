@@ -72,7 +72,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     private static final String OAUTH_BASIC = "Authorization Code Flow";
     private static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
 
-    private Handler mHandler;
+    private ResultReceiver mReceiver;
     private SharedPreferences mApplicationPreferences;
     private SharedPreferences.Editor mPreferencesEditor;
     private OkHttpClient mHttpClient;
@@ -95,11 +95,11 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     public void onCreate() {
         super.onCreate();
         initializeSharedPreferences();
+        mReceiver = null;
         mHttpClient = new OkHttpClient();
-        mHandler = new Handler();
         mAuthRetries = 0;
         mCodeChallenge = null;
-        initializeSharedPreferences();
+        loadVariablesFromSharedPreferences();
         checkExpirationTokenValidity();
         if (!mIsTokenValid && mAccessToken != null && mRefreshToken != null)
             exchangeRefreshToken();
@@ -162,6 +162,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         Log.i(TAG, "onHandleWork() called with: intent = [" + intent + "]");
+        if (mReceiver == null) mReceiver = intent.getParcelableExtra(RECEIVER);
         if (intent.getAction() != null) {
             if (mOAuthFlow == null) {
                 mOAuthFlow = intent.getStringExtra("Flow Type");
@@ -183,15 +184,13 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                     }
                     break;
                 case ACTION_REPLY_AUTH_CODE:
-                    ResultReceiver mResultReceiver = intent.getParcelableExtra(RECEIVER);
-                    structureAuthorizationCode(intent, mResultReceiver);
+                    structureAuthorizationCode(intent);
                     break;
                 case ACTION_CHECK_AUTH_CODE:
-                    mResultReceiver = intent.getParcelableExtra(RECEIVER);
                     boolean hasAccessToken = mAccessToken != null;
                     Bundle bundle_token = new Bundle();
                     bundle_token.putBoolean("isValid", hasAccessToken);
-                    mResultReceiver.send(AUTH_VALIDITY, bundle_token);
+                    mReceiver.send(AUTH_VALIDITY, bundle_token);
                     break;
             }
         }
@@ -252,13 +251,13 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void structureAuthorizationCode(Intent intent, ResultReceiver mResultReceiver) {
+    private void structureAuthorizationCode(Intent intent) {
         Uri responseUri = intent.getData();
         mAutorizationCode = responseUri.getQueryParameter("code");
         String error = responseUri.getQueryParameter("error");
         if (BuildConfig.DEBUG) Log.d(TAG, "Authorization Code: " + mAutorizationCode);
         if (mAutorizationCode == null) {
-            sendAuthorizationErrorMessageBackToUI(responseUri, mResultReceiver);
+            sendAuthorizationErrorMessageBackToUI(responseUri, mReceiver);
         } else {
             Log.i(TAG, "Successfully retrieved authorization code. Requesting access token.");
             mPreferencesEditor.putString(PREF_AUTH_CODE, mAutorizationCode);
@@ -400,12 +399,9 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                 mExpirationDate = mAccessTokenObject.getString("expiration_date");
                 mPreferencesEditor.putString(PREF_EXPIRATION_DATE, mExpirationDate);
                 mPreferencesEditor.apply();
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(), "User Authenticated.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                Bundle bundle_token = new Bundle();
+                bundle_token.putBoolean("isValid",true);
+                mReceiver.send(AUTH_VALIDITY, bundle_token);
             }
             response.body().close();
         } catch (IOException | JSONException | HTTPRequestException e) {

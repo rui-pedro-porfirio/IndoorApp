@@ -19,7 +19,11 @@ public class IndoorApp extends Application {
         super.onCreate();
         appPreferences = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
         if (BuildConfig.DEBUG) displayPreferences();
-        // resetPreferences();
+        /*try {
+            resetPreferences();
+        } catch (SharedPreferencesException e) {
+            e.printStackTrace();
+        }*/
         Log.i(TAG, "Starting new instance of Indoor Application");
     }
 

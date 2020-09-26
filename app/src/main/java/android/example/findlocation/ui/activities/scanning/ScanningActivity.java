@@ -41,7 +41,7 @@ public class ScanningActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        applicationPreferences = IndoorApp.preferences;
+        applicationPreferences = IndoorApp.appPreferences;
         //Start Service
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(new Intent(this, ScanBackgroundService.class));

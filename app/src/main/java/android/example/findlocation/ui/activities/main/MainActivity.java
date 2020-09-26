@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleRegisterButton() {
-        Log.i(TAG,"Clicked register button.");
+        Log.i(TAG, "Clicked register button.");
         String yanuxRegisterUri = "https://yanux-auth.herokuapp.com/auth/register";
         final Intent mStartRegisterIntent = new Intent("android.intent.action.VIEW", Uri.parse(yanuxRegisterUri));
         Button mRegisterButton = findViewById(R.id.button_registerButton);
@@ -104,14 +104,14 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleLoginButton() {
-        Log.i(TAG,"Clicked login button.");
+        Log.i(TAG, "Clicked login button.");
         Button mLoginButton = findViewById(R.id.button_loginButton);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
                 if (!isAuthenticated) {
-                    Log.i(TAG,"User not authenticated after login click. Initializing OAuth service.");
+                    Log.i(TAG, "User not authenticated after login click. Initializing OAuth service.");
                     OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver,
                             ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
                 } else {
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleExperimentButton() {
-        Log.i(TAG,"Clicked experiment button.");
+        Log.i(TAG, "Clicked experiment button.");
         final Intent mStartExperimentIntent = new Intent(this, MainPageActivity.class);
         Button mExperimentButton = (Button) findViewById(R.id.button_experimentButton);
         mExperimentButton.setOnClickListener(new View.OnClickListener() {
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleScanButton() {
-        Log.i(TAG,"Clicked scan button.");
+        Log.i(TAG, "Clicked scan button.");
         final Intent mStartScanIntent = new Intent(this, ScanningActivity.class);
         Button mScanButton = (Button) findViewById(R.id.button_scanButton);
         mScanButton.setOnClickListener(new View.OnClickListener() {
@@ -147,11 +147,8 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     private void startOAuthJob() {
-        if (!isAuthenticated) {
-            Log.i(TAG, "Starting OAuth Background Service.");
-            OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_CHECK_AUTH_CODE, OAUTH_ID, OAUTH_PKCE, null);
-        } else
-            Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
+        Log.i(TAG, "Starting OAuth Background Service.");
+        OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_CHECK_AUTH_CODE, OAUTH_ID, OAUTH_PKCE, null);
     }
 
     /*
@@ -176,15 +173,14 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
             String errorMessage = resultData.getString("code_error");
             Log.e(TAG, errorMessage);
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
-        }
-        else if(resultCode == AUTH_VALIDITY){
+        } else if (resultCode == AUTH_VALIDITY) {
             isAuthenticated = resultData.getBoolean("isValid");
             if (!isAuthenticated) {
-                Log.i(TAG,"User not authenticated after validity check. Initializing OAuth service.");
+                Log.i(TAG, "User not authenticated after validity check. Initializing OAuth service.");
                 OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
             } else {
                 Log.i(TAG, "User already authenticated after validity check.");
-                Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "User Authenticated.", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -196,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
 
     private class HTTPGetRequest extends AsyncTask<Void, Void, String> {
 
-        private final String TAG = LauncherActivity.class.getSimpleName();
+        private final String TAG = HTTPGetRequest.class.getSimpleName();
         private String mIpAddress;
 
         public HTTPGetRequest(String address) {
