@@ -36,10 +36,10 @@ public class ScanningActivity extends AppCompatActivity {
         mService = null;
         mBound = false;
         setContentView(R.layout.activity_scanning);
-        startBackgroundScanningService();
-        bindToBackgroundScanningService();
         verifyBluetooth();
         requestPermissions();
+        startBackgroundScanningService();
+        bindToBackgroundScanningService();
     }
 
 

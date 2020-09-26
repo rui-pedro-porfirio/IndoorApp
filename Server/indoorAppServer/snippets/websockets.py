@@ -8,7 +8,7 @@ def publish(username,uuid,position):
     print('Publishing new message')
     payload = {'username': username,'UUID':uuid,'position':position}
     print('HERE WE ARE ')
-    response = requests.post(heroku_url,
+    response = requests.post(local_url,
                   json={
                       'topic': 'onLocationUpdate',
                       'args': [payload]

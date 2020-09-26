@@ -9,7 +9,7 @@ from . import auxiliarFunctions as aux
 dataset_heroku = '/app/Notebooks/PROXIMITY/dataset_train_university.csv'
 dataset_local = 'Notebooks/PROXIMITY/dataset_train_university.csv'
 
-dataset = pd.read_csv(dataset_heroku)
+dataset = pd.read_csv(dataset_local)
 label_encoder = LabelEncoder()
 train_X_rssi = None
 train_X_rolling_mean = None

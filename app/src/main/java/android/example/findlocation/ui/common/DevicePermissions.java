@@ -9,6 +9,9 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 public class DevicePermissions {
 
     private static final String TAG = DevicePermissions.class.getSimpleName();
@@ -19,17 +22,16 @@ public class DevicePermissions {
 
     public DevicePermissions(Activity mContext) {
         this.mContext = mContext;
-        requestPermissions();
     }
 
     public void requestPermissions() {
         Log.i(TAG, "Starting to request Permissions for fine and background location.");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            if (ContextCompat.checkSelfPermission(mContext,Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
-                if (mContext.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                if (ContextCompat.checkSelfPermission(mContext,Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
-                    if (mContext.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(mContext,Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
                         final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                         builder.setTitle("This app needs background location access");
                         builder.setMessage("Please grant location access so this app can detect beacons in the background.");
@@ -39,7 +41,7 @@ public class DevicePermissions {
                             @TargetApi(23)
                             @Override
                             public void onDismiss(DialogInterface dialog) {
-                                mContext.requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                ActivityCompat.requestPermissions(mContext,new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                                         PERMISSION_REQUEST_BACKGROUND_LOCATION);
                             }
 
@@ -62,8 +64,8 @@ public class DevicePermissions {
 
                 }
             } else {
-                if (mContext.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    mContext.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                if (ActivityCompat.shouldShowRequestPermissionRationale(mContext,Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    ActivityCompat.requestPermissions(mContext,new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                                     Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                             PERMISSION_REQUEST_FINE_LOCATION);
                 } else {
