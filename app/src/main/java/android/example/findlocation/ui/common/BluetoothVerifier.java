@@ -18,7 +18,7 @@ public class BluetoothVerifier {
     }
 
     public void verifyBluetooth() {
-        Log.i(TAG,"Starting the verification on Bluetooth's state.");
+        Log.i(TAG, "Starting the verification on Bluetooth's state.");
         try {
             if (!BeaconManager.getInstanceForApplication(mContext).checkAvailability()) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);

@@ -47,30 +47,30 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     static final String VERIFY_AUTH_DATA_ADDRESS = "https://yanux-auth.herokuapp.com/api/verify_oauth2";
     static final String REDIRECT_URI = "indoorapp://auth/redirect";
 
-    public static final String RECEIVER = "receiver";
+    static final String RECEIVER = "receiver";
 
-    private static final String ACTION_REQUEST_AUTH_CODE = "action.REQUEST_AUTH_CODE";
-    private static final String ACTION_REPLY_AUTH_CODE = "action.REPLY_AUTH_CODE";
-    private static final String ACTION_CHECK_AUTH_CODE = "action.CHECK_AUTH_CODE";
+    static final String ACTION_REQUEST_AUTH_CODE = "action.REQUEST_AUTH_CODE";
+    static final String ACTION_REPLY_AUTH_CODE = "action.REPLY_AUTH_CODE";
+    static final String ACTION_CHECK_AUTH_CODE = "action.CHECK_AUTH_CODE";
 
-    private static final String CLIENT_ID = "indoor-location-app";
-    private static final String CLIENT_SECRET = "indoorsecret";
+    static final String CLIENT_ID = "indoor-location-app";
+    static final String CLIENT_SECRET = "indoorsecret";
 
-    private static final int NUMBER_OF_TRIES = 3;
+    static final int NUMBER_OF_TRIES = 3;
 
-    public static final int AUTH_VALIDITY = 102;
-    public static final int FAILED_RESULT_CODE = 500;
+    static final int AUTH_VALIDITY = 102;
+    static final int FAILED_RESULT_CODE = 500;
 
-    private static final String PREF_USERNAME = "PREF_USERNAME";
-    private static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
-    private static final String PREF_REFRESH_TOKEN = "PREF_REFRESH_TOKEN";
-    private static final String PREF_EXPIRATION_DATE = "PREF_EXPIRATION_DATE";
-    private static final String PREF_AUTH_CODE = "PREF_AUTH_CODE";
-    private static final String PREF_AUTH_FLOW = "PREF_AUTH_FLOW";
-    private static final String PREF_PKCE_CODE_VERIFIER_KEY = "PREF_PKCE_CODE_VERIFIER_KEY";
+    static final String PREF_USERNAME = "PREF_USERNAME";
+    static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
+    static final String PREF_REFRESH_TOKEN = "PREF_REFRESH_TOKEN";
+    static final String PREF_EXPIRATION_DATE = "PREF_EXPIRATION_DATE";
+    static final String PREF_AUTH_CODE = "PREF_AUTH_CODE";
+    static final String PREF_AUTH_FLOW = "PREF_AUTH_FLOW";
+    static final String PREF_PKCE_CODE_VERIFIER_KEY = "PREF_PKCE_CODE_VERIFIER_KEY";
 
-    private static final String OAUTH_BASIC = "Authorization Code Flow";
-    private static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
+    static final String OAUTH_BASIC = "Authorization Code Flow";
+    static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
 
     private ResultReceiver mReceiver;
     private SharedPreferences mApplicationPreferences;

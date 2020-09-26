@@ -30,7 +30,7 @@
             android:name=".services.OAuthBackgroundService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
-            android:name=".services.ScanBackgroundService"
+            android:name=".services.ActiveScanningService"
             android:exported="false"
             android:foregroundServiceType="location" />
 

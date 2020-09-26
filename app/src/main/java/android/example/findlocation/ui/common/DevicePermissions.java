@@ -23,7 +23,7 @@ public class DevicePermissions {
     }
 
     public void requestPermissions() {
-        Log.i(TAG,"Starting to request Permissions for fine and background location.");
+        Log.i(TAG, "Starting to request Permissions for fine and background location.");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {

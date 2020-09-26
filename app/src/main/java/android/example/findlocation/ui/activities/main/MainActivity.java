@@ -35,7 +35,7 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements ServiceResultReceiver.Receiver, SharedPreferencesInterface {
 
-    static final String TAG = MainActivity.class.getSimpleName();
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
 
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     static final String ACTION_REPLY_AUTH_CODE = "action.REPLY_AUTH_CODE";
     static final String ACTION_CHECK_AUTH_CODE = "action.CHECK_AUTH_CODE";
     static final int FAILED_RESULT_CODE = 500;
-    public static final int AUTH_VALIDITY = 102;
+    static final int AUTH_VALIDITY = 102;
 
     static final String OAUTH_BASIC = "Authorization Code Flow";
     static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
