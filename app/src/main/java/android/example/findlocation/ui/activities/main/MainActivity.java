@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_activity);
+        setContentView(R.layout.activity_main);
         initializeSharedPreferences();
         this.mHttpClient = new OkHttpClient();
         mServiceResultReceiver = new ServiceResultReceiver(new Handler());
@@ -91,25 +91,25 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleRegisterButton() {
-        Log.i(TAG, "Clicked register button.");
         String yanuxRegisterUri = "https://yanux-auth.herokuapp.com/auth/register";
         final Intent mStartRegisterIntent = new Intent("android.intent.action.VIEW", Uri.parse(yanuxRegisterUri));
         Button mRegisterButton = findViewById(R.id.button_registerButton);
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "Clicked register button.");
                 startActivity(mStartRegisterIntent);
             }
         });
     }
 
     public void handleLoginButton() {
-        Log.i(TAG, "Clicked login button.");
         Button mLoginButton = findViewById(R.id.button_loginButton);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "Clicked login button.");
                 if (!isAuthenticated) {
                     Log.i(TAG, "User not authenticated after login click. Initializing OAuth service.");
                     OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver,
@@ -123,24 +123,24 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleExperimentButton() {
-        Log.i(TAG, "Clicked experiment button.");
-        final Intent mStartExperimentIntent = new Intent(this, MainPageActivity.class);
+        final Intent mStartExperimentIntent = new Intent(this, ExperimentScreenActivity.class);
         Button mExperimentButton = (Button) findViewById(R.id.button_experimentButton);
         mExperimentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "Clicked experiment button.");
                 startActivity(mStartExperimentIntent);
             }
         });
     }
 
     public void handleScanButton() {
-        Log.i(TAG, "Clicked scan button.");
         final Intent mStartScanIntent = new Intent(this, ScanningActivity.class);
         Button mScanButton = (Button) findViewById(R.id.button_scanButton);
         mScanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(TAG, "Clicked scan button.");
                 startActivity(mStartScanIntent);
             }
         });

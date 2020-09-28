@@ -2,6 +2,7 @@ import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
+
 def create_fuzzy_system():
     # New Antecedent/Consequent objects hold universe variables and membership
     # functions
@@ -76,6 +77,7 @@ def compute_fuzzy_decision(position_technique_ctrl,technique,number_beacons,matc
 
     return result
 
+
 def test_phase(control_system,technique):
 
     #TESTING PHASE
@@ -93,3 +95,4 @@ def test_phase(control_system,technique):
     assert test_rule6 == 'Proximity'
     test_rule7 = compute_fuzzy_decision(control_system,technique,3,25,2,2)
     assert test_rule7 == 'Proximity'
+

@@ -51,7 +51,7 @@
         </activity>
         <activity
             android:name=".ui.activities.trilateration.TrilaterationScreenActivity"
-            android:parentActivityName=".ui.activities.main.MainPageActivity" />
+            android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
         <activity
             android:name=".ui.activities.proximity.ProximityOnlineActivity"
             android:parentActivityName=".ui.activities.proximity.ProximityScreenActivity" />
@@ -60,7 +60,7 @@
             android:parentActivityName=".ui.activities.proximity.ProximityScreenActivity" />
         <activity
             android:name=".ui.activities.proximity.ProximityScreenActivity"
-            android:parentActivityName=".ui.activities.main.MainPageActivity" />
+            android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
         <activity
             android:name=".ui.activities.fingerprinting.FingerprintingOnlineActivity"
             android:parentActivityName=".ui.activities.fingerprinting.FingerprintingScreenActivity" />
@@ -69,19 +69,19 @@
             android:parentActivityName=".ui.activities.fingerprinting.FingerprintingScreenActivity" />
         <activity
             android:name=".ui.activities.fingerprinting.FingerprintingScreenActivity"
-            android:parentActivityName=".ui.activities.main.MainPageActivity" />
+            android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
         <activity
             android:name=".ui.activities.sensors.GraphicalSensorInformationActivity"
-            android:parentActivityName=".ui.activities.main.MainPageActivity" />
+            android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
         <activity
-            android:name=".ui.activities.sensors.SensorInformationActivity"
-            android:parentActivityName=".ui.activities.main.MainPageActivity">
+            android:name=".ui.activities.sensors.SensorAnalysisActivity"
+            android:parentActivityName=".ui.activities.main.ExperimentScreenActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.activities.main.MainPageActivity" />
+                android:value=".ui.activities.main.ExperimentScreenActivity" />
         </activity>
         <activity
-            android:name=".ui.activities.main.MainPageActivity"
+            android:name=".ui.activities.main.ExperimentScreenActivity"
             android:parentActivityName=".ui.activities.main.MainActivity" />
         <activity
             android:name=".ui.activities.main.LauncherActivity"

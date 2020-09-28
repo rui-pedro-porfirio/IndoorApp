@@ -2,6 +2,7 @@ package android.example.findlocation.ui.adapters;
 
 import android.content.Context;
 import android.example.findlocation.R;
+import android.example.findlocation.objects.client.WifiObject;
 import android.net.wifi.ScanResult;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,12 +18,12 @@ public class WiFiAdapter extends
             RecyclerView.Adapter<WiFiAdapter.WifiViewHolder>{
 
 
-        private final List<ScanResult> mSensorInformationList;
+        private final List<WifiObject> mAccessPointsList;
         private LayoutInflater mInflater;
 
-        public WiFiAdapter(Context context,  List<ScanResult> mSensorInformationList) {
+        public WiFiAdapter(Context context,  List<WifiObject> mAccessPointsList) {
             mInflater = LayoutInflater.from(context);
-            this.mSensorInformationList = mSensorInformationList;
+            this.mAccessPointsList = mAccessPointsList;
         }
 
         @NonNull
@@ -35,14 +36,14 @@ public class WiFiAdapter extends
 
         @Override
         public void onBindViewHolder(@NonNull WiFiAdapter.WifiViewHolder holder, int position) {
-            ScanResult mCurrentSensor = mSensorInformationList.get(position);
-            holder.wifiSSIDView.setText("SSID: " + mCurrentSensor.SSID);
-            holder.wifiRSSIView.setText("RSSI: " + String.valueOf(mCurrentSensor.level));
+            WifiObject mCurrentAccessPoint = mAccessPointsList.get(position);
+            holder.wifiSSIDView.setText("SSID: " + mCurrentAccessPoint.getName());
+            holder.wifiRSSIView.setText("RSSI: " + mCurrentAccessPoint.getSingleValue());
         }
 
         @Override
         public int getItemCount() {
-            return mSensorInformationList.size();
+            return mAccessPointsList.size();
         }
 
 

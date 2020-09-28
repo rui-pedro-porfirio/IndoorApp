@@ -13,14 +13,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.DecimalFormat;
 import java.util.LinkedList;
+import java.util.List;
 
 public class SensorAdapter extends
         RecyclerView.Adapter<SensorAdapter.SensorViewHolder>{
 
-    private final LinkedList<SensorObject> mSensorInformationList;
+    private final List<SensorObject> mSensorInformationList;
     private LayoutInflater mInflater;
 
-    public SensorAdapter(Context context,LinkedList<SensorObject> mSensorInformationList) {
+    public SensorAdapter(Context context, List<SensorObject> mSensorInformationList) {
         mInflater = LayoutInflater.from(context);
         this.mSensorInformationList = mSensorInformationList;
     }

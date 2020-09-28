@@ -2,6 +2,7 @@ package android.example.findlocation.ui.adapters;
 
 import android.content.Context;
 import android.example.findlocation.R;
+import android.example.findlocation.objects.client.BluetoothObject;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,16 +14,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.altbeacon.beacon.Beacon;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public class BluetoothAdapterRC extends
         RecyclerView.Adapter<BluetoothAdapterRC.BluetoothViewHolder>{
 
-    private final LinkedList<Beacon> mSensorInformationList;
+    private final List<BluetoothObject> mBeaconsList;
     private LayoutInflater mInflater;
 
-    public BluetoothAdapterRC(Context context, LinkedList<Beacon> mSensorInformationList) {
+    public BluetoothAdapterRC(Context context, List<BluetoothObject> mBeaconsList) {
         mInflater = LayoutInflater.from(context);
-        this.mSensorInformationList = mSensorInformationList;
+        this.mBeaconsList = mBeaconsList;
     }
 
     @NonNull
@@ -35,14 +37,14 @@ public class BluetoothAdapterRC extends
 
     @Override
     public void onBindViewHolder(@NonNull BluetoothAdapterRC.BluetoothViewHolder holder, int position) {
-        Beacon mCurrentSensor = mSensorInformationList.get(position);
-        holder.bluetoothItemView.setText("Major: " + mCurrentSensor.getId2().toString() + " - Minor: " + mCurrentSensor.getId3());
-        holder.bluetoothValueView.setText("RSSI: " + String.valueOf(mCurrentSensor.getRssi()));
+        BluetoothObject mBeacon = mBeaconsList.get(position);
+        holder.bluetoothItemView.setText("Name: " + mBeacon.getName());
+        holder.bluetoothValueView.setText("RSSI: " + mBeacon.getSingleValue());
     }
 
     @Override
     public int getItemCount() {
-        return mSensorInformationList.size();
+        return mBeaconsList.size();
     }
 
 

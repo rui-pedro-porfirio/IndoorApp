@@ -391,8 +391,20 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mAccessPointsList = new ArrayList<>();
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
-        registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        wifiManager.startScan();
+        BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent intent) {
+                boolean success = intent.getBooleanExtra(
+                        WifiManager.EXTRA_RESULTS_UPDATED, false);
+                if (success)
+                    handleApScans();
+            }
+        };
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        registerReceiver(wifiScanReceiver, intentFilter);
+
         Log.i(TAG, "Successfully initialized wifi settings for scanning.");
     }
 

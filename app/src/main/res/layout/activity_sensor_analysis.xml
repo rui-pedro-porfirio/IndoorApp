@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="30dp"
-    tools:context=".ui.activities.sensors.SensorInformationActivity">
+    tools:context=".ui.activities.sensors.SensorAnalysisActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/movementsensorId"
+                android:id="@+id/text_sensorAnalysisTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/andada"
@@ -33,14 +33,14 @@
 
             <androidx.recyclerview.widget.RecyclerView
 
-                android:id="@+id/recyclerview"
+                android:id="@+id/recycler_deviceRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
             </androidx.recyclerview.widget.RecyclerView>
 
             <TextView
-                android:id="@+id/bluetoothsensorid"
+                android:id="@+id/text_bluetoothAnalysisTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/andada"
@@ -51,7 +51,7 @@
 
             <androidx.recyclerview.widget.RecyclerView
 
-                android:id="@+id/recyclerviewBluetooth"
+                android:id="@+id/recycler_bluetoothRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -59,7 +59,7 @@
 
 
             <TextView
-                android:id="@+id/wifisensorid"
+                android:id="@+id/text_wifiAnalysisTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/andada"
@@ -70,7 +70,7 @@
 
             <androidx.recyclerview.widget.RecyclerView
 
-                android:id="@+id/recyclerviewWiFi"
+                android:id="@+id/recycler_wifiRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
