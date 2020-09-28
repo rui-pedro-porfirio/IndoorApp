@@ -19,7 +19,10 @@ from .serializers import FingerprintSerializer, DeviceDataSerializer, WifiDataSe
 from .snippets import radiomap, filters, convertJson, fingerprintPositioning, proximityPositioning, decision_system, \
     websockets, initializationModule
 
-# Initialization of the fuzzy set system and test the web sockets communication
+'''
+ INITIALIZATION OF THE FUZZY SET SYSTEM AND TEST THE WS COMMUNICATION
+'''
+
 fuzzy_dict = initializationModule.create_and_assert_fuzzy_system()
 fuzzy_system = fuzzy_dict['System']
 fuzzy_technique = fuzzy_dict['Technique MF']
@@ -283,6 +286,13 @@ class ScanningView(APIView):
 
             self.update_position_results(position_dictionary)
 
+            return Response(status=status.HTTP_200_OK)
+
+
+'''
+HELPER FUNCTIONS FOR MAIN FLOW
+'''
+
 
 def load_access_points_locations():
     with open('access_points_location.json') as json_file:
@@ -454,6 +464,11 @@ def compute_csv_trilateration(sample, beacon_address):
     df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
     display(df)
     return df
+
+
+'''
+EXPERIMENT CLASSES FOR TRILATERATION/PROXIMITY/FINGERPRINTING
+'''
 
 
 class ProximityDistanceView(APIView):
@@ -654,6 +669,11 @@ class PositioningAlgorithmsView(APIView):
             isClassifier = True
 
         return compute_Response(prediction, isClassifier, serializer_context)
+
+
+'''
+HELPER FUNCTIONS FOR EXPERIMENT CLASSES
+'''
 
 
 def compute_Response_Trilateration(prediction, isClassifier, serializer_context):
