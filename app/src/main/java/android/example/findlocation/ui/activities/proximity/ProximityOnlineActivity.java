@@ -290,7 +290,7 @@ public class ProximityOnlineActivity extends AppCompatActivity implements Beacon
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.setBackgroundMode(false);
-        beaconManager.setForegroundScanPeriod(200);
+        beaconManager.setForegroundScanPeriod(150);
         beaconManager.bind(this);
         startTimeNs = System.nanoTime();
         Log.d(BEACON, "Beacon configuration ready. Start advertising");

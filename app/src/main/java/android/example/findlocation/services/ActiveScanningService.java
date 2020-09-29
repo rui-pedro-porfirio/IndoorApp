@@ -214,6 +214,13 @@ public class ActiveScanningService extends Service implements SensorEventListene
         notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
+    private void restartScan(){
+        mSensorInformationList = new ArrayList<>();
+        mAccessPointsList = new ArrayList<>();
+        mBeaconsList = new ArrayList<>();
+        wifiManager.startScan();
+    }
+
     protected void handleScanningService() {
         mServiceHandler.postDelayed(new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.M)
@@ -225,7 +232,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
                 }
                 if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
                     sendDataToServer();
-                //serviceHandler.postDelayed(this, delay); Uncomment this to become cyclic
+                restartScan();
+                mServiceHandler.postDelayed(this, SERVICE_DELAY); // Uncomment this to become cyclic
             }
         }, SERVICE_DELAY);
     }
@@ -391,33 +399,36 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mAccessPointsList = new ArrayList<>();
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
-        BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context c, Intent intent) {
-                boolean success = intent.getBooleanExtra(
-                        WifiManager.EXTRA_RESULTS_UPDATED, false);
-                if (success)
-                    handleApScans();
-            }
-        };
-
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        registerReceiver(wifiScanReceiver, intentFilter);
-
+        this.registerReceiver(wifiScanReceiver, intentFilter);
+        boolean scanSuccess = wifiManager.startScan();
+        if (!scanSuccess)
+            scanFailure();
         Log.i(TAG, "Successfully initialized wifi settings for scanning.");
     }
 
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                handleApScans();
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (success) {
+                scanSuccess();
+            } else {
+                // scan failure handling
+                scanFailure();
             }
         }
     };
 
-    private void handleApScans() {
+    private void scanFailure() {
+        // handle failure: new scan did NOT succeed
+        // consider using old scan results: these are the OLD results!
+        Log.e(TAG,"Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
+    }
+
+    private void scanSuccess() {
         List<ScanResult> mAvailableResults = wifiManager.getScanResults();
         for (ScanResult mScanResult : mAvailableResults
         ) {

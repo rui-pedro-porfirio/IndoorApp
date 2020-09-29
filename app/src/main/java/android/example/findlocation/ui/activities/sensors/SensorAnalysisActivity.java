@@ -25,6 +25,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -44,6 +45,7 @@ import org.altbeacon.beacon.Region;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public class SensorAnalysisActivity extends AppCompatActivity {
@@ -125,6 +127,15 @@ public class SensorAnalysisActivity extends AppCompatActivity {
             return "";
         }
 
+        final Handler handler = new Handler();
+        final Runnable locationUpdate = new Runnable() {
+            @Override
+            public void run() {
+                wifiManager.startScan();
+                handler.postDelayed(locationUpdate, 3000);
+            }
+        };
+
         @Override
         protected void onPostExecute(String response) {
             super.onPostExecute(response);
@@ -161,14 +172,19 @@ public class SensorAnalysisActivity extends AppCompatActivity {
 
         @Override
         public void onSensorChanged(SensorEvent event) {
-            Sensor mSensorDetected = event.sensor;
-            for (SensorObject mKnownSensor : mSensorInformationList) {
-                if (mSensorDetected.getName().equals(mKnownSensor.getName())) {
-                    if (BuildConfig.DEBUG)
-                        Log.d(TAG, "New values for orientation: " + Arrays.toString(event.values));
-                    mKnownSensor.setValue(event.values);
-                    mDeviceSensorAdapter.notifyDataSetChanged();
+            try {
+                Sensor mSensorDetected = event.sensor;
+                for (SensorObject mKnownSensor : mSensorInformationList) {
+                    if (mSensorDetected.getName().equals(mKnownSensor.getName())) {
+                        if (BuildConfig.DEBUG)
+                            Log.d(TAG, "New values for orientation: " + Arrays.toString(event.values));
+                        mKnownSensor.setValue(event.values);
+                        mDeviceSensorAdapter.notifyDataSetChanged();
+                    }
                 }
+            }
+            catch(ConcurrentModificationException e){
+                Log.e(TAG, "Concurrency problem");
             }
         }
 
@@ -253,21 +269,34 @@ public class SensorAnalysisActivity extends AppCompatActivity {
         private void initializeWifiSensor() {
             wifiManager = (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             wifiManager.setWifiEnabled(true);
-            registerReceiver(wifiScanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-            wifiManager.startScan();
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+            registerReceiver(wifiScanReceiver, intentFilter);
+            handler.post(locationUpdate);
             Log.i(TAG, "Successfully initialized wifi settings for scanning.");
         }
 
         private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context c, Intent intent) {
-                if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                    handleApScans();
+                boolean success = intent.getBooleanExtra(
+                        WifiManager.EXTRA_RESULTS_UPDATED, false);
+                if (success) {
+                    scanSuccess();
+                } else {
+                    // scan failure handling
+                    scanFailure();
                 }
             }
         };
 
-        private void handleApScans() {
+        private void scanFailure() {
+            // handle failure: new scan did NOT succeed
+            // consider using old scan results: these are the OLD results!
+            Log.e(TAG,"Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
+        }
+
+        private void scanSuccess() {
             List<ScanResult> mAvailableResults = wifiManager.getScanResults();
             for (ScanResult mScanResult : mAvailableResults
             ) {

@@ -296,7 +296,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.setBackgroundMode(false);
-        beaconManager.setForegroundScanPeriod(200);
+        beaconManager.setForegroundScanPeriod(150);
         beaconManager.bind(this);
         startTimeNs = System.nanoTime();
         Log.d(BEACON, "Beacons configuration ready. Start advertising");

@@ -257,6 +257,8 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
         mBeaconsList = new ArrayList<>();
         beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.getBeaconParsers().clear();
+        beaconManager.setBackgroundMode(false);
+        beaconManager.setForegroundScanPeriod(150);
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
         beaconManager.bind(this);
         verifyBluetooth();
