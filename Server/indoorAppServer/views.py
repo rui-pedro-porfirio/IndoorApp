@@ -85,6 +85,7 @@ class ScanningView(APIView):
     beacons_ml = {}
     access_points_structured = list()
     beacons_structured = list()
+    beacons_ml_fingerprinting = {}
 
     def configure_data_structures(self, sample_dict):
         self.username = sample_dict['username']
@@ -109,6 +110,7 @@ class ScanningView(APIView):
             rolling_list = beacon['values']
             extending_tp = (single_list, rolling_list)
             self.beacons_ml[beacon['name']] = extending_tp
+            self.beacons_ml_fingerprinting[beacon['name']] = single_list
 
     def match_radio_map_similarity(self):
         return radiomap.compute_matching_data(self.access_points_structured, self.beacons_structured)
@@ -143,17 +145,14 @@ class ScanningView(APIView):
         # Apply RF to Regression
         self.position_regression = fingerprintPositioning.apply_rf_regressor_scanning(matching_radio_map['dataset'],
                                                                                       self.access_points_ml,
-                                                                                      self.beacons_ml)
+                                                                                      self.beacons_ml_fingerprinting)
         # Apply RF to Classification
         if radio_map_is_classifier:
             self.position_classification = fingerprintPositioning.apply_rf_classification_scanning(
-                matching_radio_map['dataset'], self.access_points_ml, self.beacons_ml)
+                matching_radio_map['dataset'], self.access_points_ml, self.beacons_ml_fingerprinting)
 
     def apply_proximity(self, matching_radio_map, radio_map_is_classifier):
         # FOR TEST ONLY
-        radio_map_is_classifier = True
-        matching_radio_map[
-            'dataset'] = 'D:/College/5th Year College/TESE/Desenvolvimento/Code/Application/findLocationApp/findLocation/Server/Notebooks/PROXIMITY/dataset_train_university.csv'
         sample = {}
 
         # Sort beacons by number of samples recorded
@@ -175,11 +174,6 @@ class ScanningView(APIView):
                 matching_radio_map['dataset'], test_df)
 
     def apply_trilateration(self, matching_radio_map, radio_map_is_classifier, beacons_known_locations):
-        # FOR TEST ONLY
-        radio_map_is_classifier = True
-        matching_radio_map[
-            'dataset'] = 'D:/College/5th Year College/TESE/Desenvolvimento/Code/Application/findLocationApp/findLocation/Server/Notebooks/PROXIMITY/dataset_train_university.csv'
-
         # Trilateration with LSE variables
         min_distance = float('inf')
         closest_location = None
@@ -234,7 +228,7 @@ class ScanningView(APIView):
     def structure_position_results(self):
         position_dict = {}
         if self.position_regression is not None:
-            position_dict['Regression'] = self.position_regression
+            position_dict['Regression'] = (self.position_regression[0][0],self.position_regression[0][1])
         if self.position_classification is not None:
             position_dict['Classification'] = self.position_classification
         return position_dict
@@ -295,7 +289,9 @@ HELPER FUNCTIONS FOR MAIN FLOW
 
 
 def load_access_points_locations():
-    with open('access_points_location.json') as json_file:
+    file_heroku = '/app/access_points_location.json'
+    file_local = 'access_points_location.json'
+    with open(file_heroku) as json_file:
         data = json.load(json_file)
         access_points = {}
         for k, v in data.items():

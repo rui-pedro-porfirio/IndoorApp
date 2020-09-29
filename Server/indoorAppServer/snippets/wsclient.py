@@ -38,5 +38,5 @@ def update_configuration(args):
 
 # We start our client.
 if __name__ == '__main__':
-    app.run(url=u"ws://%s/ws" % SERVER_LOCAL)
+    app.run(url=u"ws://%s/ws" % SERVER_HEROKU)
     # app.run(url='ws://{}:8080/ws'.format(SERVER))

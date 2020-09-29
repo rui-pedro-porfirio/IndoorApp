@@ -3,7 +3,8 @@ import pandas as pd
 from IPython.core.display import display
 import math
 
-radio_maps = glob.glob('D:/College/5th Year College/TESE\Desenvolvimento/Code\Application/findLocationApp/findLocation/Server/Notebooks/FINGERPRINT/radiomap*.csv')
+radio_maps_local = glob.glob('D:/College/5th Year College/TESE\Desenvolvimento/Code\Application/findLocationApp/findLocation/Server/Notebooks/FINGERPRINT/radiomap*.csv')
+radio_maps_heroku = glob.glob('/app/Notebooks/FINGERPRINT/radiomap*.csv')
 #aps=['c4:e9:84:42:ac:ff', '00:06:91:d4:77:00', '00:06:91:d4:77:02', '8c:5b:f0:78:a1:d6', '1c:ab:c0:df:99:c8', '1c:ab:c0:df:99:c9', '00:26:5b:d1:93:38', '00:26:5b:d1:93:39', '00:fc:8d:cf:98:08', '00:fc:8d:cf:98:09']
 
 
@@ -14,7 +15,7 @@ def compute_matching_data(scannedAps,scannedBeacons):
     size_dataset = {}
     classification_holder = {}
     ap_columns_dataset = {}
-    for radio_map in radio_maps:
+    for radio_map in radio_maps_heroku:
         print(radio_map)
         dataset = pd.read_csv(radio_map)
         result = {}
@@ -92,5 +93,4 @@ def compute_matching_data(scannedAps,scannedBeacons):
         else:
             result = None
     print('RESULT')
-    display(result)
     return result

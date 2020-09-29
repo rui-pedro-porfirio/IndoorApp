@@ -1,8 +1,7 @@
-import numpy as np
-import pandas as pd
-from IPython.core.display import display
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, MaxAbsScaler
-from sklearn.preprocessing import OneHotEncoder,LabelEncoder
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import MinMaxScaler
+
 from .algorithms import *
 
 label_encoder = LabelEncoder()
