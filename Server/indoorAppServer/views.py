@@ -22,11 +22,16 @@ from .snippets import radiomap, filters, convertJson, fingerprintPositioning, pr
 '''
  INITIALIZATION OF THE FUZZY SET SYSTEM AND TEST THE WS COMMUNICATION
 '''
+# aps = ['c4:e9:84:42:ac:ff', '00:06:91:d4:77:00', '00:06:91:d4:77:02', '8c:5b:f0:78:a1:d6', '1c:ab:c0:df:99:c8', '1c:ab:c0:df:99:c9', '00:26:5b:d1:93:38', '00:26:5b:d1:93:39', '00:fc:8d:cf:98:08', '00:fc:8d:cf:98:09']
+# beacons=['FF:20:88:3C:97:E7','CA:E0:7D:11:26:B3']
 
+print('Initializing Django Server...')
 fuzzy_dict = initializationModule.create_and_assert_fuzzy_system()
 fuzzy_system = fuzzy_dict['System']
 fuzzy_technique = fuzzy_dict['Technique MF']
 initializationModule.test_ws_communication()
+trained_radio_maps = initializationModule.train_existent_radio_maps()
+print('Server initialization finished with code 0.')
 
 '''
 CLASSES FOR MODELS SAVED IN THE DABATASE
@@ -228,20 +233,21 @@ class ScanningView(APIView):
     def structure_position_results(self):
         position_dict = {}
         if self.position_regression is not None:
-            position_dict['Regression'] = (self.position_regression[0][0],self.position_regression[0][1])
+            position_dict['Regression'] = (self.position_regression[0][0], self.position_regression[0][1])
         if self.position_classification is not None:
             position_dict['Classification'] = self.position_classification
         return position_dict
 
     def update_position_results(self, position_dict):
+        print('Position computed. Sending update to subscribers.')
         websockets.publish(self.username, self.deviceUuid, position_dict)
 
     def post(self, request):
         serializer_context = {
             'request': request,
         }
+        print('Received POST Request with Scanning Data. Computing Position...')
         sample_dict = request.data
-        print(sample_dict)
 
         self.configure_data_structures(sample_dict)
 
@@ -259,8 +265,8 @@ class ScanningView(APIView):
             similar_beacons = radio_map_data['input_beacons']
             beacons_known_locations = radio_map_data['beacons_known_positions']
             size_of_beacons_known_locations = radio_map_data['beacons_locations_length']
-            print('Number of Matching access_points: ' + str(similar_access_points))  # TODO: BUG VALUE ABNORMALLY HIGH
-            print('Number of Matching beacons: ' + str(similar_beacons))  # TODO: BUG VALUE ABNORMALLY HIGH
+            print('% of Matching access_points: ' + str(similar_access_points))
+            print('Number of Matching beacons: ' + str(similar_beacons))
 
             # Compute decision function to choose best technique
             position_technique = decision_system.compute_fuzzy_decision(fuzzy_system, fuzzy_technique

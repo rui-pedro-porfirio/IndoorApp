@@ -1,7 +1,7 @@
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MinMaxScaler
-
+import numpy as np
 from .algorithms import *
 
 label_encoder = LabelEncoder()
@@ -84,7 +84,7 @@ def apply_knn_classifier(types, access_points, beacons, deviceData):
     X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
     X_test.replace(0, np.nan)
     X_test = X_test.fillna(nan_filler)
-    result = compute_KNN_with_Classification(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
+    result = compute_knn_classification(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
                                              scaler=preprocessing,
                                              n_neighbors=number_neighbors, weights=weights, algorithm=algorithm,
                                              metric=distance)
@@ -135,7 +135,7 @@ def apply_knn_regressor(types, access_points, beacons, deviceData):
     X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
     X_test.replace(0, np.nan)
     X_test = X_test.fillna(nan_filler)
-    result = compute_KNN_with_Regression(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
+    result = compute_knn_regression(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
                                          scaler=preprocessing,
                                          n_neighbors=number_neighbors, weights=weights, algorithm=algorithm,
                                          metric=distance)
@@ -445,7 +445,7 @@ def apply_rf_regressor_scanning(dataset_string, access_points, beacons):
     display('DATAFRAMES-TEST---------------------------------------------------REGRESSION')
     display(X_test)
     # Compute Algorithm
-    result = compute_RF_Regression_Scanning(trainX_data=X_train, trainY_data=train_Y, testX_data=X_test)
+    result = compute_rf_regression(trainX_data=X_train, trainY_data=train_Y, testX_data=X_test)
     return result
 
 def apply_rf_classification_scanning(dataset_string, access_points, beacons):
@@ -511,5 +511,5 @@ def apply_rf_classification_scanning(dataset_string, access_points, beacons):
     display('DATAFRAMES-TEST---------------------------------------------------CLASSIFICATION')
     display(X_test)
     # Compute Algorithm
-    result = compute_RF_Classification_Scanning(trainX_data=X_train, trainY_data=train_Y.ravel(), testX_data=X_test)
+    result = compute_rf_classification(trainX_data=X_train, trainY_data=train_Y.ravel(), testX_data=X_test)
     return label_encoder.inverse_transform(result)

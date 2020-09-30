@@ -9,7 +9,7 @@ from . import auxiliarFunctions as aux
 dataset_heroku = '/app/Notebooks/PROXIMITY/dataset_train_university.csv'
 dataset_local = 'Notebooks/PROXIMITY/dataset_train_university.csv'
 
-dataset = pd.read_csv(dataset_heroku)
+dataset = pd.read_csv(dataset_local)
 label_encoder = LabelEncoder()
 train_X_rssi = None
 train_X_rolling_mean = None
@@ -98,7 +98,7 @@ def apply_knn_classifier(test_data_df):
     prepare_dataset(test_data_df)  # initialized dataset including training set and testing set
     trainX_data = combination_features_X
     testX_data = test_combination_features_X
-    result = compute_KNN_with_Classification(trainX_data=trainX_data, trainY_data=train_Y.ravel(), testX_data=testX_data,
+    result = compute_knn_classification(trainX_data=trainX_data, trainY_data=train_Y.ravel(), testX_data=testX_data,
                                              scaler=StandardScaler(),
                                              n_neighbors=12, weights='uniform', algorithm='auto',
                                              metric='manhattan')
@@ -117,7 +117,7 @@ def apply_knn_regressor(test_data_df):
     display(train_Y.shape)# initialized dataset including training set and testing set
     trainX_data = combination_features_X
     testX_data = test_combination_features_X
-    result = compute_KNN_with_Regression(trainX_data=trainX_data, trainY_data=train_Y, testX_data=testX_data,
+    result = compute_knn_regression(trainX_data=trainX_data, trainY_data=train_Y, testX_data=testX_data,
                                          scaler=StandardScaler(),
                                          n_neighbors=12, weights='uniform', algorithm='auto',
                                          metric='manhattan')
@@ -188,7 +188,7 @@ def apply_randomForest_classifier(test_data_df):
     prepare_dataset(test_data_df)  # initialized dataset including training set and testing set
     trainX_data = combination_features_X
     testX_data = test_combination_features_X
-    result = compute_RF_Classification(trainX_data=trainX_data, trainY_data=train_Y, testX_data=testX_data,
+    result = compute_rf_classification(trainX_data=trainX_data, trainY_data=train_Y, testX_data=testX_data,
                                       scaler=StandardScaler(),n_estimators_parameter=200,max_depth_parameter=10.0,min_samples_split_parameter=5)
     if len(result) > 1:
         counts = np.bincount(result)
@@ -241,7 +241,7 @@ def apply_knn_classification_scanning(train_dataset,test_dataset):
     display('DATAFRAMES-TEST---------------------------------------------------CLASSIFICATION')
     display(test_combination_features_X)
     # Compute Algorithm
-    result = compute_KNN_with_Classification(trainX_data=combination_features_X, trainY_data=train_Y.ravel(), testX_data=test_combination_features_X)
+    result = compute_knn_classification(trainX_data=combination_features_X, trainY_data=train_Y.ravel(), testX_data=test_combination_features_X)
     return label_encoder.inverse_transform(result)
 
 
@@ -273,5 +273,5 @@ def apply_knn_regression_scanning(train_dataset,test_dataset):
     display('DATAFRAMES-TEST---------------------------------------------------CLASSIFICATION')
     display(test_combination_features_X)
     # Compute Algorithm
-    result = compute_KNN_with_Regression(trainX_data=combination_features_X, trainY_data=train_Y, testX_data=test_combination_features_X)
+    result = compute_knn_regression(trainX_data=combination_features_X, trainY_data=train_Y, testX_data=test_combination_features_X)
     return result
