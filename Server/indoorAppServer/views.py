@@ -1,11 +1,8 @@
-import json
-import json
 import math
 from enum import Enum
 from os import path
 
 import numpy as np
-import pandas as pd
 import scipy.optimize as opt
 from IPython.core.display import display
 from rest_framework import status
@@ -17,7 +14,7 @@ from .models import Fingerprint, DeviceSensor, BluetoothSensor, WiFiSensor, User
 from .serializers import FingerprintSerializer, DeviceDataSerializer, WifiDataSerializer, BluetoothSerializer, \
     UserSerializer
 from .snippets import radiomap, filters, convertJson, fingerprintPositioning, proximityPositioning, decision_system, \
-    websockets, initializationModule
+    websockets, initializationModule, csvHandler, common
 
 '''
  INITIALIZATION OF THE FUZZY SET SYSTEM AND TEST THE WS COMMUNICATION
@@ -31,6 +28,7 @@ fuzzy_system = fuzzy_dict['System']
 fuzzy_technique = fuzzy_dict['Technique MF']
 initializationModule.test_ws_communication()
 trained_radio_maps = initializationModule.train_existent_radio_maps()
+proximityPositioning.structure_dataset()
 print('Server initialization finished with code 0.')
 
 '''
@@ -101,7 +99,6 @@ class ScanningView(APIView):
 
         self.structure_access_points_data()
         self.structure_beacons_data()
-        self.structure_beacons_data()
 
     def structure_access_points_data(self):
         for access_point in self.accessPointsDetected:
@@ -123,8 +120,12 @@ class ScanningView(APIView):
     def structure_radio_map_for_fuzzy_system(self, radio_map):
         result_dict = {'isClassifier': radio_map['isClassifier'], 'input_aps': radio_map['length_wifi'],
                        'input_beacons': radio_map['length_ble']}
-        beacons_known_positions = load_access_points_locations()
-        result_dict['beacons_known_positions'] = beacons_known_positions
+        beacons_known_positions = common.load_access_points_locations()
+        available_beacons = dict()
+        for beacon, position in beacons_known_positions.items():
+            if beacon in self.beacons_structured:
+                available_beacons[beacon] = position
+        result_dict['beacons_known_positions'] = available_beacons
         result_dict['beacons_locations_length'] = len(beacons_known_positions)
         return result_dict
 
@@ -137,27 +138,29 @@ class ScanningView(APIView):
             print('ML Algorithm done running.')
         elif position_technique == 'Trilateration':
             print('Trilateration chosen.')
-            self.apply_trilateration(matching_radio_map=matching_radio_map,
-                                     radio_map_is_classifier=radio_map_is_classifier)
+            self.apply_trilateration(beacons_known_locations)
             print('ML Algorithm done running.')
         elif position_technique == 'Proximity':
             print('Proximity chosen.')
-            self.apply_proximity(matching_radio_map=matching_radio_map,
-                                 radio_map_is_classifier=radio_map_is_classifier)
+            self.apply_proximity()
             print('ML Algorithm done running')
 
     def apply_fingerprinting(self, matching_radio_map, radio_map_is_classifier):
         # Apply RF to Regression
-        self.position_regression = fingerprintPositioning.apply_rf_regressor_scanning(matching_radio_map['dataset'],
-                                                                                      self.access_points_ml,
-                                                                                      self.beacons_ml_fingerprinting)
+        self.position_regression = fingerprintPositioning.apply_rf_regressor_scanning(
+            estimator_options=trained_radio_maps[matching_radio_map['dataset']],
+            radio_map=matching_radio_map['dataset'],
+            access_points=self.access_points_ml,
+            beacons=self.beacons_ml_fingerprinting)
         # Apply RF to Classification
         if radio_map_is_classifier:
             self.position_classification = fingerprintPositioning.apply_rf_classification_scanning(
-                matching_radio_map['dataset'], self.access_points_ml, self.beacons_ml_fingerprinting)
+                estimator_options=trained_radio_maps[matching_radio_map['dataset']],
+                radio_map=matching_radio_map['dataset'],
+                access_points=self.access_points_ml,
+                beacons=self.beacons_ml_fingerprinting)
 
-    def apply_proximity(self, matching_radio_map, radio_map_is_classifier):
-        # FOR TEST ONLY
+    def apply_proximity(self):
         sample = {}
 
         # Sort beacons by number of samples recorded
@@ -168,17 +171,15 @@ class ScanningView(APIView):
         sample['values'] = highest_beacon[1]
 
         # Structure sample into a csv
-        test_df = compute_csv_sample(sample)
+        test_df = csvHandler.compute_csv_in_scanning_phase(sample)
 
         # Apply KNN to Regression
-        self.position_regression = proximityPositioning.apply_knn_regression_scanning(matching_radio_map['dataset'],
-                                                                                      test_df)
+        self.position_regression = proximityPositioning.apply_knn_regression_scanning(test_df)
         # Apply KNN to Classification
-        if radio_map_is_classifier:
-            self.position_classification = proximityPositioning.apply_knn_classification_scanning(
-                matching_radio_map['dataset'], test_df)
+        self.position_classification = proximityPositioning.apply_knn_classification_scanning(test_df)
 
-    def apply_trilateration(self, matching_radio_map, radio_map_is_classifier, beacons_known_locations):
+    def apply_trilateration(self, beacons_known_locations):
+
         # Trilateration with LSE variables
         min_distance = float('inf')
         closest_location = None
@@ -187,20 +188,15 @@ class ScanningView(APIView):
         sorted_dict = sorted(self.beacons_ml, key=lambda k: len(self.beacons_ml[k][1]), reverse=True)
 
         # Structure beacons into csv file
-        test_df = compute_csv_sample_trilateration(sorted_dict, self.beacons_ml)
-        display(test_df)
+        test_df = csvHandler.compute_csv_in_scanning_phase_trilateration(sorted_dict, self.beacons_ml)
 
         # Compute distance predictions using proximity KNN algorithm from the user and the beacons locations
         distance_predictions = {}
         rfv = test_df.groupby(['BLE Beacon'])
         for k, v in rfv:
-            print("K: " + str(k))
-            print("V: " + str(v))
-            distance_prediction = proximityPositioning.apply_knn_regression_scanning(
-                matching_radio_map['dataset'],
-                v)
+            distance_prediction = proximityPositioning.apply_knn_regression_scanning(v)
             distance_predictions[k] = distance_prediction[0, 0]
-        print('DISTANCE PREDICTION: ' + str(distance_predictions))
+        print('Distance Prediction to each beacon: ' + str(distance_predictions))
 
         # Find the nearest beacon
         for k, v in distance_predictions.items():
@@ -212,7 +208,7 @@ class ScanningView(APIView):
         initial_location = closest_location
         initial_location_tuple = (initial_location['x'], initial_location['y'])
         result = opt.minimize(
-            mse,  # The error function
+            common.mse,  # The error function
             initial_location_tuple,  # The initial guess
             args=(rfv,
                   distance_predictions,
@@ -224,18 +220,23 @@ class ScanningView(APIView):
             })
 
         prediction = result.x
-        print("GUESSED: " + str(prediction))
 
         self.position_regression = (prediction[0], prediction[1])
-        if radio_map_is_classifier:
-            self.position_classification = check_zone(prediction[1])  # Use an implicit classification method
+        self.position_classification = common.check_zone(prediction[1])  # Use an implicit classification method
 
-    def structure_position_results(self):
+    def structure_position_results(self, position_technique):
         position_dict = {}
-        if self.position_regression is not None:
-            position_dict['Regression'] = (self.position_regression[0][0], self.position_regression[0][1])
-        if self.position_classification is not None:
+        if position_technique is 'Trilateration':
+            position_dict['Regression'] = self.position_regression
             position_dict['Classification'] = self.position_classification
+        else:
+            if self.position_regression is not None:
+                if len(self.position_regression) == 2:
+                    position_dict['Regression'] = (self.position_regression[0][0], self.position_regression[0][1])
+                else:
+                    position_dict['Regression'] = self.position_regression[0][0]
+            if self.position_classification is not None:
+                position_dict['Classification'] = self.position_classification[0]
         return position_dict
 
     def update_position_results(self, position_dict):
@@ -282,190 +283,11 @@ class ScanningView(APIView):
                                     matching_radio_map=matching_radio_map,
                                     beacons_known_locations=beacons_known_locations)
 
-            position_dictionary = self.structure_position_results()
+            position_dictionary = self.structure_position_results(position_technique)
 
             self.update_position_results(position_dictionary)
 
             return Response(status=status.HTTP_200_OK)
-
-
-'''
-HELPER FUNCTIONS FOR MAIN FLOW
-'''
-
-
-def load_access_points_locations():
-    file_heroku = '/app/access_points_location.json'
-    file_local = 'access_points_location.json'
-    with open(file_heroku) as json_file:
-        data = json.load(json_file)
-        access_points = {}
-        for k, v in data.items():
-            print('KEY: ' + k)
-            access_points[k] = v
-            print('X: ', v['x'])
-            print('Y: ', v['y'])
-            print('')
-        return access_points
-
-
-def check_zone(y):
-    if y >= 3.0:
-        return 'Personal'
-    elif y >= 0.0 and y < 3.0:
-        return 'Social'
-    else:
-        return 'Public'
-
-
-def mse(x, rfv, distances, beacons):
-    squared_errors = 0.0
-    empty_list = {}
-    x = (x[0], x[1])
-    for k, v in rfv:
-        distance_known = distances[k]
-        distance_computed = compute_distance_coordinate_system(x[0], x[1], beacons[k]['x'], beacons[k]['y'])
-        squared_errors += compute_squared_errors(distance_known, distance_computed)
-    mse = squared_errors / len(rfv)
-    return mse
-
-
-def compute_squared_errors(d1, d2):
-    squared_errors = math.pow(d1 - d2, 2.0)
-    return squared_errors
-
-
-def compute_distance_coordinate_system(x1, y1, x2, y2):
-    dist = math.hypot(x2 - x1, y2 - y1)
-    return dist
-
-
-def compute_csv_sample_trilateration(sample_dict, beacons_ml):
-    csv_columns = ['BLE Beacon', 'coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
-    sample = {}
-    results_list_2d = list()
-    for k in sample_dict:
-        beacon = beacons_ml[k]
-        sample['singleValue'] = beacon[0]
-        sample['values'] = beacon[1]
-        if 'zone' in sample:
-            zone = sample['zone']
-        else:
-            zone = ''
-        single_value_scanned = sample['singleValue']
-        valuesScanned = sample['values']
-        rolling_mean = np.mean(valuesScanned)
-        print(rolling_mean)
-        x_coordinate = 0.0
-        y_coordinate = 0.0
-        results_list = list()
-        results_list.append(k)
-        results_list.append(x_coordinate)
-        results_list.append(y_coordinate)
-        results_list.append(single_value_scanned)
-        results_list.append(rolling_mean)
-        results_list.append(zone)
-        results_list_2d.append(results_list)
-    display(results_list_2d)
-    df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
-    display(df)
-    return df
-
-
-def compute_csv_sample(sample):
-    csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
-    if 'zone' in sample:
-        zone = sample['zone']
-    else:
-        zone = ''
-    single_value_scanned = sample['singleValue']
-    valuesScanned = sample['values']
-    aux_list = list()
-    '''rolling_mean_list = list()
-    for value in valuesScanned:
-        aux_list.append(value)
-        rolling_mean_list.append(np.mean(aux_list))'''
-    rolling_mean = np.mean(valuesScanned)
-    print(rolling_mean)
-    x_coordinate = 0.0
-    y_coordinate = 0.0
-    results_list_2d = list()
-    results_list = list()
-    results_list.append(x_coordinate)
-    results_list.append(y_coordinate)
-    results_list.append(single_value_scanned)
-    results_list.append(rolling_mean)
-    results_list.append(zone)
-    results_list_2d.append(results_list)
-    display(results_list_2d)
-    df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
-    display(df)
-    return df
-
-
-def compute_csv(request):
-    csv_columns = ['coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
-    sample = request.data
-    if 'zone' in sample:
-        zone = sample['zone']
-    else:
-        zone = ''
-    single_value_scanned = sample['singleValue']
-    valuesScanned = sample['values']
-    aux_list = list()
-    rolling_mean_list = list()
-    for value in valuesScanned:
-        aux_list.append(value)
-        rolling_mean_list.append(np.mean(aux_list))
-    print(rolling_mean_list)
-    x_coordinate = sample['x_coordinate']
-    y_coordinate = sample['y_coordinate']
-    results_list_2d = list()
-    for i in range(len(valuesScanned)):
-        results_list = list()
-        results_list.append(x_coordinate)
-        results_list.append(y_coordinate)
-        results_list.append(valuesScanned[i])
-        results_list.append(rolling_mean_list[i])
-        results_list.append(zone)
-        results_list_2d.append(results_list)
-    display(results_list_2d)
-    df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
-    display(df)
-    return df
-
-
-def compute_csv_trilateration(sample, beacon_address):
-    csv_columns = ['BLE Beacon', 'coordinate_X', 'coordinate_Y', 'rssi_Value', 'rolling_mean_rssi', 'zone']
-    if 'zone' in sample:
-        zone = sample['zone']
-    else:
-        zone = ''
-    mac = beacon_address
-    single_value_scanned = sample['singleValue']
-    valuesScanned = sample['values']
-    aux_list = list()
-    rolling_mean_list = list()
-    for value in valuesScanned:
-        aux_list.append(value)
-        rolling_mean_list.append(np.mean(aux_list))
-    print(rolling_mean_list)
-    x_coordinate = sample['x_coordinate']
-    y_coordinate = sample['y_coordinate']
-    results_list_2d = list()
-    for i in range(len(valuesScanned)):
-        results_list = list()
-        results_list.append(mac)
-        results_list.append(x_coordinate)
-        results_list.append(y_coordinate)
-        results_list.append(valuesScanned[i])
-        results_list.append(rolling_mean_list[i])
-        results_list.append(zone)
-        results_list_2d.append(results_list)
-    display(results_list_2d)
-    df = pd.DataFrame(data=results_list_2d, columns=csv_columns)
-    display(df)
-    return df
 
 
 '''
@@ -479,7 +301,7 @@ class ProximityDistanceView(APIView):
         serializer_context = {
             'request': request,
         }
-        df = compute_csv(request)
+        df = csvHandler.compute_csv(request)
         if path.exists(".\dataset_test_university.csv"):
             df.to_csv(r'.\dataset_test_university.csv', mode='a', index=False, header=False)
         else:
@@ -524,7 +346,7 @@ class TrilaterationHandlerView(APIView):
         room_limit_x_max = 3.0
         room_limit_y_min = -1.0
         room_limit_y_max = 4.0
-        access_points = load_access_points_locations()
+        access_points = common.load_access_points_locations()
         display(access_points)
         sample_dict = request.data
         print(sample_dict)
@@ -536,28 +358,28 @@ class TrilaterationHandlerView(APIView):
         print(algorithm)
         if algorithm == 'KNN Regression':
             for k, v in sample_dict.items():
-                df = compute_csv_trilateration(v, k)
+                df = csvHandler.compute_csv_trilateration(v, k)
                 prediction_list = proximityPositioning.apply_knn_regressor(df)
                 distances[k] = np.mean(prediction_list)
                 print("PREDICTION")
                 display(distances[k])
         elif algorithm == 'MLP Regression':
             for k, v in sample_dict.items():
-                df = compute_csv_trilateration(v, k)
+                df = csvHandler.compute_csv_trilateration(v, k)
                 prediction_list = proximityPositioning.apply_mlp_regressor(df)
                 distances[k] = np.mean(prediction_list)
                 print("PREDICTION")
                 display(distances[k])
         elif algorithm == 'SVM Regressor':
             for k, v in sample_dict.items():
-                df = compute_csv_trilateration(v, k)
+                df = csvHandler.compute_csv_trilateration(v, k)
                 prediction_list = proximityPositioning.apply_svm_regressor(df)
                 distances[k] = np.mean(prediction_list)
                 print("PREDICTION")
                 display(distances[k])
         elif algorithm == 'Linear Regression':
             for k, v in sample_dict.items():
-                df = compute_csv_trilateration(v, k)
+                df = csvHandler.compute_csv_trilateration(v, k)
                 prediction_list = proximityPositioning.apply_linear_regression(df)
                 distances[k] = np.mean(prediction_list)
                 print("PREDICTION")
@@ -605,7 +427,7 @@ class ProximityAlgorithmsView(APIView):
             'request': request,
         }
         sample = request.data
-        df = compute_csv(request)
+        df = csvHandler.compute_csv(request)
         prediction = []
         algorithm = sample['algorithm']
         if algorithm == 'KNN Regression':

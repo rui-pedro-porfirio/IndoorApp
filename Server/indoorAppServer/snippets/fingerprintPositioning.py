@@ -1,10 +1,85 @@
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-from .algorithms import *
+from sklearn.preprocessing import MinMaxScaler
 
-label_encoder = LabelEncoder()
+from .algorithms import *
+from ..snippets import common, radiomap
+
+
+'''
+HANDLER FOR SCANNING PHASE
+'''
+
+
+def apply_rf_regressor_scanning(estimator_options, radio_map, access_points, beacons):
+    x_train = radiomap.get_x_train(radio_map)
+    # Init testing dataset by checking which access points to fill
+    sample_list = list()
+    for column in x_train:
+        if column in access_points:
+            sample_list.append(access_points[column])
+        elif column in beacons:
+            sample_list.append(beacons[column])
+        else:
+            sample_list.append(0)
+    sample_2dlist = list()
+    sample_2dlist.append(sample_list)
+    X_test_list = np.array(sample_2dlist)
+    X_test = pd.DataFrame(data=X_test_list, columns=x_train.columns)
+    first_beacon_index_t2 = -1
+    for ap in X_test.iloc[:, 0:]:
+        if not ap.islower():
+            first_beacon_index_t2 = list(X_test).index(ap)
+            break
+    X_test = common.replace_features_nan(X_test, 0)
+    common.compute_data_cleaning_with_global_minimum(X_test, first_beacon_index_t2, -1)
+    access_points_tst = X_test.iloc[:, 0:first_beacon_index_t2]
+    beacons_tst = X_test.iloc[:, first_beacon_index_t2:]
+    if access_points_tst.isnull().values.any():
+        common.replace_features_minimum(X_test, 0)
+    if beacons_tst.isnull().values.any():
+        common.replace_features_minimum(X_test, 0)
+    # Compute Algorithm
+    result = compute_rf_regression(main_estimator=estimator_options['RFR'], testX_data=X_test)
+    return result
+
+
+def apply_rf_classification_scanning(estimator_options, radio_map, access_points, beacons):
+    x_train = radiomap.get_x_train(radio_map)
+    # Init testing dataset by checking which access points to fill
+    sample_list = list()
+    for column in x_train:
+        if column in access_points:
+            sample_list.append(access_points[column])
+        elif column in beacons:
+            sample_list.append(beacons[column])
+        else:
+            sample_list.append(0)
+    sample_2dlist = list()
+    sample_2dlist.append(sample_list)
+    X_test_list = np.array(sample_2dlist)
+    X_test = pd.DataFrame(data=X_test_list, columns=x_train.columns)
+    first_beacon_index_t2 = -1
+    for ap in X_test.iloc[:, 0:]:
+        if not ap.islower():
+            first_beacon_index_t2 = list(X_test).index(ap)
+            break
+    X_test = common.replace_features_nan(X_test, 0)
+    common.compute_data_cleaning_with_global_minimum(X_test, first_beacon_index_t2, -1)
+    access_points_tst = X_test.iloc[:, 0:first_beacon_index_t2]
+    beacons_tst = X_test.iloc[:, first_beacon_index_t2:]
+    if access_points_tst.isnull().values.any():
+        common.replace_features_minimum(X_test, 0)
+    if beacons_tst.isnull().values.any():
+        common.replace_features_minimum(X_test, 0)
+    # Compute Algorithm
+    result = compute_rf_classification(main_estimator=estimator_options['RFC'], testX_data=X_test)
+    encoder = radiomap.get_labels(radio_map)
+    return encoder.inverse_transform(result)
+
+
+'''
+EXPERIMENTAL PHASE HANDLERS
+'''
 
 
 def checkScaler(preprocessingString):
@@ -18,32 +93,10 @@ def checkScaler(preprocessingString):
         return None
 
 
-def compute_encoder(categorical_data,flag):
-    if flag == 0:
-        labels = label_encoder.fit_transform(categorical_data)
-    else:
-        labels = label_encoder.transform(categorical_data)
-    return labels
-
-
-def replace_features_nan(dataset,position):
-    dataset.iloc[:,position:] = dataset.iloc[:,position:].replace(0,np.nan)
-    return dataset
-
-
-def find_beacon_index(dataset):
-    first_beacon_index = -1
-    for ap in dataset.iloc[:, 4:]:
-        if ap.islower() == False:
-            first_beacon_index = list(dataset).index(ap)
-            break
-    return first_beacon_index
-
-
 def apply_knn_classifier(types, access_points, beacons, deviceData):
     dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFiclassifier.csv')
     parameters = pd.read_csv('Notebooks/parameters_results.csv')
-    beacon_index = find_beacon_index(dataset)
+    beacon_index = common.find_beacon_index(dataset)
     if ('Wi-fi' in types and 'Bluetooth' in types):
         row = parameters.loc[parameters['Experimentation'] == "KNN Classifier Wifi + Bluetooth"]
         X_train = dataset.iloc[:, 4:]
@@ -85,16 +138,16 @@ def apply_knn_classifier(types, access_points, beacons, deviceData):
     X_test.replace(0, np.nan)
     X_test = X_test.fillna(nan_filler)
     result = compute_knn_classification(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
-                                             scaler=preprocessing,
-                                             n_neighbors=number_neighbors, weights=weights, algorithm=algorithm,
-                                             metric=distance)
+                                        scaler=preprocessing,
+                                        n_neighbors=number_neighbors, weights=weights, algorithm=algorithm,
+                                        metric=distance)
     return result
 
 
 def apply_knn_regressor(types, access_points, beacons, deviceData):
     dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFi.csv')
     parameters = pd.read_csv('Notebooks/parameters_results.csv')
-    beacon_index = find_beacon_index(dataset)
+    beacon_index = common.find_beacon_index(dataset)
     if ('Wi-fi' in types and 'Bluetooth' in types):
         row = parameters.loc[parameters['Experimentation'] == "KNN Regressor Wifi + Bluetooth"]
         X_train = dataset.iloc[:, 4:]
@@ -136,10 +189,123 @@ def apply_knn_regressor(types, access_points, beacons, deviceData):
     X_test.replace(0, np.nan)
     X_test = X_test.fillna(nan_filler)
     result = compute_knn_regression(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
-                                         scaler=preprocessing,
-                                         n_neighbors=number_neighbors, weights=weights, algorithm=algorithm,
-                                         metric=distance)
+                                    scaler=preprocessing,
+                                    n_neighbors=number_neighbors, weights=weights, algorithm=algorithm,
+                                    metric=distance)
     return result
+
+
+def apply_svm_classifier(types, access_points, beacons, deviceData):
+    dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFiclassifier.csv')
+    parameters = pd.read_csv('Notebooks/parameters_svm_results.csv')
+    beacon_index = common.find_beacon_index(dataset)
+    if ('Wi-fi' in types and 'Bluetooth' in types):
+        row = parameters.loc[parameters['Experimentation'] == "SVM Classifier Wifi + Bluetooth"]
+        X_train = dataset.iloc[:, 4:]
+        Y_train = dataset.iloc[:, 3:4]
+        nan_filler = X_train.min().min() * 1.010
+        X_train = X_train.replace(0, np.nan)
+        X_train = X_train.fillna(nan_filler)
+    elif ('Wi-fi' in types and 'Bluetooth' not in types):
+        row = parameters.query("Experimentation == SVM Classifier Wifi")
+        X_train = dataset.iloc[:, 4:beacon_index]
+        Y_train = dataset.iloc[:, 3:4]
+        nan_filler = X_train.min().min() * 1.010
+        X_train = X_train.replace(0, np.nan)
+        X_train = X_train.fillna(nan_filler)
+    elif ('Wi-fi' not in types and 'Bluetooth' in types):
+        row = parameters.query("Experimentation == SVM Classifier Bluetooth")
+        X_train = dataset.iloc[:, beacon_index:]
+        Y_train = dataset.iloc[:, 3:4]
+        nan_filler = X_train.min().min() * 1.010
+        X_train = X_train.replace(0, np.nan)
+        X_train = X_train.fillna(nan_filler)
+    c_parameter = float(row['C Parameter'].tolist()[0])
+    preprocessing = checkScaler(row['Preprocessing'].tolist()[0])
+    kernel = row['Kernel'].tolist()[0]
+    gamma = row['Gamma'].tolist()[0]
+    weights = row['Class Weights'].tolist()[0]
+    decision_function = row['Decision Function'].tolist()[0]
+    sample_list = list()
+    for column in X_train:
+        if column in access_points:
+            sample_list.append(access_points[column])
+        else:
+            sample_list.append(0)
+        if column in beacons:
+            sample_list.append(beacons[column])
+    sample_2dlist = list()
+    sample_2dlist.append(sample_list)
+    X_test_list = np.array(sample_2dlist)
+    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
+    X_test.replace(0, np.nan)
+    X_test = X_test.fillna(nan_filler)
+    result = compute_SVM_with_Classification(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
+                                             scaler=preprocessing, C_parameter=c_parameter, kernel_parameter=kernel,
+                                             gamma_parameter=gamma,
+                                             class_weigth_parameter=weights,
+                                             decision_function_shape_parameter=decision_function)
+    return result
+
+
+def apply_kmeans_knn_classifier(types, access_points, beacons, deviceData):
+    dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFiclassifier.csv')
+    parameters = pd.read_csv('Notebooks/parameters_results_clustering.csv')
+    beacon_index = common.find_beacon_index(dataset)
+    if ('Wi-fi' in types and 'Bluetooth' in types):
+        row = parameters.loc[parameters['Experimentation'] == "K-Means Clustering Wifi + Bluetooth"]
+        X_train = dataset.iloc[:, 4:]
+        Y_train = dataset.iloc[:, 3:4]
+        nan_filler = X_train.min().min() * 1.010
+        X_train = X_train.replace(0, np.nan)
+        X_train = X_train.fillna(nan_filler)
+    elif ('Wi-fi' in types and 'Bluetooth' not in types):
+        row = parameters.query("Experimentation == K-Means Clustering Wifi")
+        X_train = dataset.iloc[:, 4:beacon_index]
+        Y_train = dataset.iloc[:, 3:4]
+        nan_filler = X_train.min().min() * 1.010
+        X_train = X_train.replace(0, np.nan)
+        X_train = X_train.fillna(nan_filler)
+    elif ('Wi-fi' not in types and 'Bluetooth' in types):
+        row = parameters.query("Experimentation == K-Means Clustering Bluetooth")
+        X_train = dataset.iloc[:, beacon_index:]
+        Y_train = dataset.iloc[:, 3:4]
+        nan_filler = X_train.min().min() * 1.010
+        X_train = X_train.replace(0, np.nan)
+        X_train = X_train.fillna(nan_filler)
+    k_parameter = int(row['K Parameter'].tolist()[0])
+    preprocessing = checkScaler(row['Preprocessing'].tolist()[0])
+    init_param = row['Init Parameter'].tolist()[0]
+    algorithm = row['Algorithnm'].tolist()[0]
+    distance = row['Preprocessing Distance'].tolist()[0]
+    sample_list = list()
+    for column in X_train:
+        if column in access_points:
+            sample_list.append(access_points[column])
+        else:
+            sample_list.append(0)
+        if column in beacons:
+            sample_list.append(beacons[column])
+    sample_2dlist = list()
+    sample_2dlist.append(sample_list)
+    X_test_list = np.array(sample_2dlist)
+    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
+    X_test.replace(0, np.nan)
+    X_test = X_test.fillna(nan_filler)
+    labels = dataset.drop(columns=['coordinate_X', 'coordinate_Y']).iloc[:, 1:2]
+    reference_points = dataset.groupby(['zone'])
+    dict_zones = {}
+    counter = 0
+    for rp, rp_data in reference_points:
+        dict_zones[rp] = counter
+        counter = counter + 1
+    display(dict_zones)
+    labels['label'] = labels['zone'].map(lambda p: dict_zones[p])
+    result = compute_KMeans(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test, labels=labels['label'],
+                            scaler=preprocessing, n_clusters=k_parameter, init_parameter=init_param,
+                            algorithms=algorithm, precompute_distances=distance)
+    return result
+
 
 '''
 def apply_mlp_classifier(types, access_points, beacons, deviceData):
@@ -251,265 +417,3 @@ def apply_mlp_regressor(types, access_points, beacons, deviceData):
                                          momentum_value=momentum, max_iterations=iterations)
     return result
 '''
-
-def apply_svm_classifier(types, access_points, beacons, deviceData):
-    dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFiclassifier.csv')
-    parameters = pd.read_csv('Notebooks/parameters_svm_results.csv')
-    beacon_index = find_beacon_index(dataset)
-    if ('Wi-fi' in types and 'Bluetooth' in types):
-        row = parameters.loc[parameters['Experimentation'] == "SVM Classifier Wifi + Bluetooth"]
-        X_train = dataset.iloc[:, 4:]
-        Y_train = dataset.iloc[:, 3:4]
-        nan_filler = X_train.min().min() * 1.010
-        X_train = X_train.replace(0, np.nan)
-        X_train = X_train.fillna(nan_filler)
-    elif ('Wi-fi' in types and 'Bluetooth' not in types):
-        row = parameters.query("Experimentation == SVM Classifier Wifi")
-        X_train = dataset.iloc[:, 4:beacon_index]
-        Y_train = dataset.iloc[:, 3:4]
-        nan_filler = X_train.min().min() * 1.010
-        X_train = X_train.replace(0, np.nan)
-        X_train = X_train.fillna(nan_filler)
-    elif ('Wi-fi' not in types and 'Bluetooth' in types):
-        row = parameters.query("Experimentation == SVM Classifier Bluetooth")
-        X_train = dataset.iloc[:, beacon_index:]
-        Y_train = dataset.iloc[:, 3:4]
-        nan_filler = X_train.min().min() * 1.010
-        X_train = X_train.replace(0, np.nan)
-        X_train = X_train.fillna(nan_filler)
-    c_parameter = float(row['C Parameter'].tolist()[0])
-    preprocessing = checkScaler(row['Preprocessing'].tolist()[0])
-    kernel = row['Kernel'].tolist()[0]
-    gamma = row['Gamma'].tolist()[0]
-    weights = row['Class Weights'].tolist()[0]
-    decision_function = row['Decision Function'].tolist()[0]
-    sample_list = list()
-    for column in X_train:
-        if column in access_points:
-            sample_list.append(access_points[column])
-        else:
-            sample_list.append(0)
-        if column in beacons:
-            sample_list.append(beacons[column])
-    sample_2dlist = list()
-    sample_2dlist.append(sample_list)
-    X_test_list = np.array(sample_2dlist)
-    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
-    X_test.replace(0, np.nan)
-    X_test = X_test.fillna(nan_filler)
-    result = compute_SVM_with_Classification(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,
-                                             scaler=preprocessing, C_parameter=c_parameter, kernel_parameter=kernel,
-                                             gamma_parameter=gamma,
-                                             class_weigth_parameter=weights,
-                                             decision_function_shape_parameter=decision_function)
-    return result
-
-
-def apply_kmeans_knn_classifier(types, access_points, beacons, deviceData):
-    dataset = pd.read_csv('Notebooks/radiomapBluetoothWiFiclassifier.csv')
-    parameters = pd.read_csv('Notebooks/parameters_results_clustering.csv')
-    beacon_index = find_beacon_index(dataset)
-    if ('Wi-fi' in types and 'Bluetooth' in types):
-        row = parameters.loc[parameters['Experimentation'] == "K-Means Clustering Wifi + Bluetooth"]
-        X_train = dataset.iloc[:, 4:]
-        Y_train = dataset.iloc[:, 3:4]
-        nan_filler = X_train.min().min() * 1.010
-        X_train = X_train.replace(0, np.nan)
-        X_train = X_train.fillna(nan_filler)
-    elif ('Wi-fi' in types and 'Bluetooth' not in types):
-        row = parameters.query("Experimentation == K-Means Clustering Wifi")
-        X_train = dataset.iloc[:, 4:beacon_index]
-        Y_train = dataset.iloc[:, 3:4]
-        nan_filler = X_train.min().min() * 1.010
-        X_train = X_train.replace(0, np.nan)
-        X_train = X_train.fillna(nan_filler)
-    elif ('Wi-fi' not in types and 'Bluetooth' in types):
-        row = parameters.query("Experimentation == K-Means Clustering Bluetooth")
-        X_train = dataset.iloc[:, beacon_index:]
-        Y_train = dataset.iloc[:, 3:4]
-        nan_filler = X_train.min().min() * 1.010
-        X_train = X_train.replace(0, np.nan)
-        X_train = X_train.fillna(nan_filler)
-    k_parameter = int(row['K Parameter'].tolist()[0])
-    preprocessing = checkScaler(row['Preprocessing'].tolist()[0])
-    init_param = row['Init Parameter'].tolist()[0]
-    algorithm = row['Algorithnm'].tolist()[0]
-    distance = row['Preprocessing Distance'].tolist()[0]
-    sample_list = list()
-    for column in X_train:
-        if column in access_points:
-            sample_list.append(access_points[column])
-        else:
-            sample_list.append(0)
-        if column in beacons:
-            sample_list.append(beacons[column])
-    sample_2dlist = list()
-    sample_2dlist.append(sample_list)
-    X_test_list = np.array(sample_2dlist)
-    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
-    X_test.replace(0, np.nan)
-    X_test = X_test.fillna(nan_filler)
-    labels = dataset.drop(columns=['coordinate_X', 'coordinate_Y']).iloc[:, 1:2]
-    reference_points = dataset.groupby(['zone'])
-    dict_zones = {}
-    counter = 0
-    for rp, rp_data in reference_points:
-        dict_zones[rp] = counter
-        counter = counter + 1
-    display(dict_zones)
-    labels['label'] = labels['zone'].map(lambda p: dict_zones[p])
-    result = compute_KMeans(trainX_data=X_train, trainY_data=Y_train, testX_data=X_test,labels=labels['label'],
-                            scaler=preprocessing, n_clusters=k_parameter, init_parameter=init_param,
-                            algorithms=algorithm, precompute_distances=distance)
-    return result
-
-
-def compute_data_cleaning_with_global_minimum(dataset,first_beacon_index,zone_index):
-    if first_beacon_index != -1:
-        numpy_arr_wifi=dataset.iloc[:,zone_index+1:first_beacon_index].to_numpy()
-        numpy_arr_ble=dataset.iloc[:,first_beacon_index:].to_numpy()
-        nan_filler_wifi = np.nanmin(numpy_arr_wifi)*1.010
-        nan_filler_ble = np.nanmin(numpy_arr_ble) * 1.010
-        dataset.iloc[:,first_beacon_index:] = dataset.iloc[:,first_beacon_index:].fillna(nan_filler_ble)
-        dataset.iloc[:,zone_index+1:first_beacon_index] = dataset.iloc[:,zone_index+1:first_beacon_index].fillna(nan_filler_wifi)
-    else:
-        numpy_arr_wifi=dataset.iloc[:,zone_index+1:].to_numpy()
-        nan_filler_wifi = np.nanmin(numpy_arr_wifi)*1.010
-        dataset.iloc[:,zone_index+1:] = dataset.iloc[:,zone_index+1:].fillna(nan_filler_wifi)
-    print("MINIMUM WIFI: "+ str(nan_filler_wifi))
-    print("MINIMUM BLE: "+ str(nan_filler_ble))
-
-
-def apply_rf_regressor_scanning(dataset_string, access_points, beacons):
-    # Initialize Dataset
-    dataset = pd.read_csv(dataset_string)
-    # Find if dataset has classification
-    columns = list(dataset.columns)
-    if 'zone' in columns:
-        zone_index = dataset.columns.get_loc('zone')
-    else:
-        zone_index = 2
-    # Replace 0 values with nan
-    dataset = replace_features_nan(dataset,zone_index+1)
-    display(dataset)
-    display(dataset.shape)
-    # Init variables
-    first_beacon_index = -1
-    X_train = None
-    train_Y = None
-    # Find beacon position
-    for ap in dataset.iloc[:, zone_index+1:]:
-        if ap.islower() == False:
-            first_beacon_index = list(dataset).index(ap)
-            break
-    #Clean missing values
-    compute_data_cleaning_with_global_minimum(dataset,first_beacon_index,zone_index)
-    display(dataset)
-    #Assign training values
-    X_train = dataset.iloc[:,zone_index+1:]
-    train_Y = dataset.iloc[:,1:3]
-
-    #Init testing dataset by checking which access points to fill
-    sample_list = list()
-    for column in X_train:
-        if column in access_points:
-            sample_list.append(access_points[column])
-        elif column in beacons:
-            sample_list.append(beacons[column])
-        else:
-            sample_list.append(0)
-    sample_2dlist = list()
-    sample_2dlist.append(sample_list)
-    X_test_list = np.array(sample_2dlist)
-    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
-    first_beacon_index_t2 = -1
-    for ap in X_test.iloc[:, 0:]:
-        if ap.islower() == False:
-            first_beacon_index_t2 = list(X_test).index(ap)
-            break
-    X_test = replace_features_nan(X_test,0)
-    display(X_test)
-    compute_data_cleaning_with_global_minimum(X_test,first_beacon_index_t2,-1)
-    access_points_tst = X_test.iloc[:,0:first_beacon_index_t2]
-    beacons_tst = X_test.iloc[:,first_beacon_index_t2:]
-    if access_points_tst.isnull().values.any():
-        print('THE APS ARE NAN')
-        X_test = beacons_tst
-        X_train = dataset.iloc[:,first_beacon_index:]
-    if beacons_tst.isnull().values.any():
-        X_test = access_points_tst
-        X_train = dataset.iloc[:,zone_index+1,:first_beacon_index]
-    display('DATAFRAMES----------------------------------------------------REGRESSION')
-    display(train_Y)
-    display(X_train)
-    display('DATAFRAMES-TEST---------------------------------------------------REGRESSION')
-    display(X_test)
-    # Compute Algorithm
-    result = compute_rf_regression(trainX_data=X_train, trainY_data=train_Y, testX_data=X_test)
-    return result
-
-def apply_rf_classification_scanning(dataset_string, access_points, beacons):
-    # Initialize Dataset
-    dataset = pd.read_csv(dataset_string)
-    zone_index = dataset.columns.get_loc('zone')
-    # Replace 0 values with nan
-    dataset = replace_features_nan(dataset, zone_index + 1)
-    display(dataset)
-    display(dataset.shape)
-    # Init variables
-    first_beacon_index = -1
-    X_train = None
-    train_Y = None
-    # Find beacon position
-    for ap in dataset.iloc[:, zone_index + 1:]:
-        if ap.islower() == False:
-            first_beacon_index = list(dataset).index(ap)
-            break
-    # Clean missing values
-    compute_data_cleaning_with_global_minimum(dataset,first_beacon_index,zone_index)
-    #Assign training values
-    X_train = dataset.iloc[:,zone_index+1:]
-    categorical_zone = dataset[['zone']]
-    zone_changed = compute_encoder(categorical_zone, 0)
-    dataset['labels'] = zone_changed
-    train_Y = dataset['labels'].values.reshape(-1, 1)
-
-    #Init testing dataset by checking which access points to fill
-    sample_list = list()
-    for column in X_train:
-        if column in access_points:
-            sample_list.append(access_points[column])
-        elif column in beacons:
-            sample_list.append(beacons[column])
-        else:
-            sample_list.append(0)
-    sample_2dlist = list()
-    sample_2dlist.append(sample_list)
-    X_test_list = np.array(sample_2dlist)
-    X_test = pd.DataFrame(data=X_test_list, columns=X_train.columns)
-    first_beacon_index_t2 = -1
-    for ap in X_test.iloc[:, 0:]:
-        if ap.islower() == False:
-            first_beacon_index_t2 = list(X_test).index(ap)
-            break
-    X_test = replace_features_nan(X_test, 0)
-    display(X_test)
-    compute_data_cleaning_with_global_minimum(X_test, first_beacon_index_t2, -1)
-    access_points_tst = X_test.iloc[:, 0:first_beacon_index_t2]
-    beacons_tst = X_test.iloc[:, first_beacon_index_t2:]
-    if access_points_tst.isnull().values.any():
-        print('THE APS ARE NAN')
-        X_test = beacons_tst
-        X_train = dataset.iloc[:, first_beacon_index:]
-    if beacons_tst.isnull().values.any():
-        X_test = access_points_tst
-        X_train = dataset.iloc[:, zone_index + 1, :first_beacon_index]
-    X_train = X_train.drop(['labels'],axis=1)
-    display('DATAFRAMES----------------------------------------------------CLASSIFICATION')
-    display(train_Y)
-    display(X_train)
-    display('DATAFRAMES-TEST---------------------------------------------------CLASSIFICATION')
-    display(X_test)
-    # Compute Algorithm
-    result = compute_rf_classification(trainX_data=X_train, trainY_data=train_Y.ravel(), testX_data=X_test)
-    return label_encoder.inverse_transform(result)

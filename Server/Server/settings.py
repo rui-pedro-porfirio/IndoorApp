@@ -26,7 +26,7 @@ SECRET_KEY = 'hs_954!a_gw-b#&%(fqxt0kcp79z#@3x9nn%!z!v0n-wma1i&8'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['indoorlocationapp.herokuapp.com','10.0.2.2','127.0.0.1','localhost','0.0.0.0','192.168.1.8','192.168.1.11','192.168.42.55','192.168.43.166']
+ALLOWED_HOSTS = ['indoorlocationapp.herokuapp.com','10.0.2.2','127.0.0.1','localhost','0.0.0.0','192.168.1.5','192.168.1.11','192.168.42.55','192.168.43.166']
 
 
 # Application definition

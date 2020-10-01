@@ -14,12 +14,12 @@ FINGERPRINTING MAIN ALGORITHM
 '''
 
 
-def initialize_rf_regressor(trainX_data, trainY_data,
-                                              scaler=StandardScaler(), n_estimators_parameter=2000,
-                                              criterion_parameter='mse',
-                                              max_depth_parameter=None, min_samples_split_parameter=2,
-                                              min_samples_leaf_parameter=1, max_features_parameter='auto',
-                                              bootstrap_parameter=True, random_state_parameter=42):
+def initialize_rf_regressor(trainX_data, trainY_data, n_estimators_parameter=2000,
+                            criterion_parameter='mse',
+                            max_depth_parameter=None, min_samples_split_parameter=2,
+                            min_samples_leaf_parameter=1, max_features_parameter='auto',
+                            bootstrap_parameter=True, random_state_parameter=42):
+    scaler = StandardScaler()
     random_forest_estimator = RandomForestRegressor(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
                                                     max_features=max_features_parameter, max_depth=max_depth_parameter,
                                                     min_samples_leaf=min_samples_leaf_parameter,
@@ -35,23 +35,7 @@ def initialize_rf_regressor(trainX_data, trainY_data,
     return main_estimator
 
 
-def compute_rf_regression(trainX_data=None, trainY_data=None, testX_data=None,
-                                   scaler=StandardScaler(), n_estimators_parameter=2000, criterion_parameter='mse',
-                                   max_depth_parameter=None, min_samples_split_parameter=2,
-                                   min_samples_leaf_parameter=1, max_features_parameter='auto',
-                                   bootstrap_parameter=True, random_state_parameter=42):
-    random_forest_estimator = RandomForestRegressor(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
-                                                    max_features=max_features_parameter, max_depth=max_depth_parameter,
-                                                    min_samples_leaf=min_samples_leaf_parameter,
-                                                    min_samples_split=min_samples_split_parameter,
-                                                    bootstrap=bootstrap_parameter, random_state=random_state_parameter)
-    if scaler is not None:
-        # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, random_forest_estimator)
-    else:
-        main_estimator = random_forest_estimator
-    # Fit the training data
-    main_estimator.fit(trainX_data, trainY_data)
+def compute_rf_regression(main_estimator, testX_data):
     # Predict the results of the testing data features
     predict_test = main_estimator.predict(testX_data)
 
@@ -59,11 +43,11 @@ def compute_rf_regression(trainX_data=None, trainY_data=None, testX_data=None,
 
 
 def initialize_rf_classifier(trainX_data, trainY_data,
-                                                  scaler=StandardScaler(), n_estimators_parameter=100,
-                                                  criterion_parameter='gini',
-                                                  max_depth_parameter=110.0, min_samples_split_parameter=2,
-                                                  min_samples_leaf_parameter=1, max_features_parameter='auto',
-                                                  bootstrap_parameter=True, random_state_parameter=42):
+                             scaler=StandardScaler(), n_estimators_parameter=100,
+                             criterion_parameter='gini',
+                             max_depth_parameter=110.0, min_samples_split_parameter=2,
+                             min_samples_leaf_parameter=1, max_features_parameter='auto',
+                             bootstrap_parameter=True, random_state_parameter=42):
     random_forest_estimator = RandomForestClassifier(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
                                                      max_features=max_features_parameter, max_depth=max_depth_parameter,
                                                      min_samples_leaf=min_samples_leaf_parameter,
@@ -80,23 +64,7 @@ def initialize_rf_classifier(trainX_data, trainY_data,
     return main_estimator
 
 
-def compute_rf_classification(trainX_data=None, trainY_data=None, testX_data=None,
-                                       scaler=StandardScaler(), n_estimators_parameter=100, criterion_parameter='gini',
-                                       max_depth_parameter=110.0, min_samples_split_parameter=2,
-                                       min_samples_leaf_parameter=1, max_features_parameter='auto',
-                                       bootstrap_parameter=True, random_state_parameter=42):
-    random_forest_estimator = RandomForestClassifier(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
-                                                     max_features=max_features_parameter, max_depth=max_depth_parameter,
-                                                     min_samples_leaf=min_samples_leaf_parameter,
-                                                     min_samples_split=min_samples_split_parameter,
-                                                     bootstrap=bootstrap_parameter, random_state=random_state_parameter)
-    if scaler is not None:
-        # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, random_forest_estimator)
-    else:
-        main_estimator = random_forest_estimator
-    # Fit the training data
-    main_estimator.fit(trainX_data, trainY_data)
+def compute_rf_classification(main_estimator, testX_data):
     # Predict the results of the testing data features
     predict_test = main_estimator.predict(testX_data)
 
@@ -109,8 +77,8 @@ PROXIMITY MAIN ALGORITHM
 
 
 def initialize_knn_classifier(trainX_data, trainY_data, scaler=StandardScaler(),
-                                               n_neighbors=12,
-                                               weights='uniform', algorithm='auto', metric='canberra', n_jobs=-1):
+                              n_neighbors=12,
+                              weights='uniform', algorithm='auto', metric='canberra', n_jobs=-1):
     knn_classifier_estimator = KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm,
                                                     metric=metric, n_jobs=n_jobs)
     if scaler is not None:
@@ -123,7 +91,42 @@ def initialize_knn_classifier(trainX_data, trainY_data, scaler=StandardScaler(),
     return main_estimator
 
 
-def compute_knn_classification(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(),
+def compute_knn_classification(main_estimator, testX_data):
+    # Predict the results of the testing data features
+    predict_test = main_estimator.predict(testX_data)
+
+    return predict_test
+
+
+def initialize_knn_regressor(trainX_data, trainY_data, scaler=StandardScaler(),
+                             n_neighbors=30,
+                             weights='uniform', algorithm='auto', metric='braycurtis', n_jobs=-1):
+    # Init the KNN Regressor Estimator
+    knn_regression_estimator = KNeighborsRegressor(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm,
+                                                   metric=metric, n_jobs=n_jobs)
+    if scaler is not None:
+        # Make pipeline using scaler transformation
+        main_estimator = make_pipeline(scaler, knn_regression_estimator)
+    else:
+        main_estimator = knn_regression_estimator
+    # Fit the training data
+    main_estimator.fit(trainX_data, trainY_data)
+    return main_estimator
+
+
+def compute_knn_regression(main_estimator, testX_data):
+    # Predict the results of the testing data features
+    predict_test = main_estimator.predict(testX_data)
+
+    return predict_test
+
+
+'''
+OTHER ALGORITHMS FOR USAGE IN EXPERIMENTAL PHASE
+'''
+
+
+def compute_KNN_with_Classification(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(),
                                     n_neighbors=12,
                                     weights='uniform', algorithm='auto', metric='canberra', n_jobs=-1):
     # Init the KNN Regressor Estimator
@@ -141,23 +144,7 @@ def compute_knn_classification(trainX_data=None, trainY_data=None, testX_data=No
     return predict_test
 
 
-def initialize_knn_regressor(trainX_data, trainY_data, scaler=StandardScaler(),
-                                           n_neighbors=30,
-                                           weights='uniform', algorithm='auto', metric='braycurtis', n_jobs=-1):
-    # Init the KNN Regressor Estimator
-    knn_regression_estimator = KNeighborsRegressor(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm,
-                                                   metric=metric, n_jobs=n_jobs)
-    if scaler is not None:
-        # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, knn_regression_estimator)
-    else:
-        main_estimator = knn_regression_estimator
-    # Fit the training data
-    main_estimator.fit(trainX_data, trainY_data)
-    return main_estimator
-
-
-def compute_knn_regression(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(),
+def compute_KNN_with_Regression(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(),
                                 n_neighbors=30,
                                 weights='uniform', algorithm='auto', metric='braycurtis', n_jobs=-1):
     # Init the KNN Regressor Estimator
@@ -173,11 +160,6 @@ def compute_knn_regression(trainX_data=None, trainY_data=None, testX_data=None, 
     # Predict the results of the testing data features
     predict_test = main_estimator.predict(testX_data)
     return predict_test
-
-
-'''
-OTHER ALGORITHMS FOR USAGE IN EXPERIMENTAL PHASE
-'''
 
 
 def compute_SVM_with_Classification(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler()
@@ -215,8 +197,6 @@ def compute_SVM_with_Regression(trainX_data=None, trainY_data=None, testX_data=N
     return predict_test
 
 
-
-
 def compute_KMeans(trainX_data=None, trainY_data=None, testX_data=None, labels=None, n_clusters=4,
                    init_parameter='k-means++', n_init=10, algorithms='auto', scaler=None, precompute_distances='auto',
                    n_jobs=-1):
@@ -239,8 +219,8 @@ def compute_KMeans(trainX_data=None, trainY_data=None, testX_data=None, labels=N
     statistics = pd.DataFrame(report).transpose()
     display(statistics)
     result = compute_knn_classification(trainX_data=frame, testX_data=testX_data, trainY_data=trainY_data,
-                                             scaler=MaxAbsScaler(),
-                                             metric='canberra', weights='distance', algorithm='brute')
+                                        scaler=MaxAbsScaler(),
+                                        metric='canberra', weights='distance', algorithm='brute')
     return result
 
 
@@ -259,66 +239,7 @@ def compute_LinearRegression(trainX_data=None, trainY_data=None, testX_data=None
     return predict_test
 
 
-def compute_KNN_Classification_Scanning_initialize(trainX_data, trainY_data, scaler=StandardScaler(),
-                                                   n_neighbors=3,
-                                                   weights='distance', algorithm='auto', metric='canberra', n_jobs=-1):
-    # Init the KNN Regressor Estimator
-    knn_classifier_estimator = KNeighborsClassifier(n_neighbors, weights, algorithm, metric, n_jobs)
-    if scaler is not None:
-        # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, knn_classifier_estimator)
-    else:
-        main_estimator = knn_classifier_estimator
-    # Fit the training data
-    main_estimator.fit(trainX_data, trainY_data)
-    return main_estimator
 
-
-def compute_KNN_Classification_Scanning(trainX_data=None, trainY_data=None, testX_data=None, scaler=StandardScaler(),
-                                        n_neighbors=3,
-                                        weights='distance', algorithm='auto', metric='canberra', n_jobs=-1):
-    # Init the KNN Regressor Estimator
-    knn_classifier_estimator = KNeighborsClassifier(n_neighbors, weights, algorithm, metric, n_jobs)
-    if scaler is not None:
-        # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, knn_classifier_estimator)
-    else:
-        main_estimator = knn_classifier_estimator
-    # Fit the training data
-    main_estimator.fit(trainX_data, trainY_data)
-    # Predict the results of the testing data features
-    predict_test = main_estimator.predict(testX_data)
-    return predict_test
-
-
-def compute_KNN_Regression_Scanning_initialize(trainX_data, trainY_data, scaler=None, n_neighbors=10,
-                                               weights='distance', algorithm='auto', metric='canberra', n_jobs=-1):
-    # Init the KNN Regressor Estimator
-    knn_regression_estimator = KNeighborsRegressor(n_neighbors, weights, algorithm, metric, n_jobs)
-    if scaler is not None:
-        # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, knn_regression_estimator)
-    else:
-        main_estimator = knn_regression_estimator
-    # Fit the training data
-    main_estimator.fit(trainX_data, trainY_data)
-    return main_estimator
-
-
-def compute_KNN_Regression_Scanning(trainX_data=None, trainY_data=None, testX_data=None, scaler=None, n_neighbors=10,
-                                    weights='distance', algorithm='auto', metric='canberra', n_jobs=-1):
-    # Init the KNN Regressor Estimator
-    knn_regression_estimator = KNeighborsRegressor(n_neighbors, weights, algorithm, metric, n_jobs)
-    if scaler is not None:
-        # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, knn_regression_estimator)
-    else:
-        main_estimator = knn_regression_estimator
-    # Fit the training data
-    main_estimator.fit(trainX_data, trainY_data)
-    # Predict the results of the testing data features
-    predict_test = main_estimator.predict(testX_data)
-    return predict_test
 
 '''
 KERAS MLP
