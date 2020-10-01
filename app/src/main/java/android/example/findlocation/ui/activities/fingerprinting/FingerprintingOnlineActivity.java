@@ -73,7 +73,9 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.1.4:8000/";
+
+    private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
+    private static final String SERVER_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/";
 
     private List<String> dataTypes;
     private String algorithm;
@@ -446,7 +448,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(ADDRESS + "radiomap/position", json, "");
+                post(SERVER_ADDRESS_HEROKU + "radiomap/position", json, "");
 
             } catch (IOException e) {
                 e.printStackTrace();

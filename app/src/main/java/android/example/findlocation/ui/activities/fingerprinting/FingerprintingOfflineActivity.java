@@ -83,7 +83,8 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
     // OVERALL CONSTANTS
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.42.55:8000/";
+    private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
+    private static final String SERVER_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/";
     public static final String FINGERPRINT_FILE = "radio_map";
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
@@ -822,28 +823,28 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
             try {
                 if(json != null && !json.isEmpty()){
-                    post(ADDRESS +"filter/",json, "");
+                    post(SERVER_ADDRESS_HEROKU +"filter/",json, "");
                 }
                 fingerprintInJson = gson.toJson(serverFingerprint);
 
                 if (serverFingerprint != null) {
-                    fingerprintId = post(ADDRESS + "fingerprints/", fingerprintInJson, "id");
+                    fingerprintId = post(SERVER_ADDRESS_HEROKU + "fingerprints/", fingerprintInJson, "id");
                 }
                 if (!fingerprintId.equals("")) {
                     if (serverDeviceData != null) {
                         serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
                         String deviceDataInJson = gson.toJson(serverDeviceData);
-                        post(ADDRESS + "device/", deviceDataInJson, "");
+                        post(SERVER_ADDRESS_HEROKU + "device/", deviceDataInJson, "");
                     }
                     if (serverWifiData != null) {
                         serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
                         String wifiDataInJson = gson.toJson(serverWifiData);
-                        post(ADDRESS + "wifi/", wifiDataInJson, "");
+                        post(SERVER_ADDRESS_HEROKU + "wifi/", wifiDataInJson, "");
                     }
                     if (serverBluetoothData != null) {
                         serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
                         String bleDataInJson = gson.toJson(serverBluetoothData);
-                        post(ADDRESS + "bluetooth/", bleDataInJson, "");
+                        post(SERVER_ADDRESS_HEROKU + "bluetooth/", bleDataInJson, "");
                     }
                 } else {
                     System.err.println("Fingerprint Id missing");

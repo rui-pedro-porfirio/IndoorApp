@@ -53,7 +53,10 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String ADDRESS = "http://192.168.42.55:8000/";
+
+    private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
+    private static final String SERVER_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/";
+
     private static final long SCAN_PERIOD_TIME = 60000 * 1; // 1 minute of continuous scanning
     private static final String TAG = "TIMER";
     private static final String BEACON = "BEACON";
@@ -372,7 +375,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(ADDRESS + "proximity/distance", json, "");
+                post(SERVER_ADDRESS_HEROKU + "proximity/distance", json, "");
 
             } catch (IOException e) {
                 e.printStackTrace();
