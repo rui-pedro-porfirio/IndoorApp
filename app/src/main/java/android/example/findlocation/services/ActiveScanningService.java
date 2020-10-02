@@ -73,7 +73,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     static final String PREF_USERNAME = "PREF_USERNAME";
     static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
 
-    static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.1.5:8080/scanning/";
+    static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.42.55:8080/scanning/";
     static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/scanning/";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     static final long SERVICE_DELAY = 10000;
@@ -204,7 +204,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText("Access Points Detected: 0 | Beacons Detected: 0")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-                .setContentIntent(mPendingIntent);
+                .setContentIntent(mPendingIntent)
+                .setDefaults(Notification.DEFAULT_SOUND)
+                .setVibrate(new long[]{0L}); ;
         return mBuilder.build();
     }
 
@@ -243,7 +245,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private void sendDataToServer() {
         ScanningObject mScanningObject = new ScanningObject(mUsername, mDeviceUuid, mAccessPointsList, mBeaconsList, mSensorInformationList);
         String mScanningObjectInJson = convertToJsonString(mScanningObject);
-        sendPostHTTPRequest(SERVER_ENDPOINT_ADDRESS_HEROKU, mScanningObjectInJson);
+        sendPostHTTPRequest(SERVER_ENDPOINT_ADDRESS, mScanningObjectInJson);
     }
 
     private String convertToJsonString(ScanningObject mScanningObject) {
@@ -371,7 +373,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
                     boolean mBeaconExists = false;
                     for (int i = 0; i < mBeaconsList.size(); i++) {
                         BluetoothObject mKnownBeacon = mBeaconsList.get(i);
-                        if (mKnownBeacon.getName().equals(mBeaconScanned.getBluetoothAddress())) {
+                        String mIdString = mBeaconScanned.getId1().toString() + "-" + mBeaconScanned.getId2().toString()
+                                + "-" + mBeaconScanned.getId3().toString();
+                        if (mKnownBeacon.getName().equals(mIdString)) {
                             mKnownBeacon.setSingleValue(mRssi);
                             mKnownBeacon.addValue(mRssi);
                             mBeaconExists = true;
@@ -380,7 +384,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
                     }
 
                     if (!mBeaconExists) {
-                        BluetoothObject mNewBeaconFound = new BluetoothObject(mBeaconScanned.getBluetoothAddress(), mRssi);
+                        String mIdString = mBeaconScanned.getId1().toString() + "-" + mBeaconScanned.getId2().toString()
+                                + "-" + mBeaconScanned.getId3().toString();
+                        BluetoothObject mNewBeaconFound = new BluetoothObject(mIdString,mBeaconScanned.getBluetoothAddress(), mRssi);
                         mNewBeaconFound.addValue(mRssi);
                         mBeaconsList.add(mNewBeaconFound);
                         Log.i(TAG, "Added beacon " + mNewBeaconFound.getName() + " to the known list.");

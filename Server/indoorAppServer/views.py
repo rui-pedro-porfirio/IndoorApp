@@ -26,7 +26,7 @@ print('Initializing Django Server...')
 fuzzy_dict = initializationModule.create_and_assert_fuzzy_system()
 fuzzy_system = fuzzy_dict['System']
 fuzzy_technique = fuzzy_dict['Technique MF']
-initializationModule.test_ws_communication()
+# initializationModule.test_ws_communication()
 trained_radio_maps = initializationModule.train_existent_radio_maps()
 proximityPositioning.structure_dataset()
 print('Server initialization finished with code 0.')
@@ -84,13 +84,32 @@ class ScanningView(APIView):
     deviceSensorDetected = None
     position_regression = None
     position_classification = None
+    environment_name = None
     access_points_ml = {}
     beacons_ml = {}
     access_points_structured = list()
     beacons_structured = list()
     beacons_ml_fingerprinting = {}
+    beacons_name = {}
+
+    def clear_cache(self):
+        self.username = None
+        self.deviceUuid = None
+        self.accessPointsDetected = None
+        self.beaconsDetected = None
+        self.deviceSensorDetected = None
+        self.position_regression = None
+        self.position_classification = None
+        self.environment_name = None
+        self.access_points_ml = {}
+        self.beacons_ml = {}
+        self.beacons_name = {}
+        self.access_points_structured = list()
+        self.beacons_structured = list()
+        self.beacons_ml_fingerprinting = {}
 
     def configure_data_structures(self, sample_dict):
+        self.clear_cache()
         self.username = sample_dict['username']
         self.deviceUuid = sample_dict['uuid']
         self.accessPointsDetected = sample_dict['mAccessPoints']
@@ -107,12 +126,13 @@ class ScanningView(APIView):
 
     def structure_beacons_data(self):
         for beacon in self.beaconsDetected:
-            self.beacons_structured.append(beacon['name'])
+            self.beacons_structured.append(beacon['mac'])
             single_list = beacon['singleValue']
             rolling_list = beacon['values']
             extending_tp = (single_list, rolling_list)
-            self.beacons_ml[beacon['name']] = extending_tp
-            self.beacons_ml_fingerprinting[beacon['name']] = single_list
+            self.beacons_ml[beacon['mac']] = extending_tp
+            self.beacons_ml_fingerprinting[beacon['mac']] = single_list
+            self.beacons_name[beacon['mac']] = beacon['name']
 
     def match_radio_map_similarity(self):
         return radiomap.compute_matching_data(self.access_points_structured, self.beacons_structured)
@@ -122,11 +142,14 @@ class ScanningView(APIView):
                        'input_beacons': radio_map['length_ble']}
         beacons_known_positions = common.load_access_points_locations()
         available_beacons = dict()
-        for beacon, position in beacons_known_positions.items():
-            if beacon in self.beacons_structured:
-                available_beacons[beacon] = position
+        for location_name, locations in beacons_known_positions.items():
+            for beacon, position in locations.items():
+                if beacon in self.beacons_structured:
+                    available_beacons[beacon] = position
+                    if self.environment_name is None:
+                        self.environment_name = location_name
         result_dict['beacons_known_positions'] = available_beacons
-        result_dict['beacons_locations_length'] = len(beacons_known_positions)
+        result_dict['beacons_locations_length'] = len(available_beacons)
         return result_dict
 
     def apply_ml_algorithm(self, position_technique, radio_map_is_classifier,
@@ -136,17 +159,30 @@ class ScanningView(APIView):
             self.apply_fingerprinting(matching_radio_map=matching_radio_map,
                                       radio_map_is_classifier=radio_map_is_classifier)
             print('ML Algorithm done running.')
+            position_dictionary = self.structure_position_results(position_technique)
+
+            self.update_position_results(position_dictionary, position_technique)
         elif position_technique == 'Trilateration':
             print('Trilateration chosen.')
             self.apply_trilateration(beacons_known_locations)
             print('ML Algorithm done running.')
+            position_dictionary = self.structure_position_results(position_technique)
+
+            self.update_position_results(position_dictionary, position_technique)
         elif position_technique == 'Proximity':
             print('Proximity chosen.')
-            self.apply_proximity()
+
+            for beacon, rssi_values in self.beacons_ml.items():
+                beacon_name = self.beacons_name[beacon]
+                self.apply_proximity(self.beacons_ml[beacon])
+                position_dictionary = self.structure_position_results(position_technique)
+
+                self.update_position_results(position_dictionary, position_technique,beacon_name)
             print('ML Algorithm done running')
 
     def apply_fingerprinting(self, matching_radio_map, radio_map_is_classifier):
         # Apply RF to Regression
+        self.environment_name = matching_radio_map['dataset']
         self.position_regression = fingerprintPositioning.apply_rf_regressor_scanning(
             estimator_options=trained_radio_maps[matching_radio_map['dataset']],
             radio_map=matching_radio_map['dataset'],
@@ -160,15 +196,11 @@ class ScanningView(APIView):
                 access_points=self.access_points_ml,
                 beacons=self.beacons_ml_fingerprinting)
 
-    def apply_proximity(self):
+    def apply_proximity(self, target_beacon):
         sample = {}
 
-        # Sort beacons by number of samples recorded
-        sorted_dict = sorted(self.beacons_ml, key=lambda k: len(self.beacons_ml[k][1]), reverse=True)
-
-        highest_beacon = self.beacons_ml[sorted_dict[0]]
-        sample['singleValue'] = highest_beacon[0]
-        sample['values'] = highest_beacon[1]
+        sample['singleValue'] = target_beacon[0]
+        sample['values'] = target_beacon[1]
 
         # Structure sample into a csv
         test_df = csvHandler.compute_csv_in_scanning_phase(sample)
@@ -239,9 +271,15 @@ class ScanningView(APIView):
                 position_dict['Classification'] = self.position_classification[0]
         return position_dict
 
-    def update_position_results(self, position_dict):
+    def update_position_results(self, position_dict, position_technique,beacon_name=None):
         print('Position computed. Sending update to subscribers.')
-        websockets.publish(self.username, self.deviceUuid, position_dict)
+        radio_map_identifier = None
+        beacon = None
+        if position_technique is 'Trilateration' or position_technique is 'Fingerprinting':
+            radio_map_identifier = self.environment_name
+        if position_technique is 'Proximity':
+            beacon = beacon_name
+        websockets.publish(self.username, self.deviceUuid, position_dict, radio_map_identifier, beacon)
 
     def post(self, request):
         serializer_context = {
@@ -282,10 +320,6 @@ class ScanningView(APIView):
                                     radio_map_is_classifier=radio_map_is_classifier,
                                     matching_radio_map=matching_radio_map,
                                     beacons_known_locations=beacons_known_locations)
-
-            position_dictionary = self.structure_position_results(position_technique)
-
-            self.update_position_results(position_dictionary)
 
             return Response(status=status.HTTP_200_OK)
 

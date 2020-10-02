@@ -1,5 +1,6 @@
 import json
 import math
+import glob
 
 import numpy as np
 import pandas as pd
@@ -93,14 +94,18 @@ def decode(prediction):
 
 
 def load_access_points_locations():
-    file_heroku = '/app/access_points_location.json'
-    file_local = 'access_points_location.json'
-    with open(file_heroku) as json_file:
-        data = json.load(json_file)
-        access_points = {}
-        for k, v in data.items():
-            access_points[k] = v
-        return access_points
+    locations_local = glob.glob(
+        '*.json')
+    locations_heroku = glob.glob('/app/*.json')
+    location_dict = {}
+    for location in locations_local:
+        with open(location) as json_file:
+            data = json.load(json_file)
+            beacons = {}
+            for k, v in data.items():
+                beacons[k] = v
+            location_dict[location] = beacons
+    return location_dict
 
 
 def check_zone(y):

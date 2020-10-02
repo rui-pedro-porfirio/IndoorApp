@@ -6,6 +6,7 @@ import java.util.List;
 public class BluetoothObject {
 
     private String name;
+    private String mac;
     private List<Integer> values;
     private int singleValue;
 
@@ -17,6 +18,19 @@ public class BluetoothObject {
     public BluetoothObject(String name, int value){
         this.name = name;
         this.singleValue = value;
+        this.values = new ArrayList<>();
+    }
+
+    public BluetoothObject(String name, String mac,List<Integer> values){
+        this.name = name;
+        this.values = values;
+        this.mac = mac;
+    }
+
+    public BluetoothObject(String name, String mac,int value){
+        this.name = name;
+        this.singleValue = value;
+        this.mac = mac;
         this.values = new ArrayList<>();
     }
 
