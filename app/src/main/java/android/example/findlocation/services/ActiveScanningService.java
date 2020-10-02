@@ -245,7 +245,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private void sendDataToServer() {
         ScanningObject mScanningObject = new ScanningObject(mUsername, mDeviceUuid, mAccessPointsList, mBeaconsList, mSensorInformationList);
         String mScanningObjectInJson = convertToJsonString(mScanningObject);
-        sendPostHTTPRequest(SERVER_ENDPOINT_ADDRESS, mScanningObjectInJson);
+        sendPostHTTPRequest(SERVER_ENDPOINT_ADDRESS_HEROKU, mScanningObjectInJson);
     }
 
     private String convertToJsonString(ScanningObject mScanningObject) {

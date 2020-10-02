@@ -98,7 +98,7 @@ def load_access_points_locations():
         '*.json')
     locations_heroku = glob.glob('/app/*.json')
     location_dict = {}
-    for location in locations_local:
+    for location in locations_heroku:
         with open(location) as json_file:
             data = json.load(json_file)
             beacons = {}
