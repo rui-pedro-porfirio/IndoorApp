@@ -27,6 +27,7 @@ def create_fuzzy_system():
     technique['Proximity'] = fuzz.gaussmf(technique.universe, 1, 0.1)
     technique['Trilateration'] = fuzz.gaussmf(technique.universe, 3, 0.1)
     technique['Fingerprinting'] = fuzz.gaussmf(technique.universe, 5, 0.1)
+    technique['None'] = fuzz.gaussmf(technique.universe, 7, 0.1)
 
     # MatPlotLib visualization of the membership functions
     number_beacons['Medium'].view()
@@ -60,12 +61,14 @@ def create_fuzzy_system():
     rule9 = ctrl.Rule(
         number_beacons['Good'] & matching_aps['Enough'] & matching_beacons['Not Enough'] & beacons_locations[
             'Available'], technique['Trilateration'])
+    rule10 = ctrl.Rule(
+        number_beacons['None'] & matching_aps['Not Enough'] & matching_beacons['Not Enough'], technique['None'])
 
     rule1.view()
 
     # Control System Creation
     position_technique_ctrl = ctrl.ControlSystem([rule1, rule2, rule3,
-                                                  rule4, rule5, rule6, rule7, rule8, rule9])
+                                                  rule4, rule5, rule6, rule7, rule8, rule9, rule10])
     return {'System': position_technique_ctrl, 'Technique MF': technique}
 
 
@@ -92,6 +95,8 @@ def compute_fuzzy_decision(position_technique_ctrl, technique, number_beacons, m
         result = 'Trilateration'
     elif round(output_value, 1) == 5.0:
         result = 'Fingerprinting'
+    elif round(output_value, 1) == 7.0:
+        result = 'None'
 
     return result
 
@@ -116,3 +121,5 @@ def test_phase(control_system, technique):
     assert test_rule8 == 'Trilateration'
     test_rule9 = compute_fuzzy_decision(control_system, technique, 3, 55, 2, 3)
     assert test_rule9 == 'Trilateration'
+    test_rule10 = compute_fuzzy_decision(control_system, technique, 0, 0, 0, 3)
+    assert test_rule10 == 'None'
