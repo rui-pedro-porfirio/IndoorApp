@@ -137,9 +137,8 @@ class ScanningView(APIView):
     def match_radio_map_similarity(self):
         return radiomap.compute_matching_data(self.access_points_structured, self.beacons_structured)
 
-    def structure_radio_map_for_fuzzy_system(self, radio_map):
-        result_dict = {'isClassifier': radio_map['isClassifier'], 'input_aps': radio_map['length_wifi'],
-                       'input_beacons': radio_map['length_ble']}
+    def find_beacons_location(self):
+        result_dict = dict()
         beacons_known_positions = common.load_access_points_locations()
         available_beacons = dict()
         for location_name, locations in beacons_known_positions.items():
@@ -148,8 +147,21 @@ class ScanningView(APIView):
                     available_beacons[beacon] = position
                     if self.environment_name is None:
                         self.environment_name = location_name
+                elif beacon in self.beacons_name.values():
+                    beacon_address = common.get_key(self.beacons_name,beacon)
+                    available_beacons[beacon_address] = position
+                    if self.environment_name is None:
+                        self.environment_name = location_name
         result_dict['beacons_known_positions'] = available_beacons
         result_dict['beacons_locations_length'] = len(available_beacons)
+        return result_dict
+
+    def structure_radio_map_for_fuzzy_system(self, radio_map):
+        result_dict = {'isClassifier': radio_map['isClassifier'], 'input_aps': radio_map['length_wifi'],
+                       'input_beacons': radio_map['length_ble']}
+        beacons_location = self.find_beacons_location()
+        result_dict['beacons_known_positions'] = beacons_location['beacons_known_positions']
+        result_dict['beacons_locations_length'] = beacons_location['beacons_locations_length']
         return result_dict
 
     def apply_ml_algorithm(self, position_technique, radio_map_is_classifier,
@@ -177,7 +189,7 @@ class ScanningView(APIView):
                 self.apply_proximity(self.beacons_ml[beacon])
                 position_dictionary = self.structure_position_results(position_technique)
 
-                self.update_position_results(position_dictionary, position_technique,beacon_name)
+                self.update_position_results(position_dictionary, position_technique, beacon_name)
             print('ML Algorithm done running')
 
     def apply_fingerprinting(self, matching_radio_map, radio_map_is_classifier):
@@ -271,7 +283,7 @@ class ScanningView(APIView):
                 position_dict['Classification'] = self.position_classification[0]
         return position_dict
 
-    def update_position_results(self, position_dict, position_technique,beacon_name=None):
+    def update_position_results(self, position_dict, position_technique, beacon_name=None):
         print('Position computed. Sending update to subscribers.')
         radio_map_identifier = None
         beacon = None
@@ -296,7 +308,14 @@ class ScanningView(APIView):
 
         radio_map_is_empty = not bool(matching_radio_map)
         if matching_radio_map is None or radio_map_is_empty:
-            raise Exception('Impossible to get data. No data returned from BLE and Wifi')
+            radio_map_is_classifier = False
+            similar_access_points = 0
+            similar_beacons = 0
+            beacons_location = self.find_beacons_location()
+            beacons_known_locations = beacons_location['beacons_known_positions']
+            size_of_beacons_known_locations = beacons_location['beacons_locations_length']
+            print('% of Matching access_points: ' + str(similar_access_points))
+            print('Number of Matching beacons: ' + str(similar_beacons))
         else:
             radio_map_data = self.structure_radio_map_for_fuzzy_system(matching_radio_map)
             radio_map_is_classifier = radio_map_data['isClassifier']
@@ -307,21 +326,24 @@ class ScanningView(APIView):
             print('% of Matching access_points: ' + str(similar_access_points))
             print('Number of Matching beacons: ' + str(similar_beacons))
 
-            # Compute decision function to choose best technique
-            position_technique = decision_system.compute_fuzzy_decision(fuzzy_system, fuzzy_technique
-                                                                        , number_beacons_detected,
-                                                                        similar_access_points,
-                                                                        similar_beacons,
-                                                                        size_of_beacons_known_locations)
-            print('DECISION MADE. TECHNIQUE IS ' + position_technique)
+        # Compute decision function to choose best technique
+        position_technique = decision_system.compute_fuzzy_decision(fuzzy_system, fuzzy_technique
+                                                                    , number_beacons_detected,
+                                                                    similar_access_points,
+                                                                    similar_beacons,
+                                                                    size_of_beacons_known_locations)
+        print('DECISION MADE. TECHNIQUE IS ' + position_technique)
 
+        if position_technique == 'None':
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
             # Apply ML algorithm
             self.apply_ml_algorithm(position_technique=position_technique,
                                     radio_map_is_classifier=radio_map_is_classifier,
                                     matching_radio_map=matching_radio_map,
                                     beacons_known_locations=beacons_known_locations)
 
-            return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
 
 '''

@@ -76,7 +76,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.42.55:8080/scanning/";
     static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/scanning/";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    static final long SERVICE_DELAY = 10000;
+    static final long SERVICE_DELAY = 5000;
 
     static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
 
@@ -93,6 +93,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private Notification.Builder mBuilder;
     private int mLatestKnownAps;
     private int mLatestKnownBeacons;
+    private int mNotFoundServerCount;
 
     private SharedPreferences mAppPreferences;
     private String mUsername;
@@ -109,6 +110,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mHttpClient = new OkHttpClient();
         mLatestKnownAps = 0;
         mLatestKnownBeacons = 0;
+        mLatestKnownBeacons = 0;
+        mNotFoundServerCount = 0;
         startThreadAndHandler();
     }
 
@@ -205,8 +208,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
                 .setContentText("Access Points Detected: 0 | Beacons Detected: 0")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setContentIntent(mPendingIntent)
-                .setDefaults(Notification.DEFAULT_SOUND)
-                .setVibrate(new long[]{0L}); ;
+                .setVibrate(null);
         return mBuilder.build();
     }
 
@@ -259,7 +261,21 @@ public class ActiveScanningService extends Service implements SensorEventListene
         Request mPostRequest = structureRequest(mUrl, mJsonString);
         try (Response response = mHttpClient.newCall(mPostRequest).execute()) {
             if (!response.isSuccessful()) {
-                throw new HTTPRequestException("Unexpected code " + response);
+                Log.e(TAG,"Unexpected code " + response);
+                if (response.code() == 404){
+                    mNotFoundServerCount++;
+                    if(mNotFoundServerCount == 4){
+                        mNotFoundServerCount = 0;
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Do your stuff here related to UI, e.g. show toast
+                                Toast.makeText(getApplicationContext(), "Server failed to position user.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+
             } else {
                 Log.i(TAG, "Successfully sent data to the server.");
             }
@@ -282,8 +298,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
                 }
             });
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (HTTPRequestException e) {
             e.printStackTrace();
         }
     }

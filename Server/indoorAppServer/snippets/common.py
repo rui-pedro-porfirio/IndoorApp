@@ -137,3 +137,11 @@ def compute_squared_errors(d1, d2):
 def compute_distance_coordinate_system(x1, y1, x2, y2):
     dist = math.hypot(x2 - x1, y2 - y1)
     return dist
+
+
+def get_key(target_dict,val):
+    for key, value in target_dict.items():
+        if val == value:
+            return key
+
+    return -1
