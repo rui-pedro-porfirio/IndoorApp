@@ -237,7 +237,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
                 }
                 if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
                     sendDataToServer();
-                restartScan();
                 mServiceHandler.postDelayed(this, SERVICE_DELAY); // Uncomment this to become cyclic
             }
         }, SERVICE_DELAY);
@@ -278,6 +277,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
 
             } else {
                 Log.i(TAG, "Successfully sent data to the server.");
+                restartScan();
             }
             response.body().close();
         } catch (ConnectException e) {
@@ -378,9 +378,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                if (beacons.size() > 0) {
+                for(Beacon mBeaconScanned: beacons){
 
-                    Beacon mBeaconScanned = beacons.iterator().next();
                     int mRssi = mBeaconScanned.getRssi();
                     if (BuildConfig.DEBUG)
                         Log.d(TAG, "New values for beacon: " + mBeaconScanned.getBluetoothAddress() + " | RSSI: " + mRssi);
