@@ -1,6 +1,6 @@
 package android.example.findlocation;
 
-import android.app.Application;
+import androidx.multidex.MultiDexApplication;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.example.findlocation.exceptions.SharedPreferencesException;
@@ -9,7 +9,7 @@ import android.util.Log;
 import java.util.Map;
 import java.util.Set;
 
-public class IndoorApp extends Application {
+public class IndoorApp extends MultiDexApplication {
 
     private static final String TAG = IndoorApp.class.getSimpleName();
     public static SharedPreferences appPreferences;
