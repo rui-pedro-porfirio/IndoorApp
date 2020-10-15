@@ -217,9 +217,8 @@ public class SensorAnalysisActivity extends AppCompatActivity {
             beaconManager.addRangeNotifier(new RangeNotifier() {
                 @Override
                 public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                    if (beacons.size() > 0) {
+                    for(Beacon mBeaconScanned: beacons){
 
-                        Beacon mBeaconScanned = beacons.iterator().next();
                         int mRssi = mBeaconScanned.getRssi();
                         if (BuildConfig.DEBUG)
                             Log.d(TAG, "New values for beacon: " + mBeaconScanned.getBluetoothAddress() + " | RSSI: " + mRssi);
