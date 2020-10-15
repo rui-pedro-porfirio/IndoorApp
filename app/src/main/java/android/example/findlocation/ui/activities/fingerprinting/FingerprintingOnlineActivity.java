@@ -371,14 +371,13 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                if (beacons.size() > 0) {
+                for(Beacon mBeaconScanned: beacons){
 
-                    Beacon beaconScanned = beacons.iterator().next();
-                    int rss = beaconScanned.getRssi();
+                    int rss = mBeaconScanned.getRssi();
                     boolean found = false;
                     for (int i = 0; i < mBeaconsList.size(); i++) {
                         BluetoothObject beaconfound = mBeaconsList.get(i);
-                        if (beaconfound.getName().equals(beaconScanned.getBluetoothAddress())) {
+                        if (beaconfound.getName().equals(mBeaconScanned.getBluetoothAddress())) {
                             beaconfound.setSingleValue(rss);
                             found = true;
                             break;
@@ -386,7 +385,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
                     }
 
                     if (found == false) {
-                        BluetoothObject beacon = new BluetoothObject(beaconScanned.getBluetoothAddress(), rss);
+                        BluetoothObject beacon = new BluetoothObject(mBeaconScanned.getBluetoothAddress(), rss);
                         mBeaconsList.add(beacon);
                     }
                 }

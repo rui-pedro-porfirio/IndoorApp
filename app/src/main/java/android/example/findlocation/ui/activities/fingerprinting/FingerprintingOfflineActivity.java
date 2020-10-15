@@ -706,24 +706,25 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                if (beacons.size() > 0 && isScanning) {
-                    Log.d(BLE, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
-                    Beacon beaconScanned = beacons.iterator().next();
-                    int rss = beaconScanned.getRssi();
-                    boolean found = false;
-                    for (int i = 0; i < mBeaconsList.size(); i++) {
-                        BluetoothObject beaconInList = mBeaconsList.get(i);
-                        if (beaconInList.getName().equals(beaconScanned.getBluetoothAddress())) {
-                            beaconInList.setSingleValue(rss);
-                            Log.d(BLE,"Set RSSI value " + rss + " dBm to the beacon's " + beaconScanned.getBluetoothAddress() + " list.");
-                            found = true;
-                            break;
+                for (Beacon mBeaconScanned : beacons) {
+                    if (isScanning) {
+                        Log.d(BLE, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
+                        int rss = mBeaconScanned.getRssi();
+                        boolean found = false;
+                        for (int i = 0; i < mBeaconsList.size(); i++) {
+                            BluetoothObject beaconInList = mBeaconsList.get(i);
+                            if (beaconInList.getName().equals(mBeaconScanned.getBluetoothAddress())) {
+                                beaconInList.setSingleValue(rss);
+                                Log.d(BLE, "Set RSSI value " + rss + " dBm to the beacon's " + mBeaconScanned.getBluetoothAddress() + " list.");
+                                found = true;
+                                break;
+                            }
                         }
-                    }
 
-                    if (!found) {
-                        BluetoothObject beacon = new BluetoothObject(beaconScanned.getBluetoothAddress(), rss);
-                        mBeaconsList.add(beacon);
+                        if (!found) {
+                            BluetoothObject beacon = new BluetoothObject(mBeaconScanned.getBluetoothAddress(), rss);
+                            mBeaconsList.add(beacon);
+                        }
                     }
                 }
             }

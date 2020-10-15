@@ -326,20 +326,21 @@ public class ProximityOnlineActivity extends AppCompatActivity implements Beacon
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
 
                 long elapsedTimeNs = System.nanoTime() - startTimeNs;
-                if (beacons.size() > 0 && isScanning) {
-                    Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
-                    Log.d(BEACON, "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
-                    Beacon beaconScanned = beacons.iterator().next();
-                    Log.d(BEACON, "Found beacon " + beaconScanned.getBluetoothAddress());
-                    int rssi = beaconScanned.getRssi(); //RSSI value of beacon
-                    if (mTargetBeacon == null) {
-                        Log.d(BEACON, "Beacon initialization");
-                        mTargetBeacon = new BluetoothDistanceObject(beaconScanned.getBluetoothAddress(), rssi);
-                    }
-                    if (mTargetBeacon.getName().equals(beaconScanned.getBluetoothAddress())) {
-                        mTargetBeacon.setSingleValue(rssi);
-                        mTargetBeacon.addRSSIValue(rssi);
-                        Log.d(BEACON, "RSSI VALUE: " + rssi);
+                for(Beacon mBeaconScanned: beacons) {
+                    if (isScanning) {
+                        Log.d(TAG, "didRangeBeaconsInRegion called with beacon count:  " + beacons.size());
+                        Log.d(BEACON, "Advertising time: " + TimeUnit.MILLISECONDS.convert(elapsedTimeNs, TimeUnit.NANOSECONDS));
+                        Log.d(BEACON, "Found beacon " + mBeaconScanned.getBluetoothAddress());
+                        int rssi = mBeaconScanned.getRssi(); //RSSI value of beacon
+                        if (mTargetBeacon == null) {
+                            Log.d(BEACON, "Beacon initialization");
+                            mTargetBeacon = new BluetoothDistanceObject(mBeaconScanned.getBluetoothAddress(), rssi);
+                        }
+                        if (mTargetBeacon.getName().equals(mBeaconScanned.getBluetoothAddress())) {
+                            mTargetBeacon.setSingleValue(rssi);
+                            mTargetBeacon.addRSSIValue(rssi);
+                            Log.d(BEACON, "RSSI VALUE: " + rssi);
+                        }
                     }
                 }
             }
