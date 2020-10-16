@@ -26,7 +26,7 @@ public class TabProximityDistancePreferences extends Fragment implements Adapter
     private Map<String, Float> preferences;
     private String zoneClassifier;
 
-    private String[] zones = {"None","Personal","Social","Public"};
+    private final String[] zones = {"None", "Personal", "Social", "Public"};
 
     @Override
     public View onCreateView(
@@ -35,11 +35,13 @@ public class TabProximityDistancePreferences extends Fragment implements Adapter
         View root = inflater.inflate(R.layout.tab_distance_proximity_preferences, container, false);
         return root;
     }
+
     @Override
-    public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id) {
         zoneClassifier = zones[position];
         ((ProximityDistanceScanActivity) getActivity()).setZoneClassifier(zoneClassifier);
     }
+
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
         // TODO - Custom Code
@@ -49,7 +51,7 @@ public class TabProximityDistancePreferences extends Fragment implements Adapter
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         preferences = new HashMap<String, Float>();
-        Spinner spin = (Spinner) view.findViewById(R.id.zoneSpinnerProximityId);
+        Spinner spin = view.findViewById(R.id.zoneSpinnerProximityId);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, zones);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spin.setAdapter(adapter);

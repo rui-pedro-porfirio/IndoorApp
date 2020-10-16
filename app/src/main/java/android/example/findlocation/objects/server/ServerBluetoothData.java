@@ -2,11 +2,11 @@ package android.example.findlocation.objects.server;
 
 public class ServerBluetoothData {
 
-    private String name;
-    private int rssi;
+    private final String name;
+    private final int rssi;
     private String fingerprint;
 
-    public ServerBluetoothData (String name, int rssi){
+    public ServerBluetoothData(String name, int rssi) {
         this.name = name;
         this.rssi = rssi;
         this.fingerprint = "";

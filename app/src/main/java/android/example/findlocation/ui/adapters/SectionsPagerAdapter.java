@@ -1,17 +1,16 @@
 package android.example.findlocation.ui.adapters;
 
 import android.content.Context;
+import android.example.findlocation.R;
+import android.example.findlocation.ui.tabs.TabFingerprint;
+import android.example.findlocation.ui.tabs.TabPreferences;
+import android.example.findlocation.ui.tabs.TabRadioMap;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-
-import android.example.findlocation.R;
-import android.example.findlocation.ui.tabs.TabFingerprint;
-import android.example.findlocation.ui.tabs.TabPreferences;
-import android.example.findlocation.ui.tabs.TabRadioMap;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -20,7 +19,7 @@ import android.example.findlocation.ui.tabs.TabRadioMap;
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @StringRes
-    private static final int[] TAB_TITLES = new int[]{R.string.tab_text_1, R.string.tab_text_2,R.string.tab_text_3};
+    private static final int[] TAB_TITLES = new int[]{R.string.tab_text_1, R.string.tab_text_2, R.string.tab_text_3};
     private final Context mContext;
     private String radioMapTag;
 
@@ -31,7 +30,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        switch(position){
+        switch (position) {
             case 0:
                 TabFingerprint tab1 = new TabFingerprint();
                 return tab1;
@@ -53,7 +52,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         return mContext.getResources().getString(TAB_TITLES[position]);
     }
 
-    public String getRadioMapTag(){
+    public String getRadioMapTag() {
         return radioMapTag;
     }
 

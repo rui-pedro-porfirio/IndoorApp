@@ -1,12 +1,12 @@
 package android.example.findlocation.ui.activities.fingerprinting;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.example.findlocation.R;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 /*
 Needs Offline and Online Phase buttons
@@ -14,7 +14,6 @@ Needs Offline and Online Phase buttons
 (Online phase)Needs current data window and position detected
  */
 public class FingerprintingScreenActivity extends AppCompatActivity {
-
 
 
     @Override
@@ -26,7 +25,7 @@ public class FingerprintingScreenActivity extends AppCompatActivity {
         startOnlineActivity();
     }
 
-    public void startOfflineActivity(){
+    public void startOfflineActivity() {
         final Intent offlinePhaseIntent = new Intent(this, FingerprintingOfflineActivity.class);
         Button offlineButton = findViewById(R.id.offlineButtonId);
         offlineButton.setOnClickListener(new View.OnClickListener() {
@@ -37,7 +36,7 @@ public class FingerprintingScreenActivity extends AppCompatActivity {
         });
     }
 
-    public void startOnlineActivity(){
+    public void startOnlineActivity() {
         final Intent onlinePhaseIntent = new Intent(this, FingerprintingOnlineActivity.class);
         Button onlineButton = findViewById(R.id.onlineButtonId);
         onlineButton.setOnClickListener(new View.OnClickListener() {

@@ -41,27 +41,19 @@ import okhttp3.Response;
 
 public class OAuthBackgroundService extends JobIntentService implements SharedPreferencesInterface {
 
-    private static final String TAG = OAuthBackgroundService.class.getSimpleName();
-
     static final String AUTHORIZE_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/authorize?response_type=code&client_id=indoor-location-app&redirect_uri=indoorapp://auth/redirect";
     static final String EXCHANGE_AUTH_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/token";
     static final String VERIFY_AUTH_DATA_ADDRESS = "https://yanux-auth.herokuapp.com/api/verify_oauth2";
     static final String REDIRECT_URI = "indoorapp://auth/redirect";
-
     static final String RECEIVER = "receiver";
-
     static final String ACTION_REQUEST_AUTH_CODE = "action.REQUEST_AUTH_CODE";
     static final String ACTION_REPLY_AUTH_CODE = "action.REPLY_AUTH_CODE";
     static final String ACTION_CHECK_AUTH_CODE = "action.CHECK_AUTH_CODE";
-
     static final String CLIENT_ID = "indoor-location-app";
     static final String CLIENT_SECRET = "indoorsecret";
-
     static final int NUMBER_OF_TRIES = 3;
-
     static final int AUTH_VALIDITY = 102;
     static final int FAILED_RESULT_CODE = 500;
-
     static final String PREF_USERNAME = "PREF_USERNAME";
     static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
     static final String PREF_REFRESH_TOKEN = "PREF_REFRESH_TOKEN";
@@ -69,10 +61,9 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     static final String PREF_AUTH_CODE = "PREF_AUTH_CODE";
     static final String PREF_AUTH_FLOW = "PREF_AUTH_FLOW";
     static final String PREF_PKCE_CODE_VERIFIER_KEY = "PREF_PKCE_CODE_VERIFIER_KEY";
-
     static final String OAUTH_BASIC = "Authorization Code Flow";
     static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
-
+    private static final String TAG = OAuthBackgroundService.class.getSimpleName();
     private ResultReceiver mReceiver;
     private SharedPreferences mApplicationPreferences;
     private SharedPreferences.Editor mPreferencesEditor;
@@ -90,6 +81,23 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     private String mCodeChallenge;
     private String mOAuthFlow;
 
+    /**
+     * Convenience method for enqueuing work into this service.
+     */
+    public static void enqueueWork(Context context, ServiceResultReceiver workerResultReceiver, String action, int id, String authFlow, Intent receivedIntent) {
+        Intent intent = new Intent(context, OAuthBackgroundService.class);
+        if (receivedIntent != null) {
+            int flags = Intent.FILL_IN_DATA |
+                    Intent.FILL_IN_CATEGORIES |
+                    Intent.FILL_IN_PACKAGE |
+                    Intent.FILL_IN_COMPONENT;
+            intent.fillIn(receivedIntent, flags);
+        }
+        intent.putExtra(RECEIVER, workerResultReceiver);
+        intent.setAction(action);
+        if (authFlow != null) intent.putExtra("Flow Type", authFlow);
+        enqueueWork(context, OAuthBackgroundService.class, id, intent);
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -134,24 +142,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         LocalDateTime expiration = LocalDateTime.parse(mExpirationDate, formatter);
         LocalDateTime now = LocalDateTime.now();
         return expiration.isAfter(now);
-    }
-
-    /**
-     * Convenience method for enqueuing work into this service.
-     */
-    public static void enqueueWork(Context context, ServiceResultReceiver workerResultReceiver, String action, int id, String authFlow, Intent receivedIntent) {
-        Intent intent = new Intent(context, OAuthBackgroundService.class);
-        if (receivedIntent != null) {
-            int flags = Intent.FILL_IN_DATA |
-                    Intent.FILL_IN_CATEGORIES |
-                    Intent.FILL_IN_PACKAGE |
-                    Intent.FILL_IN_COMPONENT;
-            intent.fillIn(receivedIntent, flags);
-        }
-        intent.putExtra(RECEIVER, workerResultReceiver);
-        intent.setAction(action);
-        if (authFlow != null) intent.putExtra("Flow Type", authFlow);
-        enqueueWork(context, OAuthBackgroundService.class, id, intent);
     }
 
     @Override
@@ -202,7 +192,8 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         authenticationCodeRequirementIntent.putExtra("Authentication Code Requirement", true);
         startActivity(authenticationCodeRequirementIntent);
         mAuthRetries++;
-        if (mAuthRetries >= NUMBER_OF_TRIES) throw new RuntimeException("Exception raised in exceeding the limit tries of authorization flow.");
+        if (mAuthRetries >= NUMBER_OF_TRIES)
+            throw new RuntimeException("Exception raised in exceeding the limit tries of authorization flow.");
     }
 
     private void generateCodeVerifierAndChallengePKCE() {
@@ -382,7 +373,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                 mPreferencesEditor.putString(PREF_EXPIRATION_DATE, mExpirationDate);
                 mPreferencesEditor.apply();
                 Bundle bundle_token = new Bundle();
-                bundle_token.putBoolean("isValid",true);
+                bundle_token.putBoolean("isValid", true);
                 mReceiver.send(AUTH_VALIDITY, bundle_token);
             }
             response.body().close();

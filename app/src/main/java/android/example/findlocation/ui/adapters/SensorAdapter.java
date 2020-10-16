@@ -12,14 +12,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.DecimalFormat;
-import java.util.LinkedList;
 import java.util.List;
 
 public class SensorAdapter extends
-        RecyclerView.Adapter<SensorAdapter.SensorViewHolder>{
+        RecyclerView.Adapter<SensorAdapter.SensorViewHolder> {
 
     private final List<SensorObject> mSensorInformationList;
-    private LayoutInflater mInflater;
+    private final LayoutInflater mInflater;
 
     public SensorAdapter(Context context, List<SensorObject> mSensorInformationList) {
         mInflater = LayoutInflater.from(context);
@@ -40,7 +39,7 @@ public class SensorAdapter extends
         holder.sensorItemView.setText(mCurrentSensor.getName());
         holder.sensorXValueView.setText("x:" + new DecimalFormat("##.##").format(mCurrentSensor.getX_value()));
         holder.sensorYValueView.setText("y:" + new DecimalFormat("##.##").format(mCurrentSensor.getY_value()));
-        holder.sensorZValueView.setText("z:"+new DecimalFormat("##.##").format(mCurrentSensor.getZ_value()));
+        holder.sensorZValueView.setText("z:" + new DecimalFormat("##.##").format(mCurrentSensor.getZ_value()));
     }
 
     @Override

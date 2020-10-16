@@ -1,10 +1,11 @@
 package android.example.findlocation;
 
-import androidx.multidex.MultiDexApplication;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.example.findlocation.exceptions.SharedPreferencesException;
 import android.util.Log;
+
+import androidx.multidex.MultiDexApplication;
 
 import java.util.Map;
 import java.util.Set;

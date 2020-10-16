@@ -1,9 +1,5 @@
 package android.example.findlocation.ui.activities.trilateration;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
-
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -25,6 +21,10 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.gson.Gson;
@@ -60,22 +60,21 @@ import okhttp3.Response;
 
 public class TrilaterationScreenActivity extends AppCompatActivity implements BeaconConsumer {
 
-    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/trilateration/position";
     private static final String SERVER_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/trilateration/position";
     private static final long SCAN_PERIOD_TIME = 10000;
 
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
-
+    private static final String TAG = "TIMER";
+    private static final String LOG = "LOG";
+    private static final String BEACON = "BEACON";
     private String algorithm;
     private OkHttpClient client;
     private BeaconManager beaconManager;
-    private static final String TAG = "TIMER";
-    private static final String LOG = "LOG";
     private Map<String, BluetoothDistanceObject> mTargetBeacons;
-    private static final String BEACON = "BEACON";
     private boolean isScanning;
     private String zoneClassified;
     private List<Float> coordinates;
@@ -169,7 +168,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String[] permissions, int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_FINE_LOCATION: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -233,21 +232,21 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
     }
 
     public void computeNewPosition() {
-        ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.trilateration_progressBarLocationId);
+        ProgressBar mProgressBar = findViewById(R.id.trilateration_progressBarLocationId);
         mProgressBar.setVisibility(View.INVISIBLE);
-        TextView mTextTitle = (TextView) findViewById(R.id.trilaterationFoundPositionTextViewId);
+        TextView mTextTitle = findViewById(R.id.trilaterationFoundPositionTextViewId);
         mTextTitle.setVisibility(View.VISIBLE);
         if (zoneClassified.length() < 1 && coordinates.size() > 1) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.trilaterationLinearLayoutTabPositionRegressionId);
+            LinearLayout mLinearLayout = findViewById(R.id.trilaterationLinearLayoutTabPositionRegressionId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView xTextView = (TextView) findViewById(R.id.trilateration_x_coordinate_positionValueId);
+            TextView xTextView = findViewById(R.id.trilateration_x_coordinate_positionValueId);
             xTextView.setText(String.valueOf(coordinates.get(0)));
-            TextView yTextView = (TextView) findViewById(R.id.trilateration_y_coordinate_positionValueId);
+            TextView yTextView = findViewById(R.id.trilateration_y_coordinate_positionValueId);
             yTextView.setText(String.valueOf(coordinates.get(1)));
         } else if (zoneClassified.length() >= 1 && !zoneClassified.equals("")) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.trilaterationLinearLayoutTabPositionClassifierId);
+            LinearLayout mLinearLayout = findViewById(R.id.trilaterationLinearLayoutTabPositionClassifierId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView zoneTextView = (TextView) findViewById(R.id.trilateration_zone_predictionId);
+            TextView zoneTextView = findViewById(R.id.trilateration_zone_predictionId);
             zoneTextView.setText(zoneClassified);
         }
         resetDataStructures();
@@ -282,9 +281,9 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
 
         if (algorithm != null) {
             Toast.makeText(this, "Finding Your Position", Toast.LENGTH_SHORT).show();
-            Button mButton = (Button) view.findViewById(R.id.trilaterationButtonFindUserPositionId);
+            Button mButton = view.findViewById(R.id.trilaterationButtonFindUserPositionId);
             mButton.setVisibility(View.INVISIBLE);
-            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.trilateration_progressBarLocationId);
+            ProgressBar mProgressBar = findViewById(R.id.trilateration_progressBarLocationId);
             mProgressBar.setVisibility(View.VISIBLE);
             scanData();
         } else {
@@ -400,7 +399,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
 
     private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
 
-        private String json;
+        private final String json;
 
         public SendHTTPRequest(String json) {
             this.json = json;

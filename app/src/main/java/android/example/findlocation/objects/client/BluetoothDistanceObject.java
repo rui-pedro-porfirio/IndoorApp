@@ -5,7 +5,7 @@ import java.util.List;
 
 public class BluetoothDistanceObject {
 
-    private String name;
+    private final String name;
     private float x_coordinate;
     private float y_coordinate;
     private List<Integer> values;
@@ -13,7 +13,7 @@ public class BluetoothDistanceObject {
     private String zone;
     private String algorithm;
 
-    public BluetoothDistanceObject(String name, List<Integer> values){
+    public BluetoothDistanceObject(String name, List<Integer> values) {
         this.name = name;
         this.values = values;
         this.singleValue = Integer.MIN_VALUE;
@@ -23,7 +23,7 @@ public class BluetoothDistanceObject {
         algorithm = null;
     }
 
-    public BluetoothDistanceObject(String name,String algorithm, List<Integer> values){
+    public BluetoothDistanceObject(String name, String algorithm, List<Integer> values) {
         this.name = name;
         this.values = values;
         this.singleValue = Integer.MIN_VALUE;
@@ -33,7 +33,7 @@ public class BluetoothDistanceObject {
         this.algorithm = algorithm;
     }
 
-    public BluetoothDistanceObject(String name, int value){
+    public BluetoothDistanceObject(String name, int value) {
         this.name = name;
         this.values = new ArrayList<>();
         this.singleValue = value;
@@ -41,14 +41,6 @@ public class BluetoothDistanceObject {
         this.y_coordinate = 0.0f;
         zone = null;
         algorithm = null;
-    }
-
-    public void setX_coordinate(float x_coordinate) {
-        this.x_coordinate = x_coordinate;
-    }
-
-    public void setY_coordinate(float y_coordinate) {
-        this.y_coordinate = y_coordinate;
     }
 
     public int getSingleValue() {
@@ -63,11 +55,11 @@ public class BluetoothDistanceObject {
         return values;
     }
 
-    public void addRSSIValue(int rssi){
+    public void addRSSIValue(int rssi) {
         values.add(rssi);
     }
 
-    public void setZone(String zone){
+    public void setZone(String zone) {
         this.zone = zone;
     }
 
@@ -79,7 +71,7 @@ public class BluetoothDistanceObject {
         this.algorithm = algorithm;
     }
 
-    public void resetValues(){
+    public void resetValues() {
         this.values = new ArrayList<>();
         this.singleValue = Integer.MIN_VALUE;
     }
@@ -88,7 +80,15 @@ public class BluetoothDistanceObject {
         return x_coordinate;
     }
 
+    public void setX_coordinate(float x_coordinate) {
+        this.x_coordinate = x_coordinate;
+    }
+
     public float getY_coordinate() {
         return y_coordinate;
+    }
+
+    public void setY_coordinate(float y_coordinate) {
+        this.y_coordinate = y_coordinate;
     }
 }

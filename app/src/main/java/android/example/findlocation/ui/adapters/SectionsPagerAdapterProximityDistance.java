@@ -14,7 +14,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 public class SectionsPagerAdapterProximityDistance extends FragmentPagerAdapter {
 
     @StringRes
-    private static final int[] TAB_TITLES = new int[]{ R.string.tab_text_1_proximity_distance,R.string.tab_text_2_proximity_distance};
+    private static final int[] TAB_TITLES = new int[]{R.string.tab_text_1_proximity_distance, R.string.tab_text_2_proximity_distance};
     private final Context mContext;
 
     public SectionsPagerAdapterProximityDistance(Context context, FragmentManager fm) {
@@ -24,7 +24,7 @@ public class SectionsPagerAdapterProximityDistance extends FragmentPagerAdapter 
 
     @Override
     public Fragment getItem(int position) {
-        switch(position){
+        switch (position) {
             case 0:
                 TabProximityDistanceMain tab1 = new TabProximityDistanceMain();
                 return tab1;

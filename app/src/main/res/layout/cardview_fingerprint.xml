@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:orientation="vertical">
 
 
     <androidx.cardview.widget.CardView
@@ -35,8 +33,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/sensor_name_radiomap"
                 android:layout_alignParentStart="true"
-                android:layout_marginEnd="10dp"
                 android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
 
@@ -45,9 +43,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/sensor_name_radiomap"
-                android:layout_toEndOf="@+id/sensor_x_value_radiomap"
-                android:layout_marginEnd="10dp"
                 android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_toEndOf="@+id/sensor_x_value_radiomap"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
 
@@ -98,7 +96,8 @@
                 android:textAlignment="center"
                 android:textColor="@android:color/holo_orange_dark"
                 android:textSize="20sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
+
             <TextView
                 android:id="@+id/wifi_value"
                 android:layout_width="wrap_content"
@@ -109,7 +108,7 @@
                 android:gravity="center"
                 android:textColor="@android:color/black"
                 android:textSize="14sp" />
-            </RelativeLayout>
+        </RelativeLayout>
     </androidx.cardview.widget.CardView>
 
 </LinearLayout>

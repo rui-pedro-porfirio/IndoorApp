@@ -27,18 +27,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class GraphicalWiFiAdapter extends
-        RecyclerView.Adapter<GraphicalWiFiAdapter.GraphicalSensorViewHolder>{
-
-    private final LinkedList<WifiObject> mAccessPointList;
-    private LayoutInflater mInflater;
+        RecyclerView.Adapter<GraphicalWiFiAdapter.GraphicalSensorViewHolder> {
 
     public static final int SCAN_TIME = 10;
     public static final String DEVICE_SENSOR_FILE = "sensorData";
+    private final LinkedList<WifiObject> mAccessPointList;
+    private final LayoutInflater mInflater;
 
     public GraphicalWiFiAdapter(Context context, LinkedList<WifiObject> mAccessPointList) {
         mInflater = LayoutInflater.from(context);
         this.mAccessPointList = mAccessPointList;
-        writeToFile(DEVICE_SENSOR_FILE,"");
+        writeToFile(DEVICE_SENSOR_FILE, "");
     }
 
     @NonNull
@@ -53,12 +52,12 @@ public class GraphicalWiFiAdapter extends
     public void onBindViewHolder(@NonNull GraphicalWiFiAdapter.GraphicalSensorViewHolder holder, int position) {
         WifiObject mCurrentSensor = mAccessPointList.get(position);
         holder.sensorNameView.setText(mCurrentSensor.getName());
-        writeToFile(DEVICE_SENSOR_FILE,mCurrentSensor.getName());
-        computeDeviceGraphicalRepresentation(holder,mCurrentSensor.getValues());
+        writeToFile(DEVICE_SENSOR_FILE, mCurrentSensor.getName());
+        computeDeviceGraphicalRepresentation(holder, mCurrentSensor.getValues());
     }
 
-    public void writeToFile(String sFileName,String sBody){
-        try{
+    public void writeToFile(String sFileName, String sBody) {
+        try {
             File root = new File(Environment.getExternalStorageDirectory(), "Sensor Data");
             // if external memory exists and folder with name Notes
             if (!root.exists()) {
@@ -66,7 +65,7 @@ public class GraphicalWiFiAdapter extends
             }
             File filepath = new File(root, sFileName + ".txt");  // file path to save
             Writer output = new BufferedWriter(new FileWriter(filepath, true));
-            output.append(sBody+"\n");
+            output.append(sBody + "\n");
             output.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -79,40 +78,39 @@ public class GraphicalWiFiAdapter extends
         return mAccessPointList.size();
     }
 
-    public void computeDeviceGraphicalRepresentation(@NonNull GraphicalWiFiAdapter.GraphicalSensorViewHolder holder, List<Integer> data){
+    public void computeDeviceGraphicalRepresentation(@NonNull GraphicalWiFiAdapter.GraphicalSensorViewHolder holder, List<Integer> data) {
         List<DataPoint> dataPointsX = new ArrayList<DataPoint>(SCAN_TIME);
         int dataPerSecond = data.size() / SCAN_TIME;
         int lookupValue = dataPerSecond;
         double averageValueX = 0.0;
-        dataPointsX.add(new DataPoint(0,0));
+        dataPointsX.add(new DataPoint(0, 0));
         int seconds = 1;
         double sumX = 0.0;
 
-        for(int i = 0; i < data.size();i++){
+        for (int i = 0; i < data.size(); i++) {
             double value = data.get(i);
             sumX += value;
-            if(dataPerSecond < 1 && i == data.size()-1){
+            if (dataPerSecond < 1 && i == data.size() - 1) {
                 averageValueX = sumX / data.size();
                 String toAdd = "RSS Wi-Fi: " + averageValueX;
-                writeToFile(DEVICE_SENSOR_FILE,toAdd);
+                writeToFile(DEVICE_SENSOR_FILE, toAdd);
                 dataPointsX.add(new DataPoint(seconds, averageValueX));
                 sumX = 0.0;
                 seconds++;
                 lookupValue = i + dataPerSecond;
-                if(seconds < SCAN_TIME){
-                    for(int j = seconds; j <= SCAN_TIME;j++){
+                if (seconds < SCAN_TIME) {
+                    for (int j = seconds; j <= SCAN_TIME; j++) {
                         toAdd = "RSS Wi-Fi: " + averageValueX;
-                        writeToFile(DEVICE_SENSOR_FILE,toAdd);
+                        writeToFile(DEVICE_SENSOR_FILE, toAdd);
                         dataPointsX.add(new DataPoint(j, averageValueX));
                     }
                     seconds = SCAN_TIME;
                 }
-            }
-            else {
+            } else {
                 if (i == (lookupValue - 1)) {
                     averageValueX = sumX / dataPerSecond;
                     String toAdd = "RSS Wi-Fi: " + averageValueX;
-                    writeToFile(DEVICE_SENSOR_FILE,toAdd);
+                    writeToFile(DEVICE_SENSOR_FILE, toAdd);
                     dataPointsX.add(new DataPoint(seconds, averageValueX));
                     sumX = 0.0;
                     seconds++;
@@ -128,7 +126,7 @@ public class GraphicalWiFiAdapter extends
         holder.graph.getViewport().setMinX(0);
         holder.graph.getViewport().setMaxX(seconds);
         seriesX.setTitle("X Value");
-        seriesX.setColor(Color.argb(255,255,0,0));
+        seriesX.setColor(Color.argb(255, 255, 0, 0));
         holder.graph.addSeries(seriesX);
 
     }

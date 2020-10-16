@@ -26,6 +26,28 @@ public class ScanningActivity extends AppCompatActivity {
     private ActiveScanningService mService;
     private DevicePermissions mDevicePermissions;
     private boolean mBound;
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private final ServiceConnection connection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to ScanBackgroundService, cast the IBinder and get LocalService instance
+            LocalBinder mBinder = (LocalBinder) service;
+            mService = mBinder.getService();
+            mBound = true;
+            Log.i(TAG, "Bound to Scanning Service.");
+            Toast.makeText(getApplicationContext(), "Scanning Service Started", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            Log.i(TAG, "UnBound to Scanning Service.");
+            mBound = false;
+        }
+    };
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -41,7 +63,6 @@ public class ScanningActivity extends AppCompatActivity {
         startBackgroundScanningService();
         bindToBackgroundScanningService();
     }
-
 
     @Override
     protected void onDestroy() {
@@ -84,28 +105,5 @@ public class ScanningActivity extends AppCompatActivity {
         BluetoothVerifier mBluetoothVerifier = new BluetoothVerifier(this);
         mBluetoothVerifier.verifyBluetooth();
     }
-
-    /**
-     * Defines callbacks for service binding, passed to bindService()
-     */
-    private ServiceConnection connection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to ScanBackgroundService, cast the IBinder and get LocalService instance
-            LocalBinder mBinder = (LocalBinder) service;
-            mService = mBinder.getService();
-            mBound = true;
-            Log.i(TAG, "Bound to Scanning Service.");
-            Toast.makeText(getApplicationContext(), "Scanning Service Started", Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            Log.i(TAG, "UnBound to Scanning Service.");
-            mBound = false;
-        }
-    };
 
 }

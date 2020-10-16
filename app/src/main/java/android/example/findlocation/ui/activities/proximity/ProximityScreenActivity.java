@@ -1,12 +1,12 @@
 package android.example.findlocation.ui.activities.proximity;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.example.findlocation.R;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class ProximityScreenActivity extends AppCompatActivity {
 
@@ -19,9 +19,9 @@ public class ProximityScreenActivity extends AppCompatActivity {
         startOnlinePhase();
     }
 
-    public void startScanningData(){
+    public void startScanningData() {
         final Intent mScanStartIntent = new Intent(this, ProximityDistanceScanActivity.class);
-        Button mScanButton = (Button) findViewById(R.id.proximityDistanceScanButtonId);
+        Button mScanButton = findViewById(R.id.proximityDistanceScanButtonId);
         mScanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -30,9 +30,9 @@ public class ProximityScreenActivity extends AppCompatActivity {
         });
     }
 
-    public void startOnlinePhase(){
+    public void startOnlinePhase() {
         final Intent mStartOnlinePhaseIntent = new Intent(this, ProximityOnlineActivity.class);
-        Button mOnlineTrilaterationButton = (Button) findViewById(R.id.proximityStartProximityButtonId);
+        Button mOnlineTrilaterationButton = findViewById(R.id.proximityStartProximityButtonId);
         mOnlineTrilaterationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

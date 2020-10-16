@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public class TabTrilaterationPosition  extends Fragment {
+public class TabTrilaterationPosition extends Fragment {
 
     @Override
     public View onCreateView(

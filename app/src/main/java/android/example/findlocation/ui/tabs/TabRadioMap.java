@@ -20,7 +20,7 @@ public class TabRadioMap extends Fragment {
             @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.tabradiomap, container, false);
-        ((FingerprintingOfflineActivity)getActivity()).populateRecycleView(root);
+        ((FingerprintingOfflineActivity) getActivity()).populateRecycleView(root);
         return root;
     }
 

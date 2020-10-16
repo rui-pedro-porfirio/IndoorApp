@@ -11,16 +11,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.altbeacon.beacon.Beacon;
-
-import java.util.LinkedList;
 import java.util.List;
 
 public class BluetoothAdapterRC extends
-        RecyclerView.Adapter<BluetoothAdapterRC.BluetoothViewHolder>{
+        RecyclerView.Adapter<BluetoothAdapterRC.BluetoothViewHolder> {
 
     private final List<BluetoothObject> mBeaconsList;
-    private LayoutInflater mInflater;
+    private final LayoutInflater mInflater;
 
     public BluetoothAdapterRC(Context context, List<BluetoothObject> mBeaconsList) {
         mInflater = LayoutInflater.from(context);

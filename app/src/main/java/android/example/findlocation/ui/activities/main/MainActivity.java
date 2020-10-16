@@ -35,22 +35,17 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements ServiceResultReceiver.Receiver, SharedPreferencesInterface {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
-
     static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
-
     static final int OAUTH_ID = 1010;
     static final String ACTION_REQUEST_AUTH_CODE = "action.REQUEST_AUTH_CODE";
     static final String ACTION_REPLY_AUTH_CODE = "action.REPLY_AUTH_CODE";
     static final String ACTION_CHECK_AUTH_CODE = "action.CHECK_AUTH_CODE";
     static final int FAILED_RESULT_CODE = 500;
     static final int AUTH_VALIDITY = 102;
-
     static final String OAUTH_BASIC = "Authorization Code Flow";
     static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
-
     static final String DEVICE_UUID_ADDRESS = "http://localhost:3003/deviceInfo";
-
+    private static final String TAG = MainActivity.class.getSimpleName();
     private boolean isAuthenticated;
     private SharedPreferences mAppPreferences;
     private SharedPreferences.Editor mPreferencesEditor;
@@ -124,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
 
     public void handleExperimentButton() {
         final Intent mStartExperimentIntent = new Intent(this, ExperimentScreenActivity.class);
-        Button mExperimentButton = (Button) findViewById(R.id.button_experimentButton);
+        Button mExperimentButton = findViewById(R.id.button_experimentButton);
         mExperimentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
 
     public void handleScanButton() {
         final Intent mStartScanIntent = new Intent(this, ScanningActivity.class);
-        Button mScanButton = (Button) findViewById(R.id.button_scanButton);
+        Button mScanButton = findViewById(R.id.button_scanButton);
         mScanButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -193,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     private class HTTPGetRequest extends AsyncTask<Void, Void, String> {
 
         private final String TAG = HTTPGetRequest.class.getSimpleName();
-        private String mIpAddress;
+        private final String mIpAddress;
 
         public HTTPGetRequest(String address) {
             this.mIpAddress = address;

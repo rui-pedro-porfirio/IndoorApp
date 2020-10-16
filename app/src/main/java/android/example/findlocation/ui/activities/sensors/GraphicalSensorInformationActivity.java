@@ -1,53 +1,49 @@
 package android.example.findlocation.ui.activities.sensors;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.example.findlocation.R;
-import android.example.findlocation.ui.adapters.GraphicalBluetoothAdapter;
-import android.example.findlocation.ui.adapters.GraphicalSensorAdapter;
-import android.example.findlocation.ui.adapters.GraphicalWiFiAdapter;
 import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
+import android.example.findlocation.ui.adapters.GraphicalBluetoothAdapter;
+import android.example.findlocation.ui.adapters.GraphicalSensorAdapter;
+import android.example.findlocation.ui.adapters.GraphicalWiFiAdapter;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.JsonWriter;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 
 
 public class GraphicalSensorInformationActivity extends AppCompatActivity {
 
+    public static final String DEVICE_SENSOR_FILE = "sensorData";
     //Map with long scan results
     private Map<String, List<Integer>> wifiResults;
     private Map<String, List<List<Float>>> deviceResults;
     private Map<String, List<Integer>> bluetoothResults;
-
     private LinkedList<SensorObject> mSensorInformationList;
     private LinkedList<BluetoothObject> mBeaconsList;
     private LinkedList<WifiObject> mAccessPoints;
-
     private RecyclerView mRecyclerView;
     private RecyclerView bluetoothRecyclerView;
     private RecyclerView wifiRecyclerView;
-
     //Adapters
     private GraphicalSensorAdapter mAdapter;
     private GraphicalBluetoothAdapter bluetoothAdapter;
     private GraphicalWiFiAdapter wifiAdapter;
-
-    public static final String DEVICE_SENSOR_FILE = "sensorData";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +79,7 @@ public class GraphicalSensorInformationActivity extends AppCompatActivity {
     }
 
     public void writeJsonStreamSensorData(OutputStream out, List<SensorObject> values) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
         writer.setIndent("  ");
         writeMessagesArraySensorData(writer, values);
         writer.close();
@@ -129,7 +125,7 @@ public class GraphicalSensorInformationActivity extends AppCompatActivity {
     }
 
     public void writeJsonStreamBLE(OutputStream out, List<BluetoothObject> values) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
         writer.setIndent("  ");
         writeMessagesArrayBLE(writer, values);
         writer.close();
@@ -167,7 +163,7 @@ public class GraphicalSensorInformationActivity extends AppCompatActivity {
     }
 
     public void writeJsonStreamWiFi(OutputStream out, List<WifiObject> values) throws IOException {
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
         writer.setIndent("  ");
         writeMessagesArrayWiFi(writer, values);
         writer.close();

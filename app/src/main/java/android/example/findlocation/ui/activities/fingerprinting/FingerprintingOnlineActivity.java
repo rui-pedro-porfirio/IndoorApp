@@ -7,11 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.example.findlocation.R;
-
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
-
 import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.Fingerprint;
 import android.example.findlocation.objects.client.SensorObject;
@@ -38,6 +33,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.gson.Gson;
@@ -71,9 +69,8 @@ import okhttp3.Response;
 
 public class FingerprintingOnlineActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
 
-    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
+    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
     private static final String SERVER_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/";
 
@@ -85,11 +82,18 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
     private WifiManager wifiManager;
     private BeaconManager beaconManager;
     private List<WifiObject> mAccessPoints;
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+                scanSuccess();
+            }
+        }
+    };
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
     private String zoneClassified;
     private List<Float> coordinates;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,21 +147,21 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
     }
 
     public void computeNewPosition() {
-        ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.progressBarLocationId);
+        ProgressBar mProgressBar = findViewById(R.id.progressBarLocationId);
         mProgressBar.setVisibility(View.INVISIBLE);
-        TextView mTextTitle = (TextView) findViewById(R.id.foundPositionTextViewId);
+        TextView mTextTitle = findViewById(R.id.foundPositionTextViewId);
         mTextTitle.setVisibility(View.VISIBLE);
         if (zoneClassified.length() < 1 && coordinates.size() > 1) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.linearLayoutTabPositionRegressionId);
+            LinearLayout mLinearLayout = findViewById(R.id.linearLayoutTabPositionRegressionId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView xTextView = (TextView) findViewById(R.id.x_coordinate_positionValueId);
+            TextView xTextView = findViewById(R.id.x_coordinate_positionValueId);
             xTextView.setText(String.valueOf(coordinates.get(0)));
-            TextView yTextView = (TextView) findViewById(R.id.y_coordinate_positionValueId);
+            TextView yTextView = findViewById(R.id.y_coordinate_positionValueId);
             yTextView.setText(String.valueOf(coordinates.get(1)));
-        } else if(zoneClassified.length() > 1) {
-            LinearLayout mLinearLayout = (LinearLayout) findViewById(R.id.linearLayoutTabPositionClassifierId);
+        } else if (zoneClassified.length() > 1) {
+            LinearLayout mLinearLayout = findViewById(R.id.linearLayoutTabPositionClassifierId);
             mLinearLayout.setVisibility(View.VISIBLE);
-            TextView zoneTextView = (TextView) findViewById(R.id.zone_predictionId);
+            TextView zoneTextView = findViewById(R.id.zone_predictionId);
             zoneTextView.setText(zoneClassified);
         }
         resetDataStructures();
@@ -175,8 +179,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
                     if (!dataTypes.contains("Wi-Fi"))
                         dataTypes.add("Wi-fi");
                 } else {
-                    if (dataTypes.contains("Wi-Fi"))
-                        dataTypes.remove("Wi-Fi");
+                    dataTypes.remove("Wi-Fi");
                 }
                 break;
             case R.id.checkbox_bluetooth_online:
@@ -184,8 +187,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
                     if (!dataTypes.contains("Bluetooth"))
                         dataTypes.add("Bluetooth");
                 } else {
-                    if (dataTypes.contains("Bluetooth"))
-                        dataTypes.remove("Bluetooth");
+                    dataTypes.remove("Bluetooth");
                 }
                 break;
             case R.id.checkbox_device_sensors_online:
@@ -193,8 +195,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
                     if (!dataTypes.contains("DeviceData"))
                         dataTypes.add("DeviceData");
                 } else {
-                    if (dataTypes.contains("DeviceData"))
-                        dataTypes.remove("DeviceData");
+                    dataTypes.remove("DeviceData");
                 }
                 break;
         }
@@ -207,7 +208,6 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
     public void setFilter(String filter) {
         this.filter = filter;
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void computeFingerprint(Fingerprint fingerprint) {
@@ -240,9 +240,9 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
 
         if (dataTypes.size() != 0 && algorithm != null && filter != null) {
             Toast.makeText(this, "Finding Your Position", Toast.LENGTH_SHORT).show();
-            Button mButton = (Button) view.findViewById(R.id.buttonFindUserPositionId);
+            Button mButton = view.findViewById(R.id.buttonFindUserPositionId);
             mButton.setVisibility(View.INVISIBLE);
-            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.progressBarLocationId);
+            ProgressBar mProgressBar = findViewById(R.id.progressBarLocationId);
             mProgressBar.setVisibility(View.VISIBLE);
             scanData();
         } else {
@@ -311,7 +311,6 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
         mSensorInformationList.add(sensorInfo);
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     protected void onPostExecute(Fingerprint fingerprint) {
         //SEND FINGERPRINT
@@ -332,15 +331,6 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
-
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                scanSuccess();
-            }
-        }
-    };
 
     private void scanSuccess() {
         List<ScanResult> results = wifiManager.getScanResults();
@@ -371,7 +361,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                for(Beacon mBeaconScanned: beacons){
+                for (Beacon mBeaconScanned : beacons) {
 
                     int rss = mBeaconScanned.getRssi();
                     boolean found = false;
@@ -437,7 +427,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
 
     private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
 
-        private String json;
+        private final String json;
 
         public SendHTTPRequest(String json) {
             this.json = json;

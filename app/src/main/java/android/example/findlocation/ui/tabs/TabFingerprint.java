@@ -30,11 +30,11 @@ public class TabFingerprint extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         TextView mSelectedTypes = view.findViewById(R.id.types_selectedId);
-        mSelectedTypes.setText(getResources().getString(R.string.selected_sensor_types_string,((FingerprintingOfflineActivity) getActivity()).getSelectedTypes()));
+        mSelectedTypes.setText(getResources().getString(R.string.selected_sensor_types_string, ((FingerprintingOfflineActivity) getActivity()).getSelectedTypes()));
         TextView mSelectedPreferences = view.findViewById(R.id.defaultpreferencesId);
-        mSelectedPreferences.setText(getResources().getString(R.string.general_preferences_string,((FingerprintingOfflineActivity) getActivity()).getPreferences()));
+        mSelectedPreferences.setText(getResources().getString(R.string.general_preferences_string, ((FingerprintingOfflineActivity) getActivity()).getPreferences()));
         TextView mSelectedZone = view.findViewById(R.id.zone_selectedId);
-        mSelectedZone.setText(getResources().getString(R.string.selected_zone,((FingerprintingOfflineActivity) getActivity()).getZoneClassifier()));
+        mSelectedZone.setText(getResources().getString(R.string.selected_zone, ((FingerprintingOfflineActivity) getActivity()).getZoneClassifier()));
         computeBulletList(view);
     }
 
@@ -45,9 +45,9 @@ public class TabFingerprint extends Fragment {
                 "Wait until the scan is over\n" +
                 "Repeat the above steps for each position you which to scan\n";
 
-        TextView description = (TextView) view.findViewById(R.id.fingerprintprocessId);
+        TextView description = view.findViewById(R.id.fingerprintprocessId);
 
-        String arr[] = longDescription.split("\n");
+        String[] arr = longDescription.split("\n");
 
         int bulletGap = (int) dp(10);
 
@@ -65,6 +65,7 @@ public class TabFingerprint extends Fragment {
 
         description.setText(ssb);
     }
+
     private float dp(int dp) {
         return getResources().getDisplayMetrics().density * dp;
     }

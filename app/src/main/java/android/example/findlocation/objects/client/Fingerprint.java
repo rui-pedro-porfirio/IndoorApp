@@ -9,11 +9,11 @@ public class Fingerprint {
     private float x_coordinate;
     private float y_coordinate;
     private String zone;
-    private List<SensorObject> mSensorInformationList;
-    private List<BluetoothObject> mBeaconsList;
-    private List<WifiObject> mAccessPoints;
+    private final List<SensorObject> mSensorInformationList;
+    private final List<BluetoothObject> mBeaconsList;
+    private final List<WifiObject> mAccessPoints;
 
-    public Fingerprint(float x_coordinate, float y_coordinate,String zone,List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
+    public Fingerprint(float x_coordinate, float y_coordinate, String zone, List<SensorObject> mSensorInformationList, List<BluetoothObject> mBeaconsList, List<WifiObject> mAccessPoints) {
         this.mSensorInformationList = mSensorInformationList;
         this.mBeaconsList = mBeaconsList;
         this.mAccessPoints = mAccessPoints;
@@ -22,7 +22,7 @@ public class Fingerprint {
         this.zone = zone;
     }
 
-    public Fingerprint(List<SensorObject> mSensorInformationList,List<BluetoothObject> mBeaconsList,List<WifiObject> mAccessPoints){
+    public Fingerprint(List<SensorObject> mSensorInformationList, List<BluetoothObject> mBeaconsList, List<WifiObject> mAccessPoints) {
         this.mSensorInformationList = mSensorInformationList;
         this.mBeaconsList = mBeaconsList;
         this.mAccessPoints = mAccessPoints;
@@ -31,7 +31,7 @@ public class Fingerprint {
         this.zone = "None";
     }
 
-    public Fingerprint(){
+    public Fingerprint() {
         mSensorInformationList = new ArrayList<>();
         mBeaconsList = new ArrayList<>();
         mAccessPoints = new ArrayList<>();
@@ -44,52 +44,56 @@ public class Fingerprint {
         return mSensorInformationList;
     }
 
+    public void setmSensorInformationList(List<SensorObject> mSensorInformationList) {
+        for (SensorObject sensor : mSensorInformationList) {
+            SensorObject newSensor = new SensorObject(sensor.getName(), sensor.getValues());
+            this.mSensorInformationList.add(newSensor);
+        }
+    }
+
     public List<BluetoothObject> getmBeaconsList() {
         return mBeaconsList;
+    }
+
+    public void setmBeaconsList(List<BluetoothObject> mBeaconsList) {
+        for (BluetoothObject beacon : mBeaconsList) {
+            BluetoothObject newBeacon = new BluetoothObject(beacon.getName(), beacon.getSingleValue());
+            this.mBeaconsList.add(newBeacon);
+        }
     }
 
     public List<WifiObject> getmAccessPoints() {
         return mAccessPoints;
     }
 
-    public float getX_coordinate() {
-        return x_coordinate;
-    }
-
-    public float getY_coordinate() {
-        return y_coordinate;
-    }
-
-    public String getZone(){ return this.zone;}
-
     public void setmAccessPoints(List<WifiObject> mAccessPoints) {
-        for(WifiObject ap: mAccessPoints){
-            WifiObject newAP = new WifiObject(ap.getName(),ap.getSingleValue());
+        for (WifiObject ap : mAccessPoints) {
+            WifiObject newAP = new WifiObject(ap.getName(), ap.getSingleValue());
             this.mAccessPoints.add(newAP);
         }
     }
 
-    public void setmBeaconsList(List<BluetoothObject> mBeaconsList) {
-        for(BluetoothObject beacon: mBeaconsList){
-            BluetoothObject newBeacon = new BluetoothObject(beacon.getName(),beacon.getSingleValue());
-            this.mBeaconsList.add(newBeacon);
-        }
-    }
-
-    public void setmSensorInformationList(List<SensorObject> mSensorInformationList) {
-        for(SensorObject sensor: mSensorInformationList){
-            SensorObject newSensor = new SensorObject(sensor.getName(),sensor.getValues());
-            this.mSensorInformationList.add(newSensor);
-        }
+    public float getX_coordinate() {
+        return x_coordinate;
     }
 
     public void setX_coordinate(float x_coordinate) {
         this.x_coordinate = x_coordinate;
     }
 
+    public float getY_coordinate() {
+        return y_coordinate;
+    }
+
     public void setY_coordinate(float y_coordinate) {
         this.y_coordinate = y_coordinate;
     }
 
-    public void setZone(String zone){ this.zone = zone;}
+    public String getZone() {
+        return this.zone;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
 }

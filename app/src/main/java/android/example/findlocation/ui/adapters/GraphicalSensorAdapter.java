@@ -22,15 +22,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class GraphicalSensorAdapter extends
-        RecyclerView.Adapter<GraphicalSensorAdapter.GraphicalSensorViewHolder>{
-
-    private LinkedList<SensorObject> mSensorInformationList;
-    private LayoutInflater mInflater;
+        RecyclerView.Adapter<GraphicalSensorAdapter.GraphicalSensorViewHolder> {
 
     public static final int SCAN_TIME = 10;
-
     public static final String DEVICE_SENSOR_FILE = "sensorData";
-    private ObjectMapper mapper;
+    private final LinkedList<SensorObject> mSensorInformationList;
+    private final LayoutInflater mInflater;
+    private final ObjectMapper mapper;
 
     public GraphicalSensorAdapter(Context context, LinkedList<SensorObject> mSensorInformationList) {
         mInflater = LayoutInflater.from(context);
@@ -50,7 +48,7 @@ public class GraphicalSensorAdapter extends
     public void onBindViewHolder(@NonNull GraphicalSensorAdapter.GraphicalSensorViewHolder holder, int position) {
         SensorObject mCurrentSensor = mSensorInformationList.get(position);
         holder.sensorNameView.setText(mCurrentSensor.getName());
-        computeDeviceGraphicalRepresentation(holder,mCurrentSensor.getScannedValues());
+        computeDeviceGraphicalRepresentation(holder, mCurrentSensor.getScannedValues());
 
     }
 
@@ -59,7 +57,7 @@ public class GraphicalSensorAdapter extends
         return mSensorInformationList.size();
     }
 
-    public void computeDeviceGraphicalRepresentation(@NonNull GraphicalSensorAdapter.GraphicalSensorViewHolder holder, List<List<Float>> data){
+    public void computeDeviceGraphicalRepresentation(@NonNull GraphicalSensorAdapter.GraphicalSensorViewHolder holder, List<List<Float>> data) {
         List<DataPoint> dataPointsX = new ArrayList<DataPoint>(SCAN_TIME);
         List<DataPoint> dataPointsY = new ArrayList<DataPoint>(SCAN_TIME);
         List<DataPoint> dataPointsZ = new ArrayList<DataPoint>(SCAN_TIME);
@@ -68,23 +66,23 @@ public class GraphicalSensorAdapter extends
         double averageValueX = 0.0;
         double averageValueY = 0.0;
         double averageValueZ = 0.0;
-        dataPointsX.add(new DataPoint(0,0));
-        dataPointsY.add(new DataPoint(0,0));
-        dataPointsZ.add(new DataPoint(0,0));
+        dataPointsX.add(new DataPoint(0, 0));
+        dataPointsY.add(new DataPoint(0, 0));
+        dataPointsZ.add(new DataPoint(0, 0));
         int seconds = 1;
         double sumX = 0.0;
         double sumY = 0.0;
         double sumZ = 0.0;
 
-        for(int i = 0; i < data.size();i++){
-            if(data.get(i).size() == 3){
+        for (int i = 0; i < data.size(); i++) {
+            if (data.get(i).size() == 3) {
                 double xValue = data.get(i).get(0);
                 double yValue = data.get(i).get(1);
                 double zValue = data.get(i).get(2);
                 sumX += xValue;
                 sumY += yValue;
                 sumZ += zValue;
-                if(i == (lookupValue -1)) {
+                if (i == (lookupValue - 1)) {
                     averageValueX = sumX / dataPerSecond;
                     averageValueY = sumY / dataPerSecond;
                     averageValueZ = sumZ / dataPerSecond;
@@ -97,34 +95,32 @@ public class GraphicalSensorAdapter extends
                     seconds++;
                     lookupValue = i + dataPerSecond;
                 }
-            }
-            else if(data.get(i).size() == 2){
+            } else if (data.get(i).size() == 2) {
                 double xValue = data.get(i).get(0);
                 double yValue = data.get(i).get(1);
-                    sumX += xValue;
-                    sumY += yValue;
-                    if(i == (lookupValue -1)) {
-                        averageValueX = sumX / dataPerSecond;
-                        averageValueY = sumY / dataPerSecond;
-                        dataPointsX.add(new DataPoint(seconds, averageValueX));
-                        dataPointsY.add(new DataPoint(seconds, averageValueY));
-                        sumX = 0.0;
-                        sumY = 0.0;
-                        seconds++;
-                        lookupValue = i + dataPerSecond;
-                    }
-            }
-            else{
+                sumX += xValue;
+                sumY += yValue;
+                if (i == (lookupValue - 1)) {
+                    averageValueX = sumX / dataPerSecond;
+                    averageValueY = sumY / dataPerSecond;
+                    dataPointsX.add(new DataPoint(seconds, averageValueX));
+                    dataPointsY.add(new DataPoint(seconds, averageValueY));
+                    sumX = 0.0;
+                    sumY = 0.0;
+                    seconds++;
+                    lookupValue = i + dataPerSecond;
+                }
+            } else {
                 double xValue = data.get(i).get(0);
-                        sumX += xValue;
-                        if(i == (lookupValue -1)) {
-                            averageValueX = sumX / dataPerSecond;
-                            dataPointsX.add(new DataPoint(seconds, averageValueX));
-                            sumX = 0.0;
-                            sumY = 0.0;
-                            seconds++;
-                            lookupValue = i + dataPerSecond;
-                        }
+                sumX += xValue;
+                if (i == (lookupValue - 1)) {
+                    averageValueX = sumX / dataPerSecond;
+                    dataPointsX.add(new DataPoint(seconds, averageValueX));
+                    sumX = 0.0;
+                    sumY = 0.0;
+                    seconds++;
+                    lookupValue = i + dataPerSecond;
+                }
             }
 
         }
@@ -138,11 +134,11 @@ public class GraphicalSensorAdapter extends
         holder.graph.getViewport().setMinX(0);
         holder.graph.getViewport().setMaxX(seconds);
         seriesX.setTitle("X Value");
-        seriesX.setColor(Color.argb(255,255,0,0));
+        seriesX.setColor(Color.argb(255, 255, 0, 0));
         seriesY.setTitle("Y Value");
-        seriesY.setColor(Color.argb(255,0,255,0));
+        seriesY.setColor(Color.argb(255, 0, 255, 0));
         seriesZ.setTitle("Z Value");
-        seriesZ.setColor(Color.argb(255,0,0,255));
+        seriesZ.setColor(Color.argb(255, 0, 0, 255));
         holder.graph.addSeries(seriesX);
         holder.graph.addSeries(seriesY);
         holder.graph.addSeries(seriesZ);

@@ -5,29 +5,29 @@ import java.util.List;
 
 public class BluetoothObject {
 
-    private String name;
+    private final String name;
     private String mac;
-    private List<Integer> values;
+    private final List<Integer> values;
     private int singleValue;
 
-    public BluetoothObject(String name, List<Integer> values){
+    public BluetoothObject(String name, List<Integer> values) {
         this.name = name;
         this.values = values;
     }
 
-    public BluetoothObject(String name, int value){
+    public BluetoothObject(String name, int value) {
         this.name = name;
         this.singleValue = value;
         this.values = new ArrayList<>();
     }
 
-    public BluetoothObject(String name, String mac,List<Integer> values){
+    public BluetoothObject(String name, String mac, List<Integer> values) {
         this.name = name;
         this.values = values;
         this.mac = mac;
     }
 
-    public BluetoothObject(String name, String mac,int value){
+    public BluetoothObject(String name, String mac, int value) {
         this.name = name;
         this.singleValue = value;
         this.mac = mac;

@@ -22,17 +22,17 @@ public class LauncherActivity extends AppCompatActivity {
         changeToMainScreen();
     }
 
-    private void changeToMainScreen(){
+    private void changeToMainScreen() {
         mTimer = new Timer();
         long delayTime = 2000;
-        Log.i(TAG,"Launching application.");
-        mTimer.schedule(new TimerTask(){
-            public void run(){
+        Log.i(TAG, "Launching application.");
+        mTimer.schedule(new TimerTask() {
+            public void run() {
                 Intent changeScreenIntent = new Intent(LauncherActivity.this, MainActivity.class);
                 startActivity(changeScreenIntent);
                 finish();
             }
-        },delayTime);
+        }, delayTime);
 
     }
 }

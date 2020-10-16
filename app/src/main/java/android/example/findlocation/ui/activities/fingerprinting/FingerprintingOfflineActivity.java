@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.example.findlocation.R;
-import android.example.findlocation.ui.adapters.FingerprintAdapter;
 import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.Fingerprint;
 import android.example.findlocation.objects.client.SensorObject;
@@ -19,6 +18,8 @@ import android.example.findlocation.objects.server.ServerBluetoothData;
 import android.example.findlocation.objects.server.ServerDeviceData;
 import android.example.findlocation.objects.server.ServerFingerprint;
 import android.example.findlocation.objects.server.ServerWifiData;
+import android.example.findlocation.ui.adapters.FingerprintAdapter;
+import android.example.findlocation.ui.adapters.SectionsPagerAdapter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -29,29 +30,27 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-
-import com.google.android.material.tabs.TabLayout;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
-import android.example.findlocation.ui.adapters.SectionsPagerAdapter;
 import android.widget.CheckBox;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -80,12 +79,12 @@ import okhttp3.Response;
 
 public class FingerprintingOfflineActivity extends AppCompatActivity implements SensorEventListener, BeaconConsumer {
 
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    public static final String FINGERPRINT_FILE = "radio_map";
     // OVERALL CONSTANTS
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
-    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
     private static final String SERVER_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/";
-    public static final String FINGERPRINT_FILE = "radio_map";
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
 
@@ -95,46 +94,59 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
     private static final String LOG = "LOG";
     private static final String WIFI = "WIFI";
     private static final String SMARTPHONE_SENSOR = "SMARTPHONE_SENSOR";
-
+    final Handler handler = new Handler();
+    final Runnable locationUpdate = new Runnable() {
+        @Override
+        public void run() {
+            wifiManager.startScan();
+            Log.d("START SCAN CALLED", "");
+            handler.postDelayed(locationUpdate, 1000);
+        }
+    };
+    // SMARTPHONE SENSOR RELATED
+    private final float[] accelerometerReading = new float[3];
+    private final float[] magnetometerReading = new float[3];
+    private final float[] rotationMatrix = new float[9];
     // HTTP CONNECTION
     private boolean isScanning;
     private OkHttpClient client;
-
     //SENSOR MANAGERS
     private SensorManager mSensorManager;
     private WifiManager wifiManager;
+    private final float[] orientationAngles = new float[3];
     private BeaconManager beaconManager;
-
     //SENSOR DATA STRUCTURES
     private List<WifiObject> mAccessPoints;
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (success) {
+                scanSuccess();
+            } else {
+                // scan failure handling
+                scanFailure();
+            }
+        }
+    };
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
-
     //DATA STORAGE VARIABLES
     private File targetFile;
     private Writer writer;
-
     // FINGERPRINT INFORMATION
     private List<Fingerprint> fingerprints;
     private String fingerprintId;
     private int numberOfFingerprints;
     private int interval;
     private String zoneClassifier;
-
-    // SMARTPHONE SENSOR RELATED
-    private final float[] accelerometerReading = new float[3];
-    private final float[] magnetometerReading = new float[3];
-    private final float[] rotationMatrix = new float[9];
-    private final float[] orientationAngles = new float[3];
-
     // UI RELATED
     private RecyclerView mFingerprintRecyclerView;
     private FingerprintAdapter mFingerprintAdapter;
-
     // VARIABLES DEPENDING ON OTHER FRAGMENTS/ACTIVITIES
     private List<String> dataTypes;
     private Map<String, Float> preferences;
-
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
@@ -178,7 +190,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         requestPermissions();
     }
 
-    public void requestPermissions(){
+    public void requestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -200,8 +212,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
                         });
                         builder.show();
-                    }
-                    else {
+                    } else {
                         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setTitle("Functionality limited");
                         builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
@@ -222,8 +233,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
                     requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                                     Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                             PERMISSION_REQUEST_FINE_LOCATION);
-                }
-                else {
+                } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Functionality limited");
                     builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
@@ -244,7 +254,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String[] permissions, int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_FINE_LOCATION: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -287,7 +297,6 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         }
     }
 
-
     public void populateRecycleView(View view) {
 
         mFingerprintRecyclerView = view.findViewById(R.id.recyclerViewFingerprint);
@@ -308,8 +317,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
             beaconManager.unbind(this);
         try {
             unregisterReceiver(wifiScanReceiver);
-        }
-        catch(IllegalArgumentException ex){
+        } catch (IllegalArgumentException ex) {
 
         }
 
@@ -329,8 +337,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
                     if (!dataTypes.contains("Wi-Fi"))
                         dataTypes.add("Wi-fi");
                 } else {
-                    if (dataTypes.contains("Wi-Fi"))
-                        dataTypes.remove("Wi-Fi");
+                    dataTypes.remove("Wi-Fi");
                 }
                 break;
             case R.id.checkbox_bluetooth:
@@ -338,8 +345,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
                     if (!dataTypes.contains("Bluetooth"))
                         dataTypes.add("Bluetooth");
                 } else {
-                    if (dataTypes.contains("Bluetooth"))
-                        dataTypes.remove("Bluetooth");
+                    dataTypes.remove("Bluetooth");
                 }
                 break;
             case R.id.checkbox_device_sensors:
@@ -347,8 +353,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
                     if (!dataTypes.contains("DeviceData"))
                         dataTypes.add("DeviceData");
                 } else {
-                    if (dataTypes.contains("DeviceData"))
-                        dataTypes.remove("DeviceData");
+                    dataTypes.remove("DeviceData");
                 }
                 break;
         }
@@ -380,14 +385,14 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
             scanData();
         } else {
-            Toast.makeText(this,"Finished Scanning", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Finished Scanning", Toast.LENGTH_SHORT).show();
             //Gson gson = new Gson();
             //gson.toJson(fingerprints, writer);
             //requestCSVFile();
         }
     }
 
-    public void requestCSVFile(){
+    public void requestCSVFile() {
         Gson gson = new Gson();
         String jsonString = gson.toJson("csv");
         Toast.makeText(this, "Server creating CSV file with data", Toast.LENGTH_SHORT).show();
@@ -447,26 +452,25 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         new SendHTTPRequest(bluetoothData).execute();
     }
 
-    public void setPreferences(Map<String, Float> preferences) {
-        this.preferences = preferences;
+    public String getZoneClassifier() {
+        return this.zoneClassifier;
     }
 
     public void setZoneClassifier(String zoneClassifier) {
         this.zoneClassifier = zoneClassifier;
     }
 
-    public String getZoneClassifier() {
-        return this.zoneClassifier;
-    }
-
     public Map<String, Float> getPreferences() {
         return this.preferences;
+    }
+
+    public void setPreferences(Map<String, Float> preferences) {
+        this.preferences = preferences;
     }
 
     public List<String> getSelectedTypes() {
         return this.dataTypes;
     }
-
 
     public File writeToFile(String sFileName) {
 
@@ -480,14 +484,13 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     protected void activateSensorScan() {
         //SMARTPHONE RELATED SENSOR
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorInformationList = new ArrayList<>();
         setupSmartphoneSensors();
-        Log.d(SMARTPHONE_SENSOR,"Device sensors configuration ready. Started listening for changes on sensors");
+        Log.d(SMARTPHONE_SENSOR, "Device sensors configuration ready. Started listening for changes on sensors");
 
         //BLUETOOTH SENSOR
         mBeaconsList = new ArrayList<>();
@@ -508,20 +511,10 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         this.registerReceiver(wifiScanReceiver, intentFilter);
         verifyLocation();
         handler.post(locationUpdate);
-        Log.d(WIFI,"Access Points configuration ready. Started advertising packets");
+        Log.d(WIFI, "Access Points configuration ready. Started advertising packets");
     }
 
-    final Handler handler = new Handler();
-    final Runnable locationUpdate = new Runnable() {
-        @Override
-        public void run() {
-            wifiManager.startScan();
-            Log.d("START SCAN CALLED", "");
-            handler.postDelayed(locationUpdate, 1000);
-        }
-    };
-
-    public void verifyLocation(){
+    public void verifyLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                     this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
@@ -530,7 +523,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             buildAlertMessageNoGps();
-        Log.d(WIFI,"Location Verified");
+        Log.d(WIFI, "Location Verified");
     }
 
     private void buildAlertMessageNoGps() {
@@ -551,7 +544,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         alert.show();
     }
 
-    public void resetDataStructures(){
+    public void resetDataStructures() {
         mAccessPoints = new ArrayList<>();
         mSensorInformationList = new ArrayList<>();
         mBeaconsList = new ArrayList<>();
@@ -587,8 +580,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
         try {
             waitTimer.start();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -613,11 +605,9 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         mSensorInformationList.add(sensorInfo);
     }
 
-
-
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if(isScanning) {
+        if (isScanning) {
             if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
                 System.arraycopy(event.values, 0, accelerometerReading,
                         0, accelerometerReading.length);
@@ -640,7 +630,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
         float[] updated_orientation = SensorManager.getOrientation(rotationMatrix, orientationAngles);
         // "mOrientationAngles" now has up-to-date information.
-        if(mSensorInformationList.size() != 0) {
+        if (mSensorInformationList.size() != 0) {
             mSensorInformationList.get(0).setValue(updated_orientation);
             Log.d(SMARTPHONE_SENSOR, "Updated orientation sensor with values");
         }
@@ -651,41 +641,27 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
     }
 
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            boolean success = intent.getBooleanExtra(
-                    WifiManager.EXTRA_RESULTS_UPDATED, false);
-            if (success) {
-                scanSuccess();
-            } else {
-                // scan failure handling
-                scanFailure();
-            }
-        }
-    };
-
     private void scanFailure() {
         // handle failure: new scan did NOT succeed
         // consider using old scan results: these are the OLD results!
-        Log.d(WIFI,"Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
+        Log.d(WIFI, "Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
     }
 
 
     private void scanSuccess() {
         List<ScanResult> results = wifiManager.getScanResults();
-        if(isScanning) {
-            Log.d(WIFI,"Scanned " + results.size() + " access points");
+        if (isScanning) {
+            Log.d(WIFI, "Scanned " + results.size() + " access points");
             for (ScanResult result : results
             ) {
                 int rssi = result.level;
-                Log.d(WIFI,"Access Point: " + result.BSSID + " with RSSI " + rssi + " dBm");
+                Log.d(WIFI, "Access Point: " + result.BSSID + " with RSSI " + rssi + " dBm");
                 boolean found = false;
                 for (int i = 0; i < mAccessPoints.size(); i++) {
                     WifiObject resultInList = mAccessPoints.get(i);
                     if (resultInList.getName().equals(result.BSSID)) {
                         resultInList.setSingleValue(rssi);
-                        Log.d(WIFI,"Set RSSI value " + rssi + " dBm to the access point's " + result.BSSID + " list.");
+                        Log.d(WIFI, "Set RSSI value " + rssi + " dBm to the access point's " + result.BSSID + " list.");
                         found = true;
                         break;
                     }
@@ -770,7 +746,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
             builder.show();
 
         }
-        Log.d(BLE,"Bluetooth verified.");
+        Log.d(BLE, "Bluetooth verified.");
 
     }
 
@@ -823,8 +799,8 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
             String fingerprintInJson = null;
 
             try {
-                if(json != null && !json.isEmpty()){
-                    post(SERVER_ADDRESS_HEROKU +"filter/",json, "");
+                if (json != null && !json.isEmpty()) {
+                    post(SERVER_ADDRESS_HEROKU + "filter/", json, "");
                 }
                 fingerprintInJson = gson.toJson(serverFingerprint);
 

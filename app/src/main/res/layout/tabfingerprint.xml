@@ -52,9 +52,9 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.05"
-        app:layout_constraintVertical_bias="0.060000002"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/zone_selectedId" />
+        app:layout_constraintTop_toBottomOf="@+id/zone_selectedId"
+        app:layout_constraintVertical_bias="0.060000002" />
 
     <TextView
         android:id="@+id/defaultpreferencesId"
@@ -74,10 +74,10 @@
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_button"
         android:fontFamily="@font/andada"
+        android:onClick="addFingerprintListener"
         android:padding="10dp"
         android:text="@string/start_fingerprint_string"
         android:textAlignment="center"
-        android:onClick="addFingerprintListener"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"

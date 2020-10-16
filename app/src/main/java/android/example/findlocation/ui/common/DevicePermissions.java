@@ -43,7 +43,7 @@ public class DevicePermissions {
                         builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                             @Override
                             public void onDismiss(DialogInterface dialog) {
-                                ActivityCompat.requestPermissions(mContext,new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                ActivityCompat.requestPermissions(mContext, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                                         PERMISSION_REQUEST_BACKGROUND_LOCATION);
                             }
                         });
@@ -96,7 +96,7 @@ public class DevicePermissions {
         checkLocationState();
     }
 
-    private void checkLocationState(){
+    private void checkLocationState() {
         final LocationManager locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
 
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))

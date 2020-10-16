@@ -18,7 +18,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 public class SectionsPagerAdapterOnline extends FragmentPagerAdapter {
 
     @StringRes
-    private static final int[] TAB_TITLES = new int[]{ R.string.tab_text_1_online,R.string.tab_text_3};
+    private static final int[] TAB_TITLES = new int[]{R.string.tab_text_1_online, R.string.tab_text_3};
     private final Context mContext;
 
     public SectionsPagerAdapterOnline(Context context, FragmentManager fm) {
@@ -28,7 +28,7 @@ public class SectionsPagerAdapterOnline extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        switch(position){
+        switch (position) {
             case 0:
                 TabPosition tab1 = new TabPosition();
                 return tab1;

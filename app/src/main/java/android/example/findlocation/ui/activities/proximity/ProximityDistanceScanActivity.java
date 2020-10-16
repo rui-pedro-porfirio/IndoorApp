@@ -1,9 +1,5 @@
 package android.example.findlocation.ui.activities.proximity;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
-
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -21,6 +17,10 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.gson.Gson;
@@ -51,9 +51,8 @@ import okhttp3.Response;
 
 public class ProximityDistanceScanActivity extends AppCompatActivity implements BeaconConsumer {
 
-    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
+    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
     private static final String SERVER_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/";
 
@@ -96,7 +95,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         requestPermissions();
     }
 
-    public void requestPermissions(){
+    public void requestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -118,8 +117,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
                         });
                         builder.show();
-                    }
-                    else {
+                    } else {
                         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setTitle("Functionality limited");
                         builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
@@ -140,8 +138,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
                     requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                                     Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                             PERMISSION_REQUEST_FINE_LOCATION);
-                }
-                else {
+                } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Functionality limited");
                     builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
@@ -162,7 +159,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String[] permissions, int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_FINE_LOCATION: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -279,7 +276,8 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         });
         try {
             beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-        } catch (RemoteException e) {    }
+        } catch (RemoteException e) {
+        }
     }
 
     private void verifyBluetooth() {
@@ -366,7 +364,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     private class SendHTTPRequest extends AsyncTask<Void, Void, String> {
 
-        private String json;
+        private final String json;
 
         public SendHTTPRequest(String json) {
             this.json = json;

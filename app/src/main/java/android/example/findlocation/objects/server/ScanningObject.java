@@ -8,13 +8,13 @@ import java.util.List;
 
 public class ScanningObject {
 
-    private String username;
-    private String uuid;
-    private List<WifiObject> mAccessPoints;
-    private List<BluetoothObject> mBeaconsList;
-    private List<SensorObject> mSensorInformationList;
+    private final String username;
+    private final String uuid;
+    private final List<WifiObject> mAccessPoints;
+    private final List<BluetoothObject> mBeaconsList;
+    private final List<SensorObject> mSensorInformationList;
 
-    public ScanningObject(String username, String uuid, List<WifiObject> mAccessPoints, List<BluetoothObject> mBeaconsList, List<SensorObject> mSensorInformationList){
+    public ScanningObject(String username, String uuid, List<WifiObject> mAccessPoints, List<BluetoothObject> mBeaconsList, List<SensorObject> mSensorInformationList) {
         this.username = username;
         this.uuid = uuid;
         this.mAccessPoints = mAccessPoints;

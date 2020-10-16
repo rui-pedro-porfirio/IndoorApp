@@ -107,9 +107,29 @@ public class SensorAnalysisActivity extends AppCompatActivity {
 
     private class ScanningTask extends AsyncTask<Void, Void, String> implements SensorEventListener, BeaconConsumer {
 
+        final Handler handler = new Handler();
+        final Runnable locationUpdate = new Runnable() {
+            @Override
+            public void run() {
+                wifiManager.startScan();
+                handler.postDelayed(locationUpdate, 3000);
+            }
+        };
         private final String TAG = ScanningTask.class.getSimpleName();
-
         private final Activity mContext;
+        private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent intent) {
+                boolean success = intent.getBooleanExtra(
+                        WifiManager.EXTRA_RESULTS_UPDATED, false);
+                if (success) {
+                    scanSuccess();
+                } else {
+                    // scan failure handling
+                    scanFailure();
+                }
+            }
+        };
 
         public ScanningTask(Activity mContext) {
             this.mContext = mContext;
@@ -126,15 +146,6 @@ public class SensorAnalysisActivity extends AppCompatActivity {
             activateSensorScan();
             return "";
         }
-
-        final Handler handler = new Handler();
-        final Runnable locationUpdate = new Runnable() {
-            @Override
-            public void run() {
-                wifiManager.startScan();
-                handler.postDelayed(locationUpdate, 3000);
-            }
-        };
 
         @Override
         protected void onPostExecute(String response) {
@@ -182,8 +193,7 @@ public class SensorAnalysisActivity extends AppCompatActivity {
                         mDeviceSensorAdapter.notifyDataSetChanged();
                     }
                 }
-            }
-            catch(ConcurrentModificationException e){
+            } catch (ConcurrentModificationException e) {
                 Log.e(TAG, "Concurrency problem");
             }
         }
@@ -217,7 +227,7 @@ public class SensorAnalysisActivity extends AppCompatActivity {
             beaconManager.addRangeNotifier(new RangeNotifier() {
                 @Override
                 public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
-                    for(Beacon mBeaconScanned: beacons){
+                    for (Beacon mBeaconScanned : beacons) {
 
                         int mRssi = mBeaconScanned.getRssi();
                         if (BuildConfig.DEBUG)
@@ -275,24 +285,10 @@ public class SensorAnalysisActivity extends AppCompatActivity {
             Log.i(TAG, "Successfully initialized wifi settings for scanning.");
         }
 
-        private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context c, Intent intent) {
-                boolean success = intent.getBooleanExtra(
-                        WifiManager.EXTRA_RESULTS_UPDATED, false);
-                if (success) {
-                    scanSuccess();
-                } else {
-                    // scan failure handling
-                    scanFailure();
-                }
-            }
-        };
-
         private void scanFailure() {
             // handle failure: new scan did NOT succeed
             // consider using old scan results: these are the OLD results!
-            Log.e(TAG,"Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
+            Log.e(TAG, "Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
         }
 
         private void scanSuccess() {

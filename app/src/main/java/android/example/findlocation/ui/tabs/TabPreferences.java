@@ -23,10 +23,10 @@ import java.util.Map;
 public class TabPreferences extends Fragment implements AdapterView.OnItemSelectedListener {
 
 
-    private Map<String,Float> preferences;
+    private final String[] zones = {"Personal", "Social", "Public"};
     private String zoneClassifier;
+    private Map<String, Float> preferences;
 
-    private String[] zones = {"Personal","Social", "Public"};
     @Override
     public View onCreateView(
             @NonNull LayoutInflater inflater, ViewGroup container,
@@ -34,11 +34,13 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
         View root = inflater.inflate(R.layout.tabpreferences, container, false);
         return root;
     }
+
     @Override
-    public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id) {
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id) {
         zoneClassifier = zones[position];
         ((FingerprintingOfflineActivity) getActivity()).setZoneClassifier(zoneClassifier);
     }
+
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
         // TODO - Custom Code
@@ -47,20 +49,20 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        preferences = new HashMap<String,Float>();
-        Spinner spin = (Spinner) view.findViewById(R.id.zoneDropdownId);
+        preferences = new HashMap<String, Float>();
+        Spinner spin = view.findViewById(R.id.zoneDropdownId);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, zones);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spin.setAdapter(adapter);
         spin.setOnItemSelectedListener(this);
         EditText mNumberOfFingerprints = view.findViewById(R.id.fingerprintPerLocationNumberId);
-        preferences.put("Number of Fingerprints",Float.valueOf(mNumberOfFingerprints.getText().toString()));
+        preferences.put("Number of Fingerprints", Float.valueOf(mNumberOfFingerprints.getText().toString()));
         EditText mTimeBetweenFingerprints = view.findViewById(R.id.intervalBetweenFingerprintsNumberId);
-        preferences.put("Time between Fingerprints",Float.valueOf(mTimeBetweenFingerprints.getText().toString()));
+        preferences.put("Time between Fingerprints", Float.valueOf(mTimeBetweenFingerprints.getText().toString()));
         EditText mXCoordinate = view.findViewById(R.id.xCoordinateValueId);
-        preferences.put("X",Float.valueOf(mXCoordinate.getText().toString()));
+        preferences.put("X", Float.valueOf(mXCoordinate.getText().toString()));
         EditText mYCoordinate = view.findViewById(R.id.yCoordinateValueId);
-        preferences.put("Y",Float.valueOf(mYCoordinate.getText().toString()));
+        preferences.put("Y", Float.valueOf(mYCoordinate.getText().toString()));
         ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
         mNumberOfFingerprints.addTextChangedListener(new TextWatcher() {
             @Override
@@ -75,7 +77,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
 
             @Override
             public void afterTextChanged(Editable s) {
-                if(!s.toString().equals("")) {
+                if (!s.toString().equals("")) {
                     preferences.put("Number of Fingerprints", Float.valueOf(s.toString()));
                     ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
                 }
@@ -111,7 +113,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
 
             @Override
             public void afterTextChanged(Editable s) {
-                if(!s.toString().equals("")) {
+                if (!s.toString().equals("")) {
                     preferences.put("X", Float.valueOf(s.toString()));
                     ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
                 }
@@ -130,7 +132,7 @@ public class TabPreferences extends Fragment implements AdapterView.OnItemSelect
 
             @Override
             public void afterTextChanged(Editable s) {
-                if(!s.toString().equals("")) {
+                if (!s.toString().equals("")) {
                     preferences.put("Y", Float.valueOf(s.toString()));
                     ((FingerprintingOfflineActivity) getActivity()).setPreferences(preferences);
                 }
