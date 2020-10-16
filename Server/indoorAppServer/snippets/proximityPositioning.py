@@ -7,7 +7,7 @@ from ..snippets import common
 
 dataset_heroku = '/app/Notebooks/PROXIMITY/dataset_train_university.csv'
 dataset_local = 'Notebooks/PROXIMITY/dataset_train_university.csv'
-dataset = pd.read_csv(dataset_local)
+dataset = pd.read_csv(dataset_heroku)
 
 '''
 INITIALIZATION FOR SCANNING PHASE

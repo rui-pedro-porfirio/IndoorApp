@@ -152,8 +152,11 @@ class ScanningView(APIView):
             if sum > max_mean:
                 max_mean = sum
                 max_map = k
-        self.environment_name = max_map
-        return available_maps[max_map]
+        if max_map is not None:
+            self.environment_name = max_map
+            return available_maps[max_map]
+        else:
+            return None
 
     def find_beacons_location(self):
         result_dict = dict()
@@ -174,8 +177,12 @@ class ScanningView(APIView):
             if len(available_beacons) != 0:
                 available_maps[location_name] = available_beacons
         map_with_highest_mean = self.get_map_with_highest_mean(available_maps=available_maps)
-        result_dict['beacons_known_positions'] = map_with_highest_mean
-        result_dict['beacons_locations_length'] = len(map_with_highest_mean)
+        if map_with_highest_mean is not None:
+            result_dict['beacons_known_positions'] = map_with_highest_mean
+            result_dict['beacons_locations_length'] = len(map_with_highest_mean)
+        else:
+            result_dict['beacons_known_positions'] = None
+            result_dict['beacons_locations_length'] = 0
         return result_dict
 
     def structure_radio_map_for_fuzzy_system(self, radio_map):

@@ -47,7 +47,7 @@ def train_algorithms(x_train, dataset, radio_map, trained_radio_maps, columns):
 def train_each_radio_map():
     global feature_importance
     trained_radio_maps = dict()
-    for radio_map in radio_maps_local:
+    for radio_map in radio_maps_heroku:
         dataset = pd.read_csv(radio_map)
 
         columns = list(dataset.columns)
@@ -116,7 +116,7 @@ def compute_matching_data(access_points_scanned, beacons_scanned):
     size_dataset = {}
     classification_assert_dict = {}
 
-    for radio_map in radio_maps_local:
+    for radio_map in radio_maps_heroku:
         # Init dataset related with radio map
         dataset = pd.read_csv(radio_map)
         result = {}
