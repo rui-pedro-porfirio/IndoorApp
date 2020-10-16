@@ -21,6 +21,7 @@ import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
 import android.example.findlocation.objects.server.ScanningObject;
 import android.example.findlocation.ui.activities.main.MainActivity;
+import android.example.findlocation.ui.activities.scanning.ScanningActivity;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -35,6 +36,9 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.Display;
+import android.view.Surface;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -76,7 +80,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.42.55:8080/scanning/";
     static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/scanning/";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    static final long SERVICE_DELAY = 5000;
+    static final long SERVICE_DELAY = 3000;
 
     static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
 
@@ -95,6 +99,17 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private int mLatestKnownBeacons;
     private int mNotFoundServerCount;
 
+    // Accelerometer and magnetometer sensors, as retrieved from the
+    // sensor manager.
+    private Sensor mSensorAccelerometer;
+    private Sensor mSensorMagnetometer;
+
+    // Current data from accelerometer & magnetometer.  The arrays hold values
+    // for X, Y, and Z.
+    private float[] mAccelerometerData;
+    private float[] mMagnetometerData;
+    private Display mDisplay;
+
     private SharedPreferences mAppPreferences;
     private String mUsername;
     private String mDeviceUuid;
@@ -108,6 +123,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
         initializeSharedPreferences();
         loadVariablesFromSharedPreferences();
         mHttpClient = new OkHttpClient();
+        mAccelerometerData = new float[3];
+        mMagnetometerData = new float[3];
         mLatestKnownAps = 0;
         mLatestKnownBeacons = 0;
         mLatestKnownBeacons = 0;
@@ -196,7 +213,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private PendingIntent createPendingIntentForNotification() {
-        Intent mNotificationIntent = new Intent(this, MainActivity.class);
+        Intent mNotificationIntent = new Intent(this, ScanningActivity.class);
         mNotificationIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         return PendingIntent.getActivity(this, 0, mNotificationIntent, 0);
     }
@@ -221,7 +238,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
 
     private void restartScan(){
         mSensorInformationList = new ArrayList<>();
-        mAccessPointsList = new ArrayList<>();
         mBeaconsList = new ArrayList<>();
         wifiManager.startScan();
     }
@@ -277,8 +293,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
 
             } else {
                 Log.i(TAG, "Successfully sent data to the server.");
-                restartScan();
             }
+            restartScan();
             response.body().close();
         } catch (ConnectException e) {
 
@@ -318,6 +334,13 @@ public class ActiveScanningService extends Service implements SensorEventListene
 
     private void initializeDeviceSensor() {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensorAccelerometer = mSensorManager.getDefaultSensor(
+                Sensor.TYPE_ACCELEROMETER);
+        mSensorMagnetometer = mSensorManager.getDefaultSensor(
+                Sensor.TYPE_MAGNETIC_FIELD);
+        // Get the display from the window manager (for rotation).
+        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        mDisplay = wm.getDefaultDisplay();
         mSensorInformationList = new ArrayList<>();
         listenForOrientationSensor();
         Log.i(TAG, "Successfully initialized device sensor information");
@@ -328,24 +351,68 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mDefaultValues[0] = 0f;
         mDefaultValues[1] = 0f;
         mDefaultValues[2] = 0f;
-        Sensor mOrientation = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        mSensorManager.registerListener(this, mOrientation,
-                SensorManager.SENSOR_DELAY_NORMAL);
-        SensorObject mOrientationSensorObject = new SensorObject(mOrientation.getName(), mDefaultValues);
-        mSensorInformationList.add(mOrientationSensorObject);
+        if (mSensorAccelerometer != null) {
+            mSensorManager.registerListener(this, mSensorAccelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if (mSensorMagnetometer != null) {
+            mSensorManager.registerListener(this, mSensorMagnetometer,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
         Log.i(TAG, "Added Orientation Sensor information to list.");
+    }
+
+    private float[] updateOrientation(float[] mRotationMatrix){
+        float[] mRotationMatrixAdjusted = new float[9];
+        switch (mDisplay.getRotation()) {
+            case Surface.ROTATION_0:
+            default:
+                mRotationMatrixAdjusted = mRotationMatrix.clone();
+                break;
+            case Surface.ROTATION_90:
+                SensorManager.remapCoordinateSystem(mRotationMatrix, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, mRotationMatrixAdjusted);
+                break;
+            case Surface.ROTATION_180:
+                SensorManager.remapCoordinateSystem(mRotationMatrix, SensorManager.AXIS_MINUS_X, SensorManager.AXIS_MINUS_Y, mRotationMatrixAdjusted);
+                break;
+            case Surface.ROTATION_270:
+                SensorManager.remapCoordinateSystem(mRotationMatrix, SensorManager.AXIS_MINUS_Y, SensorManager.AXIS_X, mRotationMatrixAdjusted);
+                break;
+        }
+        return mRotationMatrixAdjusted;
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor mSensorDetected = event.sensor;
-        for (SensorObject mKnownSensor : mSensorInformationList) {
-            if (mSensorDetected.getName().equals(mKnownSensor.getName())) {
-                if (BuildConfig.DEBUG)
-                    Log.d(TAG, "New values for orientation: " + Arrays.toString(event.values));
-                mKnownSensor.setValue(event.values);
-            }
+        int sensorType = event.sensor.getType();
+
+        switch (sensorType) {
+            case Sensor.TYPE_ACCELEROMETER:
+                mAccelerometerData = event.values.clone();
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                mMagnetometerData = event.values.clone();
+                break;
+            default:
+                return;
         }
+        float[] mRotationMatrix = new float[9];
+        boolean isRotationAvailable = SensorManager.getRotationMatrix(mRotationMatrix,
+                null, mAccelerometerData, mMagnetometerData);
+        float[] mRotationMatrixAdjusted = updateOrientation(mRotationMatrix);
+        float[] mOrientation = new float[3];
+        if (isRotationAvailable) {
+            SensorManager.getOrientation(mRotationMatrixAdjusted, mOrientation);
+        }
+        if (BuildConfig.DEBUG)
+            Log.d(TAG, "New values for orientation: " + Arrays.toString(mOrientation));
+        if(mSensorInformationList.isEmpty()) {
+            SensorObject mOrientationSensor = new SensorObject("ORIENTATION", mOrientation);
+            mSensorInformationList.add(mOrientationSensor);
+        }
+        SensorObject mOrientationSensor = mSensorInformationList.get(0);
+        mOrientationSensor.setValue(mOrientation);
     }
 
     @Override
@@ -434,11 +501,13 @@ public class ActiveScanningService extends Service implements SensorEventListene
             boolean success = intent.getBooleanExtra(
                     WifiManager.EXTRA_RESULTS_UPDATED, false);
             if (success) {
+                mAccessPointsList = new ArrayList<>(); //Refresh access points information
                 scanSuccess();
             } else {
                 // scan failure handling
                 scanFailure();
             }
+            wifiManager.startScan();
         }
     };
 

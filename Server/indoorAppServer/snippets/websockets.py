@@ -5,8 +5,8 @@ heroku_url = 'https://indoorlocationapp.herokuapp.com/notify'
 local_url = 'http://127.0.0.1:8080/notify'
 
 
-def publish(username, uuid, position, radio_map=None, beacon=None):
-    payload = {'username': username, 'UUID': uuid, 'position': position}
+def publish(username, uuid, position,orientation, radio_map=None, beacon=None):
+    payload = {'username': username, 'UUID': uuid, 'position': position,'orientation':orientation}
     if beacon is not None:
         payload['beacon'] = beacon
     if radio_map is not None:
