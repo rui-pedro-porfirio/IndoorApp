@@ -64,7 +64,7 @@ def apply_rf_classification_scanning(estimator_options, radio_map, access_points
             first_beacon_index_t2 = list(X_test).index(ap)
             break
     X_test = common.replace_features_nan(X_test, 0)
-    common.compute_data_cleaning_with_global_minimum(X_test, first_beacon_index_t2, -1)
+    common.compute_data_cleaning_with_global_minimum(X_test, first_beacon_index_t2, zone_index=-1)
     access_points_tst = X_test.iloc[:, 0:first_beacon_index_t2]
     beacons_tst = X_test.iloc[:, first_beacon_index_t2:]
     if access_points_tst.isnull().values.any():

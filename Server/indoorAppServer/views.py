@@ -83,6 +83,7 @@ class ScanningView(APIView):
     beaconsDetected = None
     deviceSensorDetected = None
     position_regression = None
+    orientation = None
     position_classification = None
     environment_name = None
     access_points_ml = {}
@@ -99,6 +100,7 @@ class ScanningView(APIView):
         self.beaconsDetected = None
         self.deviceSensorDetected = None
         self.position_regression = None
+        self.orientation = None
         self.position_classification = None
         self.environment_name = None
         self.access_points_ml = {}
@@ -114,8 +116,8 @@ class ScanningView(APIView):
         self.deviceUuid = sample_dict['uuid']
         self.accessPointsDetected = sample_dict['mAccessPoints']
         self.beaconsDetected = sample_dict['mBeaconsList']
-        self.deviceSensorDetected = sample_dict['mSensorInformationList']
-
+        self.deviceSensorDetected = sample_dict['mSensorInformationList'][0]
+        self.orientation = math.degrees(self.deviceSensorDetected['x_value'])
         self.structure_access_points_data()
         self.structure_beacons_data()
 
@@ -137,23 +139,43 @@ class ScanningView(APIView):
     def match_radio_map_similarity(self):
         return radiomap.compute_matching_data(self.access_points_structured, self.beacons_structured)
 
+    def get_map_with_highest_mean(self, available_maps):
+        max_mean = -math.inf
+        max_map = None
+        for k, v in available_maps.items():
+            sum = 0.0
+            for beacon in v:
+                rolling_average = self.beacons_ml[beacon][1]
+                mean = np.mean(rolling_average)
+                sum += mean
+            sum = sum / len(v)
+            if sum > max_mean:
+                max_mean = sum
+                max_map = k
+        self.environment_name = max_map
+        return available_maps[max_map]
+
     def find_beacons_location(self):
         result_dict = dict()
         beacons_known_positions = common.load_access_points_locations()
-        available_beacons = dict()
+        available_maps = dict()
         for location_name, locations in beacons_known_positions.items():
+            available_beacons = dict()
             for beacon, position in locations.items():
                 if beacon in self.beacons_structured:
                     available_beacons[beacon] = position
-                    if self.environment_name is None:
-                        self.environment_name = location_name
+                    # if self.environment_name is None:
+                    #     self.environment_name = location_name
                 elif beacon in self.beacons_name.values():
-                    beacon_address = common.get_key(self.beacons_name,beacon)
+                    beacon_address = common.get_key(self.beacons_name, beacon)
                     available_beacons[beacon_address] = position
-                    if self.environment_name is None:
-                        self.environment_name = location_name
-        result_dict['beacons_known_positions'] = available_beacons
-        result_dict['beacons_locations_length'] = len(available_beacons)
+                    # if self.environment_name is None:
+                    #     self.environment_name = location_name
+            if len(available_beacons) != 0:
+                available_maps[location_name] = available_beacons
+        map_with_highest_mean = self.get_map_with_highest_mean(available_maps=available_maps)
+        result_dict['beacons_known_positions'] = map_with_highest_mean
+        result_dict['beacons_locations_length'] = len(map_with_highest_mean)
         return result_dict
 
     def structure_radio_map_for_fuzzy_system(self, radio_map):
@@ -238,15 +260,17 @@ class ScanningView(APIView):
         distance_predictions = {}
         rfv = test_df.groupby(['BLE Beacon'])
         for k, v in rfv:
-            distance_prediction = proximityPositioning.apply_knn_regression_scanning(v)
-            distance_predictions[k] = distance_prediction[0, 0]
+            if k in beacons_known_locations:
+                distance_prediction = proximityPositioning.apply_knn_regression_scanning(v)
+                distance_predictions[k] = distance_prediction[0, 0]
         print('Distance Prediction to each beacon: ' + str(distance_predictions))
 
         # Find the nearest beacon
         for k, v in distance_predictions.items():
-            if v < min_distance:
-                min_distance = v
-                closest_location = beacons_known_locations[k]
+            if k in beacons_known_locations:
+                if v < min_distance:
+                    min_distance = v
+                    closest_location = beacons_known_locations[k]
 
         # Compute SciPy minimize function to obtain position prediction
         initial_location = closest_location
@@ -291,7 +315,8 @@ class ScanningView(APIView):
             radio_map_identifier = self.environment_name
         if position_technique is 'Proximity':
             beacon = beacon_name
-        websockets.publish(self.username, self.deviceUuid, position_dict, radio_map_identifier, beacon)
+        websockets.publish(self.username, self.deviceUuid, position_dict, self.orientation, radio_map_identifier,
+                           beacon)
 
     def post(self, request):
         serializer_context = {

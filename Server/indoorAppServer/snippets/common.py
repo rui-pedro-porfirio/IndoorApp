@@ -98,7 +98,7 @@ def load_access_points_locations():
         '*.json')
     locations_heroku = glob.glob('/app/*.json')
     location_dict = {}
-    for location in locations_heroku:
+    for location in locations_local:
         with open(location) as json_file:
             data = json.load(json_file)
             beacons = {}
@@ -121,11 +121,14 @@ def mse(x, rfv, distances, beacons):
     squared_errors = 0.0
     empty_list = {}
     x = (x[0], x[1])
+    available = 0
     for k, v in rfv:
-        distance_known = distances[k]
-        distance_computed = compute_distance_coordinate_system(x[0], x[1], beacons[k]['x'], beacons[k]['y'])
-        squared_errors += compute_squared_errors(distance_known, distance_computed)
-    mse = squared_errors / len(rfv)
+        if k in beacons:
+            available += 1
+            distance_known = distances[k]
+            distance_computed = compute_distance_coordinate_system(x[0], x[1], beacons[k]['x'], beacons[k]['y'])
+            squared_errors += compute_squared_errors(distance_known, distance_computed)
+    mse = squared_errors / available
     return mse
 
 

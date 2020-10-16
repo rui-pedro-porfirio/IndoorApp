@@ -42,22 +42,22 @@ def compute_rf_regression(main_estimator, testX_data):
     return predict_test
 
 
-def initialize_rf_classifier(trainX_data, trainY_data,
-                             scaler=StandardScaler(), n_estimators_parameter=100,
+def initialize_rf_classifier(trainX_data, trainY_data, n_estimators_parameter=100,
                              criterion_parameter='gini',
                              max_depth_parameter=110.0, min_samples_split_parameter=2,
                              min_samples_leaf_parameter=1, max_features_parameter='auto',
                              bootstrap_parameter=True, random_state_parameter=42):
-    random_forest_estimator = RandomForestClassifier(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
+    scaler = StandardScaler()
+    random_forest_classifier = RandomForestClassifier(n_estimators=n_estimators_parameter, criterion=criterion_parameter,
                                                      max_features=max_features_parameter, max_depth=max_depth_parameter,
                                                      min_samples_leaf=min_samples_leaf_parameter,
                                                      min_samples_split=min_samples_split_parameter,
                                                      bootstrap=bootstrap_parameter, random_state=random_state_parameter)
     if scaler is not None:
         # Make pipeline using scaler transformation
-        main_estimator = make_pipeline(scaler, random_forest_estimator)
+        main_estimator = make_pipeline(scaler, random_forest_classifier)
     else:
-        main_estimator = random_forest_estimator
+        main_estimator = random_forest_classifier
     # Fit the training data
     main_estimator.fit(trainX_data, trainY_data)
 
