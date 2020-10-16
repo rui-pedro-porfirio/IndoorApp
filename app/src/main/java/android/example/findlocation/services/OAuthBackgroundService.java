@@ -20,16 +20,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.JobIntentService;
 
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import okhttp3.Credentials;
 import okhttp3.FormBody;
@@ -122,22 +123,17 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         mOAuthFlow = mApplicationPreferences.getString(PREF_AUTH_FLOW, null);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void checkExpirationTokenValidity() {
         if (mExpirationDate != null) //Here it is assumed that the access token and refresh token are both existent
             mIsTokenValid = isAccessTokenValid();
         Log.i(TAG, "Token validity: " + mIsTokenValid);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean isAccessTokenValid() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         LocalDateTime expiration = LocalDateTime.parse(mExpirationDate, formatter);
         LocalDateTime now = LocalDateTime.now();
-        if (expiration.isAfter(now)) {
-            return true;
-        }
-        return false;
+        return expiration.isAfter(now);
     }
 
     /**
@@ -158,7 +154,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         enqueueWork(context, OAuthBackgroundService.class, id, intent);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         Log.i(TAG, "onHandleWork() called with: intent = [" + intent + "]");
@@ -227,11 +222,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
 
     private void generateCodeChallenge() {
         byte[] bytes = new byte[0];
-        try {
-            bytes = mCodeVerifier.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        bytes = mCodeVerifier.getBytes(StandardCharsets.US_ASCII);
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("SHA-256");
@@ -250,7 +241,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         computeAuthorizationRequest(final_uri);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void structureAuthorizationCode(Intent intent) {
         Uri responseUri = intent.getData();
         mAutorizationCode = responseUri.getQueryParameter("code");
@@ -279,7 +269,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         mResultReceiver.send(FAILED_RESULT_CODE, bundle);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void exchangeAuthorizationCode() {
         requestAccessToken(buildBodyAuthBasic());
     }
@@ -292,7 +281,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                 .build();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void exchangeAuthorizationCodePKCE() {
         requestAccessToken(buildBodyPKCE());
     }
@@ -306,7 +294,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                 .build();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void requestAccessToken(RequestBody requestBody) {
         Log.i(TAG, "Requesting access token...");
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
@@ -319,7 +306,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         sendPostHTTPRequest(request);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void exchangeRefreshToken() {
         Log.i(TAG, "Access Token is obsolete. Updating token validity.");
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
@@ -336,8 +322,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         sendPostHTTPRequest(request);
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void requestTokenInfo() {
         Log.i(TAG, "Requesting (GET) information about token including username and expiration date.");
         Request request = new Request.Builder()
@@ -348,7 +332,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         sendGetHTTPRequest(request);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void sendPostHTTPRequest(Request request) {
         Handler mainHandler = new Handler(getMainLooper());
         Log.i(TAG, "Post Request started.");
@@ -379,7 +362,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void sendGetHTTPRequest(Request request) {
         Handler mainHandler = new Handler(getMainLooper());
 

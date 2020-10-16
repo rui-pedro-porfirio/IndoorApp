@@ -13,14 +13,12 @@ import android.content.SharedPreferences;
 import android.example.findlocation.BuildConfig;
 import android.example.findlocation.IndoorApp;
 import android.example.findlocation.R;
-import android.example.findlocation.exceptions.HTTPRequestException;
 import android.example.findlocation.exceptions.SharedPreferencesException;
 import android.example.findlocation.interfaces.SharedPreferencesInterface;
 import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
 import android.example.findlocation.objects.server.ScanningObject;
-import android.example.findlocation.ui.activities.main.MainActivity;
 import android.example.findlocation.ui.activities.scanning.ScanningActivity;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -43,6 +41,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 
 import com.google.gson.Gson;
 
@@ -94,7 +93,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private List<WifiObject> mAccessPointsList;
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
-    private Notification.Builder mBuilder;
+    private NotificationCompat.Builder mBuilder;
     private int mLatestKnownAps;
     private int mLatestKnownBeacons;
     private int mNotFoundServerCount;
@@ -218,9 +217,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
         return PendingIntent.getActivity(this, 0, mNotificationIntent, 0);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private Notification createNotification(PendingIntent mPendingIntent) {
-        mBuilder = new Notification.Builder(this, CHANNEL_ID)
+        mBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText("Access Points Detected: 0 | Beacons Detected: 0")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
@@ -229,7 +227,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
         return mBuilder.build();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void updateNotification(String message) {
         mBuilder.setContentText(message);
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
