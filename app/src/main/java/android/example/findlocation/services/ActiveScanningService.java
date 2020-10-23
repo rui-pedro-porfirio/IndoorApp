@@ -138,7 +138,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
         startThreadAndHandler();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "Starting Scanning Service...");
@@ -198,7 +197,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mServiceHandler = new ServiceHandler(mServiceLooper);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private Notification structureNotificationForForegroundUsage() {
         createNotificationChannel();
         PendingIntent mPendingIntent = createPendingIntentForNotification();
@@ -211,8 +209,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence mNotificationName = "Scanning Service";
-            int mImportance = NotificationManager.IMPORTANCE_DEFAULT;
+            int mImportance = NotificationManager.IMPORTANCE_LOW;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, mNotificationName, mImportance);
+            channel.enableVibration(false);
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
@@ -225,11 +224,17 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private Notification createNotification(PendingIntent mPendingIntent) {
+        Intent disableIntent = new Intent(this, ActiveScanningServiceBroadcastReceiver.class);
+        disableIntent.setAction(ActiveScanningServiceBroadcastReceiver.ACTION_DISABLE_SERVICE);
+        PendingIntent disablePendingIntent = PendingIntent.getBroadcast(this, 0, disableIntent, 0);
+
         mBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(getText(R.string.notification_title))
-                .setContentText("Access Points Detected: 0 | Beacons Detected: 0")
+                .setContentText("APs Detected: 0 | Beacons Detected: 0")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setContentIntent(mPendingIntent)
+                .addAction(R.drawable.baseline_stop_24, getString(R.string.notication_action_disable_active_scanning_service), disablePendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setVibrate(null);
         return mBuilder.build();
     }
@@ -251,7 +256,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
             @RequiresApi(api = Build.VERSION_CODES.M)
             public void run() {
                 if (mLatestKnownAps != mAccessPointsList.size() || mLatestKnownBeacons != mBeaconsList.size()) {
-                    updateNotification("Access Points Detected: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
+                    updateNotification("APs: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
                     mLatestKnownAps = mAccessPointsList.size();
                     mLatestKnownBeacons = mBeaconsList.size();
                 }
@@ -262,7 +267,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
         }, SERVICE_DELAY);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void sendDataToServer() {
         ScanningObject mScanningObject = new ScanningObject(mUsername, mDeviceUuid, mAccessPointsList, mBeaconsList, mSensorInformationList);
         String mScanningObjectInJson = convertToJsonString(mScanningObject);
@@ -274,7 +278,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
         return gson.toJson(mScanningObject);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void sendPostHTTPRequest(String mUrl, String mJsonString) {
         Handler mainHandler = new Handler(getMainLooper());
         Request mPostRequest = structureRequest(mUrl, mJsonString);
@@ -300,16 +303,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
             }
             restartScan();
             response.body().close();
-        } catch (ConnectException e) {
-
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    // Do your stuff here related to UI, e.g. show toast
-                    Toast.makeText(getApplicationContext(), "Failed to connect to the server", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (SocketTimeoutException e) {
+        } catch (ConnectException | SocketTimeoutException e) {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -351,10 +345,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private void listenForOrientationSensor() {
-        float[] mDefaultValues = new float[3];
-        mDefaultValues[0] = 0f;
-        mDefaultValues[1] = 0f;
-        mDefaultValues[2] = 0f;
         if (mSensorAccelerometer != null) {
             mSensorManager.registerListener(this, mSensorAccelerometer,
                     SensorManager.SENSOR_DELAY_NORMAL);
@@ -480,8 +470,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
         });
         try {
             beaconManager.startRangingBeaconsInRegion(new Region("uniqueIdRegion", null, null, null));
-        } catch (
-                RemoteException e) {
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
     }

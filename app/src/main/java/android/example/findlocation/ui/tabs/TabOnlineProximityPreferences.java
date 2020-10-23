@@ -17,9 +17,9 @@ import androidx.fragment.app.Fragment;
 public class TabOnlineProximityPreferences extends Fragment {
 
 
+    private final String[] algorithms = {"KNN Regression", "KNN Classifier", "MLP Regression", "MLP Classifier", "SVM Classifier", "SVM Regressor", "Linear Regression", "Random Forest Classifier"};
     private String selectedAlgorithm;
     private String selectedFilter;
-    private final String[] algorithms = {"KNN Regression", "KNN Classifier", "MLP Regression", "MLP Classifier", "SVM Classifier", "SVM Regressor", "Linear Regression", "Random Forest Classifier"};
 
     @Override
     public View onCreateView(

@@ -95,6 +95,10 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
     private static final String WIFI = "WIFI";
     private static final String SMARTPHONE_SENSOR = "SMARTPHONE_SENSOR";
     final Handler handler = new Handler();
+    // SMARTPHONE SENSOR RELATED
+    private final float[] accelerometerReading = new float[3];
+    private final float[] magnetometerReading = new float[3];
+    private final float[] rotationMatrix = new float[9];
     final Runnable locationUpdate = new Runnable() {
         @Override
         public void run() {
@@ -103,10 +107,6 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
             handler.postDelayed(locationUpdate, 1000);
         }
     };
-    // SMARTPHONE SENSOR RELATED
-    private final float[] accelerometerReading = new float[3];
-    private final float[] magnetometerReading = new float[3];
-    private final float[] rotationMatrix = new float[9];
     // HTTP CONNECTION
     private boolean isScanning;
     private OkHttpClient client;

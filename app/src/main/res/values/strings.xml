@@ -108,4 +108,5 @@
     <string name="scan_string">Scan</string>
     <string name="scanning_data_string">Scanning Data ...</string>
     <string name="experimental_title_string">Experimental</string>
+    <string name="notication_action_disable_active_scanning_service">Disable Active Scanning Service</string>
 </resources>

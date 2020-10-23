@@ -40,6 +40,7 @@ public class ScanningActivity extends AppCompatActivity {
             mBound = true;
             Log.i(TAG, "Bound to Scanning Service.");
             Toast.makeText(getApplicationContext(), "Scanning Service Started", Toast.LENGTH_SHORT).show();
+            unbindService(this);
         }
 
         @Override
@@ -67,11 +68,9 @@ public class ScanningActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.i(TAG, "Destroying activity and the Scanning Background Service");
-        Intent mDestroyServiceIntent = new Intent(this, ActiveScanningService.class);
-        unbindService(connection);
-        mBound = false;
-        stopService(mDestroyServiceIntent);
+        //Log.i(TAG, "Destroying activity and the Scanning Background Service");
+        //Intent mDestroyServiceIntent = new Intent(this, ActiveScanningService.class);
+        //stopService(mDestroyServiceIntent);
     }
 
     protected void startBackgroundScanningService() {

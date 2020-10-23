@@ -23,10 +23,9 @@ import java.util.Map;
 public class TabProximityDistancePreferences extends Fragment implements AdapterView.OnItemSelectedListener {
 
 
+    private final String[] zones = {"None", "Personal", "Social", "Public"};
     private Map<String, Float> preferences;
     private String zoneClassifier;
-
-    private final String[] zones = {"None", "Personal", "Social", "Public"};
 
     @Override
     public View onCreateView(

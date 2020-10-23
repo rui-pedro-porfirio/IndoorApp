@@ -6,8 +6,8 @@ import java.util.List;
 public class BluetoothObject {
 
     private final String name;
-    private String mac;
     private final List<Integer> values;
+    private String mac;
     private int singleValue;
 
     public BluetoothObject(String name, List<Integer> values) {

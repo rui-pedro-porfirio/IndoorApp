@@ -17,11 +17,10 @@ import androidx.fragment.app.Fragment;
 public class TabOnlinePreferences extends Fragment {
 
 
-    private String selectedAlgorithm;
-    private String selectedFilter;
-
     private final String[] algorithms = {"KNN Regression", "KNN Classifier", "MLP Regression", "MLP Classifier", "K-Means Classifier", "SVM Classifier"};
     private final String[] filters = {"None", "Median", "Mean"};
+    private String selectedAlgorithm;
+    private String selectedFilter;
 
     @Override
     public View onCreateView(

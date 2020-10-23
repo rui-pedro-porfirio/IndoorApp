@@ -6,12 +6,12 @@ import java.util.List;
 
 public class Fingerprint {
 
-    private float x_coordinate;
-    private float y_coordinate;
-    private String zone;
     private final List<SensorObject> mSensorInformationList;
     private final List<BluetoothObject> mBeaconsList;
     private final List<WifiObject> mAccessPoints;
+    private float x_coordinate;
+    private float y_coordinate;
+    private String zone;
 
     public Fingerprint(float x_coordinate, float y_coordinate, String zone, List<SensorObject> mSensorInformationList, List<BluetoothObject> mBeaconsList, List<WifiObject> mAccessPoints) {
         this.mSensorInformationList = mSensorInformationList;

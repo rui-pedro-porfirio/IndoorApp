@@ -17,9 +17,8 @@ import androidx.fragment.app.Fragment;
 public class TabTrilaterationOnlinePreferences extends Fragment {
 
 
-    private String selectedAlgorithm;
-
     private final String[] algorithms = {"KNN Regression", "MLP Regression", "SVM Regressor", "Linear Regression"};
+    private String selectedAlgorithm;
 
     @Override
     public View onCreateView(
