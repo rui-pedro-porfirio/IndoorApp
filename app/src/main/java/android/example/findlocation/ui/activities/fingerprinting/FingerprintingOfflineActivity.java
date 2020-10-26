@@ -99,6 +99,13 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
     private final float[] accelerometerReading = new float[3];
     private final float[] magnetometerReading = new float[3];
     private final float[] rotationMatrix = new float[9];
+    private final float[] orientationAngles = new float[3];
+    // HTTP CONNECTION
+    private boolean isScanning;
+    private OkHttpClient client;
+    //SENSOR MANAGERS
+    private SensorManager mSensorManager;
+    private WifiManager wifiManager;
     final Runnable locationUpdate = new Runnable() {
         @Override
         public void run() {
@@ -107,13 +114,6 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
             handler.postDelayed(locationUpdate, 1000);
         }
     };
-    // HTTP CONNECTION
-    private boolean isScanning;
-    private OkHttpClient client;
-    //SENSOR MANAGERS
-    private SensorManager mSensorManager;
-    private WifiManager wifiManager;
-    private final float[] orientationAngles = new float[3];
     private BeaconManager beaconManager;
     //SENSOR DATA STRUCTURES
     private List<WifiObject> mAccessPoints;

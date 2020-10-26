@@ -80,30 +80,17 @@ public class ActiveScanningService extends Service implements SensorEventListene
     static final long SERVICE_DELAY = 3000;
     static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String TAG = ActiveScanningService.class.getSimpleName();
+
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
     private ServiceHandler mServiceHandler;
     private OkHttpClient mHttpClient;
+
     //TECHNOLOGIES RELATED STRUCTURES
     private SensorManager mSensorManager;
     private WifiManager wifiManager;
     private BeaconManager beaconManager;
     private List<WifiObject> mAccessPointsList;
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            boolean success = intent.getBooleanExtra(
-                    WifiManager.EXTRA_RESULTS_UPDATED, false);
-            if (success) {
-                mAccessPointsList = new ArrayList<>(); //Refresh access points information
-                scanSuccess();
-            } else {
-                // scan failure handling
-                scanFailure();
-            }
-            wifiManager.startScan();
-        }
-    };
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
     private NotificationCompat.Builder mBuilder;
@@ -122,6 +109,26 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private SharedPreferences mAppPreferences;
     private String mUsername;
     private String mDeviceUuid;
+    //Just a couple of flags to check if the service is started and/or bound
+    private boolean started;
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (started) {
+                if (success) {
+                    mAccessPointsList = new ArrayList<>(); // Refresh access points information
+                    scanSuccess();
+                } else {
+                    // Scan failure handling
+                    scanFailure();
+                }
+                wifiManager.startScan();
+            }
+        }
+    };
+    private boolean bound;
 
     @Override
     public void onCreate() {
@@ -135,11 +142,14 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mLatestKnownBeacons = 0;
         mLatestKnownBeacons = 0;
         mNotFoundServerCount = 0;
+        started = false;
+        bound = false;
         startThreadAndHandler();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        started = true;
         Log.i(TAG, "Starting Scanning Service...");
         Notification mNotification = structureNotificationForForegroundUsage();
         Log.i(TAG, "Notification created for Foreground usage");
@@ -147,19 +157,27 @@ public class ActiveScanningService extends Service implements SensorEventListene
         Log.i(TAG, "Started Foreground Service");
         activateSensorScan();
         handleScanningService();
-        return START_NOT_STICKY;
+        return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        started = false;
+        cleanUpService();
+        super.onDestroy();
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        bound = true;
         return mBinder;
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        cleanUpService();
+    public boolean onUnbind(Intent intent) {
+        bound = false;
+        return super.onUnbind(intent);
     }
 
     @Override
@@ -255,14 +273,16 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mServiceHandler.postDelayed(new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             public void run() {
-                if (mLatestKnownAps != mAccessPointsList.size() || mLatestKnownBeacons != mBeaconsList.size()) {
-                    updateNotification("APs: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
-                    mLatestKnownAps = mAccessPointsList.size();
-                    mLatestKnownBeacons = mBeaconsList.size();
+                if (started) {
+                    if (mLatestKnownAps != mAccessPointsList.size() || mLatestKnownBeacons != mBeaconsList.size()) {
+                        updateNotification("APs: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
+                        mLatestKnownAps = mAccessPointsList.size();
+                        mLatestKnownBeacons = mBeaconsList.size();
+                    }
+                    if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
+                        sendDataToServer();
+                    mServiceHandler.postDelayed(this, SERVICE_DELAY); // Uncomment this to become cyclic
                 }
-                if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
-                    sendDataToServer();
-                mServiceHandler.postDelayed(this, SERVICE_DELAY); // Uncomment this to become cyclic
             }
         }, SERVICE_DELAY);
     }
@@ -520,7 +540,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     // Handler that receives messages from the thread
-    private final class ServiceHandler extends Handler {
+    private static class ServiceHandler extends Handler {
         public ServiceHandler(Looper looper) {
             super(looper);
         }

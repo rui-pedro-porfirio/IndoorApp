@@ -32,8 +32,7 @@ public class ScanningActivity extends AppCompatActivity {
     private final ServiceConnection connection = new ServiceConnection() {
 
         @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
+        public void onServiceConnected(ComponentName className, IBinder service) {
             // We've bound to ScanBackgroundService, cast the IBinder and get LocalService instance
             LocalBinder mBinder = (LocalBinder) service;
             mService = mBinder.getService();
