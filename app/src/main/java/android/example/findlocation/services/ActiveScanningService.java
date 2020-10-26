@@ -149,21 +149,25 @@ public class ActiveScanningService extends Service implements SensorEventListene
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        started = true;
-        Log.i(TAG, "Starting Scanning Service...");
-        Notification mNotification = structureNotificationForForegroundUsage();
-        Log.i(TAG, "Notification created for Foreground usage");
-        startForeground(NOTIFICATION_ID, mNotification);
-        Log.i(TAG, "Started Foreground Service");
-        activateSensorScan();
-        handleScanningService();
+        if(!started) {
+            started = true;
+            Log.i(TAG, "Starting Scanning Service...");
+            Notification mNotification = structureNotificationForForegroundUsage();
+            Log.i(TAG, "Notification created for Foreground usage");
+            startForeground(NOTIFICATION_ID, mNotification);
+            Log.i(TAG, "Started Foreground Service");
+            activateSensorScan();
+            handleScanningService();
+        }
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        started = false;
-        cleanUpService();
+        if(started) {
+            started = false;
+            cleanUpService();
+        }
         super.onDestroy();
     }
 
