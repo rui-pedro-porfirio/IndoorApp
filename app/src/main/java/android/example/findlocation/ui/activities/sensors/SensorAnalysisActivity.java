@@ -23,14 +23,12 @@ import android.hardware.SensorManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -135,7 +133,6 @@ public class SensorAnalysisActivity extends AppCompatActivity {
             this.mContext = mContext;
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         protected String doInBackground(Void... voids) {
             Log.i(TAG, "Activating Sensor Scan");

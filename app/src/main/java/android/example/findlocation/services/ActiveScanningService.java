@@ -80,6 +80,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     static final long SERVICE_DELAY = 3000;
     static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String TAG = ActiveScanningService.class.getSimpleName();
+    private static final Gson GSON = new Gson();
 
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
@@ -93,6 +94,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private List<WifiObject> mAccessPointsList;
     private List<BluetoothObject> mBeaconsList;
     private List<SensorObject> mSensorInformationList;
+    private final Object mListLock = new Object();
     private NotificationCompat.Builder mBuilder;
     private int mLatestKnownAps;
     private int mLatestKnownBeacons;
@@ -109,16 +111,18 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private SharedPreferences mAppPreferences;
     private String mUsername;
     private String mDeviceUuid;
-    //Just a couple of flags to check if the service is started and/or bound
-    private boolean started;
+    //Just a flag to check if the service is started
+    private boolean mStarted;
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
             boolean success = intent.getBooleanExtra(
                     WifiManager.EXTRA_RESULTS_UPDATED, false);
-            if (started) {
+            if (mStarted) {
                 if (success) {
-                    mAccessPointsList = new ArrayList<>(); // Refresh access points information
+                    synchronized (mListLock) {
+                        mAccessPointsList = new ArrayList<>(); // Refresh access points information
+                    }
                     scanSuccess();
                 } else {
                     // Scan failure handling
@@ -128,7 +132,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
             }
         }
     };
-    private boolean bound;
 
     @Override
     public void onCreate() {
@@ -140,17 +143,15 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mMagnetometerData = new float[3];
         mLatestKnownAps = 0;
         mLatestKnownBeacons = 0;
-        mLatestKnownBeacons = 0;
         mNotFoundServerCount = 0;
-        started = false;
-        bound = false;
+        mStarted = false;
         startThreadAndHandler();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(!started) {
-            started = true;
+        if (!mStarted) {
+            mStarted = true;
             Log.i(TAG, "Starting Scanning Service...");
             Notification mNotification = structureNotificationForForegroundUsage();
             Log.i(TAG, "Notification created for Foreground usage");
@@ -164,8 +165,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
 
     @Override
     public void onDestroy() {
-        if(started) {
-            started = false;
+        if (mStarted) {
+            mStarted = false;
             cleanUpService();
         }
         super.onDestroy();
@@ -174,13 +175,11 @@ public class ActiveScanningService extends Service implements SensorEventListene
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        bound = true;
         return mBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        bound = false;
         return super.onUnbind(intent);
     }
 
@@ -268,8 +267,10 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private void restartScan() {
-        mSensorInformationList = new ArrayList<>();
-        mBeaconsList = new ArrayList<>();
+        synchronized (mListLock) {
+            mSensorInformationList = new ArrayList<>();
+            mBeaconsList = new ArrayList<>();
+        }
         wifiManager.startScan();
     }
 
@@ -277,29 +278,29 @@ public class ActiveScanningService extends Service implements SensorEventListene
         mServiceHandler.postDelayed(new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             public void run() {
-                if (started) {
-                    if (mLatestKnownAps != mAccessPointsList.size() || mLatestKnownBeacons != mBeaconsList.size()) {
-                        updateNotification("APs: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
-                        mLatestKnownAps = mAccessPointsList.size();
-                        mLatestKnownBeacons = mBeaconsList.size();
+                if (mStarted) {
+                    synchronized (mListLock) {
+                        if (mLatestKnownAps != mAccessPointsList.size() || mLatestKnownBeacons != mBeaconsList.size()) {
+                            updateNotification("APs: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
+                            mLatestKnownAps = mAccessPointsList.size();
+                            mLatestKnownBeacons = mBeaconsList.size();
+                        }
+                        if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
+                            sendDataToServer();
                     }
-                    if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
-                        sendDataToServer();
                     mServiceHandler.postDelayed(this, SERVICE_DELAY); // Uncomment this to become cyclic
                 }
             }
         }, SERVICE_DELAY);
     }
 
-    private void sendDataToServer() {
-        ScanningObject mScanningObject = new ScanningObject(mUsername, mDeviceUuid, mAccessPointsList, mBeaconsList, mSensorInformationList);
-        String mScanningObjectInJson = convertToJsonString(mScanningObject);
+    private synchronized void sendDataToServer() {
+        String mScanningObjectInJson;
+        synchronized (mListLock) {
+            ScanningObject mScanningObject = new ScanningObject(mUsername, mDeviceUuid, mAccessPointsList, mBeaconsList, mSensorInformationList);
+            mScanningObjectInJson = GSON.toJson(mScanningObject);
+        }
         sendPostHTTPRequest(SERVER_ENDPOINT_ADDRESS_HEROKU, mScanningObjectInJson);
-    }
-
-    private String convertToJsonString(ScanningObject mScanningObject) {
-        Gson gson = new Gson();
-        return gson.toJson(mScanningObject);
     }
 
     private void sendPostHTTPRequest(String mUrl, String mJsonString) {
@@ -321,7 +322,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
                         });
                     }
                 }
-
             } else {
                 Log.i(TAG, "Successfully sent data to the server.");
             }
@@ -363,7 +363,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
         // Get the display from the window manager (for rotation).
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         mDisplay = wm.getDefaultDisplay();
-        mSensorInformationList = new ArrayList<>();
+        synchronized (mListLock) {
+            mSensorInformationList = new ArrayList<>();
+        }
         listenForOrientationSensor();
         Log.i(TAG, "Successfully initialized device sensor information");
     }
@@ -425,12 +427,14 @@ public class ActiveScanningService extends Service implements SensorEventListene
         }
         if (BuildConfig.DEBUG)
             Log.d(TAG, "New values for orientation: " + Arrays.toString(mOrientation));
-        if (mSensorInformationList.isEmpty()) {
-            SensorObject mOrientationSensor = new SensorObject("ORIENTATION", mOrientation);
-            mSensorInformationList.add(mOrientationSensor);
+        synchronized (mListLock) {
+            if (mSensorInformationList.isEmpty()) {
+                SensorObject mOrientationSensor = new SensorObject("ORIENTATION", mOrientation);
+                mSensorInformationList.add(mOrientationSensor);
+            }
+            SensorObject mOrientationSensor = mSensorInformationList.get(0);
+            mOrientationSensor.setValue(mOrientation);
         }
-        SensorObject mOrientationSensor = mSensorInformationList.get(0);
-        mOrientationSensor.setValue(mOrientation);
     }
 
     @Override
@@ -439,7 +443,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private void initializeBluetoothSensor() {
-        mBeaconsList = new ArrayList<>();
+        synchronized (mListLock) {
+            mBeaconsList = new ArrayList<>();
+        }
         beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
@@ -464,30 +470,30 @@ public class ActiveScanningService extends Service implements SensorEventListene
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, org.altbeacon.beacon.Region region) {
                 for (Beacon mBeaconScanned : beacons) {
-
                     int mRssi = mBeaconScanned.getRssi();
                     if (BuildConfig.DEBUG)
                         Log.d(TAG, "New values for beacon: " + mBeaconScanned.getBluetoothAddress() + " | RSSI: " + mRssi);
                     boolean mBeaconExists = false;
-                    for (int i = 0; i < mBeaconsList.size(); i++) {
-                        BluetoothObject mKnownBeacon = mBeaconsList.get(i);
-                        String mIdString = mBeaconScanned.getId1().toString() + "-" + mBeaconScanned.getId2().toString()
-                                + "-" + mBeaconScanned.getId3().toString();
-                        if (mKnownBeacon.getName().equals(mIdString)) {
-                            mKnownBeacon.setSingleValue(mRssi);
-                            mKnownBeacon.addValue(mRssi);
-                            mBeaconExists = true;
-                            break;
+                    synchronized (mListLock) {
+                        for (int i = 0; i < mBeaconsList.size(); i++) {
+                            BluetoothObject mKnownBeacon = mBeaconsList.get(i);
+                            String mIdString = mBeaconScanned.getId1().toString() + "-" + mBeaconScanned.getId2().toString()
+                                    + "-" + mBeaconScanned.getId3().toString();
+                            if (mKnownBeacon.getName().equals(mIdString)) {
+                                mKnownBeacon.setSingleValue(mRssi);
+                                mKnownBeacon.addValue(mRssi);
+                                mBeaconExists = true;
+                                break;
+                            }
                         }
-                    }
-
-                    if (!mBeaconExists) {
-                        String mIdString = mBeaconScanned.getId1().toString() + "-" + mBeaconScanned.getId2().toString()
-                                + "-" + mBeaconScanned.getId3().toString();
-                        BluetoothObject mNewBeaconFound = new BluetoothObject(mIdString, mBeaconScanned.getBluetoothAddress(), mRssi);
-                        mNewBeaconFound.addValue(mRssi);
-                        mBeaconsList.add(mNewBeaconFound);
-                        Log.i(TAG, "Added beacon " + mNewBeaconFound.getName() + " to the known list.");
+                        if (!mBeaconExists) {
+                            String mIdString = mBeaconScanned.getId1().toString() + "-" + mBeaconScanned.getId2().toString()
+                                    + "-" + mBeaconScanned.getId3().toString();
+                            BluetoothObject mNewBeaconFound = new BluetoothObject(mIdString, mBeaconScanned.getBluetoothAddress(), mRssi);
+                            mNewBeaconFound.addValue(mRssi);
+                            mBeaconsList.add(mNewBeaconFound);
+                            Log.i(TAG, "Added beacon " + mNewBeaconFound.getName() + " to the known list.");
+                        }
                     }
                 }
             }
@@ -500,7 +506,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private void initializeWifiSensor() {
-        mAccessPointsList = new ArrayList<>();
+        synchronized (mListLock) {
+            mAccessPointsList = new ArrayList<>();
+        }
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
         IntentFilter intentFilter = new IntentFilter();
@@ -526,19 +534,20 @@ public class ActiveScanningService extends Service implements SensorEventListene
             if (BuildConfig.DEBUG)
                 Log.d(TAG, "New values for access point: " + mScanResult.BSSID + " | RSSI: " + mRssi);
             boolean mAccessPointExists = false;
-            for (int i = 0; i < mAccessPointsList.size(); i++) {
-                WifiObject mKnownAccessPoint = mAccessPointsList.get(i);
-                if (mKnownAccessPoint.getName().equals(mScanResult.BSSID)) {
-                    mKnownAccessPoint.setSingleValue(mRssi);
-                    mAccessPointExists = true;
-                    break;
+            synchronized (mListLock) {
+                for (int i = 0; i < mAccessPointsList.size(); i++) {
+                    WifiObject mKnownAccessPoint = mAccessPointsList.get(i);
+                    if (mKnownAccessPoint.getName().equals(mScanResult.BSSID)) {
+                        mKnownAccessPoint.setSingleValue(mRssi);
+                        mAccessPointExists = true;
+                        break;
+                    }
                 }
-            }
-
-            if (!mAccessPointExists) {
-                WifiObject mNewAccessPointFound = new WifiObject(mScanResult.BSSID, mRssi);
-                Log.i(TAG, "Added access point " + mNewAccessPointFound.getName() + " to the known list.");
-                mAccessPointsList.add(mNewAccessPointFound);
+                if (!mAccessPointExists) {
+                    WifiObject mNewAccessPointFound = new WifiObject(mScanResult.BSSID, mRssi);
+                    Log.i(TAG, "Added access point " + mNewAccessPointFound.getName() + " to the known list.");
+                    mAccessPointsList.add(mNewAccessPointFound);
+                }
             }
         }
     }
