@@ -58,6 +58,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -72,13 +73,13 @@ public class ActiveScanningService extends Service implements SensorEventListene
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     static final String CHANNEL_ID = "indoorApp.BackgroundScanningService";
 
-    static final String PREF_USERNAME = "PREF_USERNAME";
-    static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
+    private static final String PREF_USERNAME = "PREF_USERNAME";
+    private static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
 
-    static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.42.55:8080/scanning/";
-    static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/scanning/";
-    static final long SERVICE_DELAY = 3000;
-    static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
+    //private static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.42.55:8080/scanning/";
+    private static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/scanning/";
+    private static final long SERVICE_DELAY = 3000;
+    private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String TAG = ActiveScanningService.class.getSimpleName();
     private static final Gson GSON = new Gson();
 
@@ -88,14 +89,30 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private OkHttpClient mHttpClient;
 
     //TECHNOLOGIES RELATED STRUCTURES
+    private final List<WifiObject> mAccessPointsList = Collections.synchronizedList(new ArrayList<>());
+    private final List<BluetoothObject> mBeaconsList = Collections.synchronizedList(new ArrayList<>());
+    private final List<SensorObject> mSensorInformationList = Collections.synchronizedList(new ArrayList<>());
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (mStarted) {
+                if (success) {
+                    // Refresh access points information
+                    mAccessPointsList.clear();
+                    scanSuccess();
+                } else {
+                    // Scan failure handling
+                    scanFailure();
+                }
+                wifiManager.startScan();
+            }
+        }
+    };
     private SensorManager mSensorManager;
     private WifiManager wifiManager;
     private BeaconManager beaconManager;
-    private List<WifiObject> mAccessPointsList;
-    private List<BluetoothObject> mBeaconsList;
-    private List<SensorObject> mSensorInformationList;
-    private final Object mListLock = new Object();
-    private NotificationCompat.Builder mBuilder;
     private int mLatestKnownAps;
     private int mLatestKnownBeacons;
     private int mNotFoundServerCount;
@@ -113,25 +130,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private String mDeviceUuid;
     //Just a flag to check if the service is started
     private boolean mStarted;
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            boolean success = intent.getBooleanExtra(
-                    WifiManager.EXTRA_RESULTS_UPDATED, false);
-            if (mStarted) {
-                if (success) {
-                    synchronized (mListLock) {
-                        mAccessPointsList = new ArrayList<>(); // Refresh access points information
-                    }
-                    scanSuccess();
-                } else {
-                    // Scan failure handling
-                    scanFailure();
-                }
-                wifiManager.startScan();
-            }
-        }
-    };
+    private NotificationCompat.Builder mBuilder;
 
     @Override
     public void onCreate() {
@@ -267,10 +266,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private void restartScan() {
-        synchronized (mListLock) {
-            mSensorInformationList = new ArrayList<>();
-            mBeaconsList = new ArrayList<>();
-        }
+        mSensorInformationList.clear();
+        mBeaconsList.clear();
         wifiManager.startScan();
     }
 
@@ -279,15 +276,14 @@ public class ActiveScanningService extends Service implements SensorEventListene
             @RequiresApi(api = Build.VERSION_CODES.M)
             public void run() {
                 if (mStarted) {
-                    synchronized (mListLock) {
-                        if (mLatestKnownAps != mAccessPointsList.size() || mLatestKnownBeacons != mBeaconsList.size()) {
-                            updateNotification("APs: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
-                            mLatestKnownAps = mAccessPointsList.size();
-                            mLatestKnownBeacons = mBeaconsList.size();
-                        }
-                        if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
-                            sendDataToServer();
+                    if (mLatestKnownAps != mAccessPointsList.size() || mLatestKnownBeacons != mBeaconsList.size()) {
+                        updateNotification("APs: " + mAccessPointsList.size() + " | Beacons Detected: " + mBeaconsList.size());
+                        mLatestKnownAps = mAccessPointsList.size();
+                        mLatestKnownBeacons = mBeaconsList.size();
                     }
+                    if (mAccessPointsList.size() != 0 || mBeaconsList.size() != 0)
+                        sendDataToServer();
+
                     mServiceHandler.postDelayed(this, SERVICE_DELAY); // Uncomment this to become cyclic
                 }
             }
@@ -295,11 +291,17 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private synchronized void sendDataToServer() {
+        ScanningObject mScanningObject = new ScanningObject(mUsername, mDeviceUuid, mAccessPointsList, mBeaconsList, mSensorInformationList);
+
         String mScanningObjectInJson;
-        synchronized (mListLock) {
-            ScanningObject mScanningObject = new ScanningObject(mUsername, mDeviceUuid, mAccessPointsList, mBeaconsList, mSensorInformationList);
-            mScanningObjectInJson = GSON.toJson(mScanningObject);
+        synchronized (mAccessPointsList) {
+            synchronized (mBeaconsList) {
+                synchronized (mSensorInformationList) {
+                    mScanningObjectInJson = GSON.toJson(mScanningObject);
+                }
+            }
         }
+
         sendPostHTTPRequest(SERVER_ENDPOINT_ADDRESS_HEROKU, mScanningObjectInJson);
     }
 
@@ -363,9 +365,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
         // Get the display from the window manager (for rotation).
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         mDisplay = wm.getDefaultDisplay();
-        synchronized (mListLock) {
-            mSensorInformationList = new ArrayList<>();
-        }
+        mSensorInformationList.clear();
         listenForOrientationSensor();
         Log.i(TAG, "Successfully initialized device sensor information");
     }
@@ -427,14 +427,14 @@ public class ActiveScanningService extends Service implements SensorEventListene
         }
         if (BuildConfig.DEBUG)
             Log.d(TAG, "New values for orientation: " + Arrays.toString(mOrientation));
-        synchronized (mListLock) {
-            if (mSensorInformationList.isEmpty()) {
-                SensorObject mOrientationSensor = new SensorObject("ORIENTATION", mOrientation);
-                mSensorInformationList.add(mOrientationSensor);
-            }
-            SensorObject mOrientationSensor = mSensorInformationList.get(0);
-            mOrientationSensor.setValue(mOrientation);
+
+        if (mSensorInformationList.isEmpty()) {
+            SensorObject mOrientationSensor = new SensorObject("ORIENTATION", mOrientation);
+            mSensorInformationList.add(mOrientationSensor);
         }
+
+        SensorObject mOrientationSensor = mSensorInformationList.get(0);
+        mOrientationSensor.setValue(mOrientation);
     }
 
     @Override
@@ -443,9 +443,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private void initializeBluetoothSensor() {
-        synchronized (mListLock) {
-            mBeaconsList = new ArrayList<>();
-        }
+        mBeaconsList.clear();
         beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.getBeaconParsers().clear();
         beaconManager.getBeaconParsers().add(new BeaconParser("iBeacon").setBeaconLayout(IBEACON_LAYOUT));
@@ -474,9 +472,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
                     if (BuildConfig.DEBUG)
                         Log.d(TAG, "New values for beacon: " + mBeaconScanned.getBluetoothAddress() + " | RSSI: " + mRssi);
                     boolean mBeaconExists = false;
-                    synchronized (mListLock) {
-                        for (int i = 0; i < mBeaconsList.size(); i++) {
-                            BluetoothObject mKnownBeacon = mBeaconsList.get(i);
+                    synchronized (mBeaconsList) {
+                        for (BluetoothObject mKnownBeacon : mBeaconsList) {
                             String mIdString = mBeaconScanned.getId1().toString() + "-" + mBeaconScanned.getId2().toString()
                                     + "-" + mBeaconScanned.getId3().toString();
                             if (mKnownBeacon.getName().equals(mIdString)) {
@@ -506,9 +503,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     }
 
     private void initializeWifiSensor() {
-        synchronized (mListLock) {
-            mAccessPointsList = new ArrayList<>();
-        }
+        mAccessPointsList.clear();
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
         IntentFilter intentFilter = new IntentFilter();
@@ -534,9 +529,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
             if (BuildConfig.DEBUG)
                 Log.d(TAG, "New values for access point: " + mScanResult.BSSID + " | RSSI: " + mRssi);
             boolean mAccessPointExists = false;
-            synchronized (mListLock) {
-                for (int i = 0; i < mAccessPointsList.size(); i++) {
-                    WifiObject mKnownAccessPoint = mAccessPointsList.get(i);
+            synchronized (mAccessPointsList) {
+                for (WifiObject mKnownAccessPoint : mAccessPointsList) {
                     if (mKnownAccessPoint.getName().equals(mScanResult.BSSID)) {
                         mKnownAccessPoint.setSingleValue(mRssi);
                         mAccessPointExists = true;
