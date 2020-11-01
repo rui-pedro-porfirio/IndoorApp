@@ -1,7 +1,0 @@
-Activation Function,Cross Validation,Solver,Preprocessing,Alpha,Learning Rate,Momentum,Iterations,Filtering,Experimentation
-relu,HoldOut,adam,StandardScaler,0.0001,constant,0.9,1000,Median,MLP Classifier Bluetooth
-logistic,Stratified K-Fold,adam,MinMaxScaler,0.0001,constant,0.9,400,Median,MLP Classifier Wifi + Bluetooth
-relu,Stratified K-Fold,sgd,MaxAbsScaler,0.1,constant,0.9,400,Median,MLP Classifier Wifi
-tanh,HoldOut,adam,StandardScaler,0.0001,adaptive,0.9,2000,Mean,MLP Regressor Bluetooth
-relu,Stratified K-Fold,adam,StandardScaler,0.1,adaptive,0.9,500,No Filter,MLP Regressor Wifi + Bluetooth
-tanh,Stratified K-Fold,sgd,MinMaxScaler,0.1,invscaling,0.0,200,Mean,MLP Regressor Wifi

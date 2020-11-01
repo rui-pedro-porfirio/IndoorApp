@@ -1,9 +1,0 @@
-K Parameter,Cross Validation,Weight,Preprocessing,Algorithm,Distance,Filtering,Experimentation
-2,Stratified K-Fold,uniform,StandardScaler,brute,canberra,No Filter,KNN Regressor Wifi + Bluetooth
-6,Stratified K-Fold,uniform,None,brute,braycurtis,No Filter,KNN Regressor Bluetooth
-2,Stratified K-Fold,uniform,MinMaxScaler,kd_tree,canberra,No Filter,KNN Regressor Wifi
-5,Stratified K-Fold,uniform,None,brute,manhattan,No Filter,KNN Regressor Wifi Pedro
-K Parameter,Cross Validation,Weight,Preprocessing,Algorithm,Distance,Filtering,Experimentation
-1,Stratified K-Fold,distance,MaxAbsScaler,brute,canberra,No Filter,KNN Classifier Wifi + Bluetooth
-3,Stratified K-Fold,distance,MinMaxScaler,kd_tree,manhattan,No Filter,KNN Classifier Wifi
-11,Stratified K-Fold,distance,MinMaxScaler,brute,canberra,No Filter,KNN Classifier Bluetooth

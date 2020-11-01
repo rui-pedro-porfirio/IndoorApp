@@ -1,3 +1,0 @@
-Activation Function,Cross Validation,Solver,Preprocessing,Alpha,Learning Rate,Momentum,Iterations,Filtering,Experimentation
-relu,HoldOut,adam,StandardScaler,0.0001,constant,0.9,1000,Median,KNN Classifier Bluetooth
-logistic,Stratified K-Fold,adam,MinMaxScaler,0.0001,constant,0.9,400,Median,KNN Classifier Wifi + Bluetooth

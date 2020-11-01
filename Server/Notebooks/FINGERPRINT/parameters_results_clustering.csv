@@ -1,4 +1,0 @@
-K Parameter,Init Parameter,Algorithnm,Preprocessing,Preprocessing Distance,Filtering,Experimentation
-4,random,auto,MinMaxScaler,auto,Median,K-Means Clustering Wifi + Bluetooth
-4,random,auto,StandardScaler,auto,Median,K-Means Clustering Bluetooth
-4,random,auto,MinMaxScaler,auto,Median,K-Means Clustering Wifi
