@@ -109,9 +109,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         mAuthRetries = 0;
         mCodeChallenge = null;
         loadVariablesFromSharedPreferences();
-        checkExpirationTokenValidity();
-        if (!mIsTokenValid && mAccessToken != null && mRefreshToken != null)
-            exchangeRefreshToken();
     }
 
     @Override
@@ -172,6 +169,9 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                     structureAuthorizationCode(intent);
                     break;
                 case ACTION_CHECK_AUTH_CODE:
+                    checkExpirationTokenValidity();
+                    if (!mIsTokenValid && mAccessToken != null && mRefreshToken != null)
+                        exchangeRefreshToken();
                     boolean hasAccessToken = mAccessToken != null;
                     Bundle bundle_token = new Bundle();
                     bundle_token.putBoolean("isValid", hasAccessToken);
@@ -308,6 +308,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         Request request = new Request.Builder()
                 .url(EXCHANGE_AUTH_ADDRESS)
                 .header("Authorization", credentials)
+                .header("content-type", "application/x-www-form-urlencoded")
                 .post(requestBody)
                 .build();
         sendPostHTTPRequest(request);
