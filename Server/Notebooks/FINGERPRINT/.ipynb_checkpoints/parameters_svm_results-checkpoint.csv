@@ -1,4 +1,0 @@
-C Parameter,Cross Validation,Kernel,Preprocessing,Gamma,Class Weights,Decision Function,Filtering,Experimentation
-1.0,Stratified K-Fold,rbf,None,scale,balanced,ovo,No Filter,SVM Classifier Bluetooth
-100.0,Stratified K-Fold,rbf,MaxAbsScaler,scale,balanced,ovo,No Filter,SVM Classifier Wifi + Bluetooth
-10.0,Stratified K-Fold,linear,MaxAbsScaler,scale,balanced,ovo,No Filter,SVM Classifier Wifi
