@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     static final String OAUTH_PKCE = "PKCE Authorization Code Flow";
     static final String DEVICE_UUID_ADDRESS = "http://localhost:3003/deviceInfo";
     private static final String TAG = MainActivity.class.getSimpleName();
-    private boolean isAuthenticated;
+    private boolean isAuthorized;
     private SharedPreferences mAppPreferences;
     private SharedPreferences.Editor mPreferencesEditor;
     private ServiceResultReceiver mServiceResultReceiver;
@@ -105,13 +105,13 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
             @Override
             public void onClick(View v) {
                 Log.i(TAG, "Clicked login button.");
-                if (!isAuthenticated) {
-                    Log.i(TAG, "User not authenticated after login click. Initializing OAuth service.");
+                if (!isAuthorized) {
+                    Log.i(TAG, "Client not authorized after login click. Initializing OAuth service.");
                     OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver,
                             ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
                 } else {
-                    Log.i(TAG, "User already authenticated after login click.");
-                    Toast.makeText(getApplicationContext(), "Already Authenticated.", Toast.LENGTH_LONG).show();
+                    Log.i(TAG, "Client already authorized after login click.");
+                    Toast.makeText(getApplicationContext(), "Client already authorized.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -169,13 +169,13 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
             Log.e(TAG, errorMessage);
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
         } else if (resultCode == AUTH_VALIDITY) {
-            isAuthenticated = resultData.getBoolean("isValid");
-            if (!isAuthenticated) {
-                Log.i(TAG, "User not authenticated after validity check. Initializing OAuth service.");
+            isAuthorized = resultData.getBoolean("isValid");
+            if (!isAuthorized) {
+                Log.i(TAG, "Client not authorized after validity check. Initializing OAuth service.");
                 OAuthBackgroundService.enqueueWork(MainActivity.this, mServiceResultReceiver, ACTION_REQUEST_AUTH_CODE, OAUTH_ID, null, null);
             } else {
-                Log.i(TAG, "User already authenticated after validity check.");
-                Toast.makeText(getApplicationContext(), "User Authenticated.", Toast.LENGTH_LONG).show();
+                Log.i(TAG, "Client authorized after validity check.");
+                Toast.makeText(getApplicationContext(), "Client Authorized.", Toast.LENGTH_LONG).show();
             }
         }
     }
