@@ -77,7 +77,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
 
     //private static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.42.55:8080/scanning/";
-    private static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "http://indoorlocationapp.herokuapp.com/scanning/";
+    private static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "https://indoorlocationapp.herokuapp.com/scanning/";
     private static final long SERVICE_DELAY = 3000;
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String TAG = ActiveScanningService.class.getSimpleName();
