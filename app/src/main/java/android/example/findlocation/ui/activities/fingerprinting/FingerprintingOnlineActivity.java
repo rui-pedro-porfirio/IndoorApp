@@ -190,14 +190,6 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
                     dataTypes.remove("Bluetooth");
                 }
                 break;
-            case R.id.checkbox_device_sensors_online:
-                if (checked) {
-                    if (!dataTypes.contains("DeviceData"))
-                        dataTypes.add("DeviceData");
-                } else {
-                    dataTypes.remove("DeviceData");
-                }
-                break;
         }
     }
 

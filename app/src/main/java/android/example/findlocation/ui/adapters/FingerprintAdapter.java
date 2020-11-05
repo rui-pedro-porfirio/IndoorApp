@@ -2,7 +2,9 @@ package android.example.findlocation.ui.adapters;
 
 import android.content.Context;
 import android.example.findlocation.R;
+import android.example.findlocation.objects.client.BluetoothObject;
 import android.example.findlocation.objects.client.Fingerprint;
+import android.example.findlocation.objects.client.WifiObject;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,20 +38,30 @@ public class FingerprintAdapter extends
     @Override
     public void onBindViewHolder(@NonNull FingerprintAdapter.FingerprintViewHolder holder, int position) {
         Fingerprint mFingerprint = mFingerprintList.get(position);
-        if (mFingerprint.getmSensorInformationList().size() > 0) {
-            holder.sensorItemView.setText(mFingerprint.getmSensorInformationList().get(0).getName());
-            holder.sensorXValueView.setText(new DecimalFormat("##.##").format(mFingerprint.getmSensorInformationList().get(0).getX_value()));
-            holder.sensorYValueView.setText(new DecimalFormat("##.##").format(mFingerprint.getmSensorInformationList().get(0).getY_value()));
-            holder.sensorZValueView.setText(new DecimalFormat("##.##").format(mFingerprint.getmSensorInformationList().get(0).getZ_value()));
-        }
         if (mFingerprint.getmBeaconsList().size() > 0) {
-            int rssi = mFingerprint.getmBeaconsList().get(0).getSingleValue();
+            int rssi = getAverageRSSIBLE(mFingerprint.getmBeaconsList());
             holder.bluetoothFirstBeaconView.setText(String.valueOf(rssi));
         }
         if (mFingerprint.getmAccessPoints().size() > 0) {
-            int rssi = mFingerprint.getmAccessPoints().get(0).getSingleValue();
+            int rssi = getAverageRSSIWiFi(mFingerprint.getmAccessPoints());
             holder.wifiFirstAccessPointView.setText(String.valueOf(rssi));
         }
+    }
+
+    private int getAverageRSSIBLE(List<BluetoothObject> beaconsList){
+        int sum = 0;
+        for(BluetoothObject beacon : beaconsList){
+            sum += beacon.getSingleValue();
+        }
+        return sum / beaconsList.size();
+    }
+
+    private int getAverageRSSIWiFi(List<WifiObject> apList){
+        int sum = 0;
+        for(WifiObject ap : apList){
+            sum += ap.getSingleValue();
+        }
+        return sum / apList.size();
     }
 
     @Override
@@ -60,20 +72,12 @@ public class FingerprintAdapter extends
 
     class FingerprintViewHolder extends RecyclerView.ViewHolder {
 
-        public final TextView sensorItemView;
-        public final TextView sensorXValueView;
-        public final TextView sensorYValueView;
-        public final TextView sensorZValueView;
         public final TextView bluetoothFirstBeaconView;
         public final TextView wifiFirstAccessPointView;
         final FingerprintAdapter mAdapter;
 
         public FingerprintViewHolder(View itemView, FingerprintAdapter adapter) {
             super(itemView);
-            sensorItemView = itemView.findViewById(R.id.sensor_name_radiomap);
-            sensorXValueView = itemView.findViewById(R.id.sensor_x_value_radiomap);
-            sensorYValueView = itemView.findViewById(R.id.sensor_y_value_radiomap);
-            sensorZValueView = itemView.findViewById(R.id.sensor_z_value_radiomap);
             bluetoothFirstBeaconView = itemView.findViewById(R.id.ble_value);
             wifiFirstAccessPointView = itemView.findViewById(R.id.wifi_value);
             this.mAdapter = adapter;

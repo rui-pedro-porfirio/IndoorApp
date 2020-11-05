@@ -46,7 +46,7 @@
     <string name="radio_filter">Type of filter to apply</string>
     <string name="fingerprint_preferences_string">General Preferences</string>
     <string name="bluetooth">Bluetooth</string>
-    <string name="device_data_orientation_rotation_vector">Device Data (Orientation, Rotation Vector)</string>
+    <string name="device_data_orientation_rotation_vector">Device Data (Orientation)</string>
     <string name="number_of_fingerprints_location_string">Number of Fingerprints/Location:</string>
     <string name="fingerprinting_time_interval_string">Time Interval (in seconds):</string>
     <string name="title_activity_test">Test</string>

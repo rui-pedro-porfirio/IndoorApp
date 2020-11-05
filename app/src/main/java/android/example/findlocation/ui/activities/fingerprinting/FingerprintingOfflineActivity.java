@@ -348,14 +348,6 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
                     dataTypes.remove("Bluetooth");
                 }
                 break;
-            case R.id.checkbox_device_sensors:
-                if (checked) {
-                    if (!dataTypes.contains("DeviceData"))
-                        dataTypes.add("DeviceData");
-                } else {
-                    dataTypes.remove("DeviceData");
-                }
-                break;
         }
     }
 
@@ -474,7 +466,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
     public File writeToFile(String sFileName) {
 
-        File root = new File(Environment.getExternalStorageDirectory(), "fingerprintTets");
+        File root = new File(Environment.getExternalStorageDirectory(), "fingerprintTest");
         // if external memory exists and folder with name Notes
         if (!root.exists()) {
             root.mkdirs(); // this will create folder.

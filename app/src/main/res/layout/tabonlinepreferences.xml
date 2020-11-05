@@ -102,16 +102,6 @@
             android:textColor="@android:color/holo_orange_dark"
             android:textSize="18sp"
             android:textStyle="bold" />
-
-        <CheckBox
-            android:id="@+id/checkbox_device_sensors_online"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onSensorClicked"
-            android:text="@string/device_data_orientation_rotation_vector"
-            android:textColor="@android:color/holo_orange_dark"
-            android:textSize="18sp"
-            android:textStyle="bold" />
     </LinearLayout>
 
 
