@@ -7,6 +7,7 @@ import android.example.findlocation.BuildConfig;
 import android.example.findlocation.IndoorApp;
 import android.example.findlocation.exceptions.HTTPRequestException;
 import android.example.findlocation.interfaces.SharedPreferencesInterface;
+import android.example.findlocation.utils.Constants;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,10 +41,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class OAuthBackgroundService extends JobIntentService implements SharedPreferencesInterface {
-
-    static final String AUTHORIZE_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/authorize?response_type=code&client_id=indoor-location-app&redirect_uri=indoorapp://auth/redirect";
-    static final String EXCHANGE_AUTH_ADDRESS = "https://yanux-auth.herokuapp.com/oauth2/token";
-    static final String VERIFY_AUTH_DATA_ADDRESS = "https://yanux-auth.herokuapp.com/api/verify_oauth2";
     static final String REDIRECT_URI = "indoorapp://auth/redirect";
     static final String RECEIVER = "receiver";
     static final String ACTION_REQUEST_AUTH_CODE = "action.REQUEST_AUTH_CODE";
@@ -182,7 +179,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     }
 
     private void requestAuthorizationCode() {
-        computeAuthorizationRequest(AUTHORIZE_ADDRESS);
+        computeAuthorizationRequest(Constants.AUTHORIZE_ADDRESS);
     }
 
     private void computeAuthorizationRequest(String authorizeAddress) {
@@ -226,7 +223,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     }
 
     private void requestPKCEAuthorizationCode() {
-        String final_uri = AUTHORIZE_ADDRESS +
+        String final_uri = Constants.AUTHORIZE_ADDRESS +
                 "&code_challenge=" + mCodeChallenge +
                 "&code_challenge_method=S256";
         computeAuthorizationRequest(final_uri);
@@ -289,7 +286,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         Log.i(TAG, "Requesting access token...");
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
         Request request = new Request.Builder()
-                .url(EXCHANGE_AUTH_ADDRESS)
+                .url(Constants.EXCHANGE_AUTH_ADDRESS)
                 .header("Authorization", credentials)
                 .header("content-type", "application/x-www-form-urlencoded")
                 .post(requestBody)
@@ -306,7 +303,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                 .add("redirect_uri", REDIRECT_URI)
                 .build();
         Request request = new Request.Builder()
-                .url(EXCHANGE_AUTH_ADDRESS)
+                .url(Constants.EXCHANGE_AUTH_ADDRESS)
                 .header("Authorization", credentials)
                 .header("content-type", "application/x-www-form-urlencoded")
                 .post(requestBody)
@@ -317,7 +314,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     public void requestTokenInfo() {
         Log.i(TAG, "Requesting (GET) information about token including username and expiration date.");
         Request request = new Request.Builder()
-                .url(VERIFY_AUTH_DATA_ADDRESS)
+                .url(Constants.VERIFY_AUTH_DATA_ADDRESS)
                 .header("content-type", "application/json")
                 .header("authorization", "Bearer " + mAccessToken)
                 .build();
@@ -396,7 +393,6 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         mPreferencesEditor.remove(PREF_PKCE_CODE_VERIFIER_KEY);
         mPreferencesEditor.apply();
     }
-
 }
 
 

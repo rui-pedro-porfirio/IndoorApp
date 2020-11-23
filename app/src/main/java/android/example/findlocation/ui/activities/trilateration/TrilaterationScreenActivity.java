@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.example.findlocation.R;
 import android.example.findlocation.objects.client.BluetoothDistanceObject;
 import android.example.findlocation.ui.adapters.SectionsPagerAdapterOnlineTrilateration;
+import android.example.findlocation.utils.Constants;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -62,8 +63,6 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
-    private static final String SERVER_ADDRESS_LOCAL = "http://192.168.1.8:8000/trilateration/position";
-    private static final String SERVER_ADDRESS_HEROKU = "https://indoorlocationapp.herokuapp.com/trilateration/position";
     private static final long SCAN_PERIOD_TIME = 10000;
 
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
@@ -409,8 +408,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(SERVER_ADDRESS_HEROKU, json, "");
-
+                post(Constants.INDOOR_APP_SERVER_TRILATERATION_POSITION_ENDPOINT, json, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }

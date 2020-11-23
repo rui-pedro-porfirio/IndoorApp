@@ -34,21 +34,21 @@
                 android:id="@+id/ble_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/wifi_name"
                 android:layout_below="@+id/ble_name"
                 android:layout_alignEnd="@+id/ble_name"
+                android:layout_toStartOf="@+id/wifi_name"
                 android:gravity="center"
-                android:textStyle="bold"
                 android:textColor="@android:color/black"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/wifi_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_marginEnd="50dp"
                 android:layout_alignParentEnd="true"
+                android:layout_marginEnd="50dp"
                 android:padding="8dp"
                 android:text="@string/wi_fi"
                 android:textAlignment="center"
@@ -60,12 +60,12 @@
                 android:id="@+id/wifi_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
                 android:layout_below="@+id/wifi_name"
                 android:layout_alignEnd="@+id/wifi_name"
                 android:gravity="center"
                 android:textColor="@android:color/black"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 

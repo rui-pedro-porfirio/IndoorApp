@@ -9,6 +9,7 @@ import android.example.findlocation.interfaces.SharedPreferencesInterface;
 import android.example.findlocation.services.OAuthBackgroundService;
 import android.example.findlocation.services.ServiceResultReceiver;
 import android.example.findlocation.ui.activities.scanning.ScanningActivity;
+import android.example.findlocation.utils.Constants;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleRegisterButton() {
-        String yanuxRegisterUri = "https://yanux-auth.herokuapp.com/auth/register";
+        String yanuxRegisterUri = Constants.AUTH_SERVER + "auth/register";
         final Intent mStartRegisterIntent = new Intent("android.intent.action.VIEW", Uri.parse(yanuxRegisterUri));
         Button mRegisterButton = findViewById(R.id.button_registerButton);
         mRegisterButton.setOnClickListener(new View.OnClickListener() {

@@ -13,6 +13,7 @@ import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
 import android.example.findlocation.objects.server.ServerPosition;
 import android.example.findlocation.ui.adapters.SectionsPagerAdapterOnline;
+import android.example.findlocation.utils.Constants;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -71,8 +72,6 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
-    private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
-    private static final String SERVER_ADDRESS_HEROKU = "https://indoorlocationapp.herokuapp.com/";
 
     private List<String> dataTypes;
     private String algorithm;
@@ -429,8 +428,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(SERVER_ADDRESS_HEROKU + "radiomap/position", json, "");
-
+                post(Constants.INDOOR_APP_SERVER_ENDPOINT + "radiomap/position", json, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }

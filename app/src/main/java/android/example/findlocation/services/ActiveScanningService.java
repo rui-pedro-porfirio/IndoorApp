@@ -20,6 +20,7 @@ import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
 import android.example.findlocation.objects.server.ScanningObject;
 import android.example.findlocation.ui.activities.scanning.ScanningActivity;
+import android.example.findlocation.utils.Constants;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -76,8 +77,6 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private static final String PREF_USERNAME = "PREF_USERNAME";
     private static final String PREF_DEVICE_UUID = "PREF_DEVICE_UUID";
 
-    //private static final String SERVER_ENDPOINT_ADDRESS = "http://192.168.42.55:8080/scanning/";
-    private static final String SERVER_ENDPOINT_ADDRESS_HEROKU = "https://indoorlocationapp.herokuapp.com/scanning/";
     private static final long SERVICE_DELAY = 3000;
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String TAG = ActiveScanningService.class.getSimpleName();
@@ -85,31 +84,12 @@ public class ActiveScanningService extends Service implements SensorEventListene
 
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
-    private ServiceHandler mServiceHandler;
-    private OkHttpClient mHttpClient;
-
     //TECHNOLOGIES RELATED STRUCTURES
     private final List<WifiObject> mAccessPointsList = Collections.synchronizedList(new ArrayList<>());
     private final List<BluetoothObject> mBeaconsList = Collections.synchronizedList(new ArrayList<>());
     private final List<SensorObject> mSensorInformationList = Collections.synchronizedList(new ArrayList<>());
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            boolean success = intent.getBooleanExtra(
-                    WifiManager.EXTRA_RESULTS_UPDATED, false);
-            if (mStarted) {
-                if (success) {
-                    // Refresh access points information
-                    mAccessPointsList.clear();
-                    scanSuccess();
-                } else {
-                    // Scan failure handling
-                    scanFailure();
-                }
-                wifiManager.startScan();
-            }
-        }
-    };
+    private ServiceHandler mServiceHandler;
+    private OkHttpClient mHttpClient;
     private SensorManager mSensorManager;
     private WifiManager wifiManager;
     private BeaconManager beaconManager;
@@ -130,6 +110,24 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private String mDeviceUuid;
     //Just a flag to check if the service is started
     private boolean mStarted;
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            boolean success = intent.getBooleanExtra(
+                    WifiManager.EXTRA_RESULTS_UPDATED, false);
+            if (mStarted) {
+                if (success) {
+                    // Refresh access points information
+                    mAccessPointsList.clear();
+                    scanSuccess();
+                } else {
+                    // Scan failure handling
+                    scanFailure();
+                }
+                wifiManager.startScan();
+            }
+        }
+    };
     private NotificationCompat.Builder mBuilder;
 
     @Override
@@ -302,7 +300,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
             }
         }
 
-        sendPostHTTPRequest(SERVER_ENDPOINT_ADDRESS_HEROKU, mScanningObjectInJson);
+        sendPostHTTPRequest(Constants.INDOOR_APP_SERVER_SCANNING_ENDPOINT, mScanningObjectInJson);
     }
 
     private void sendPostHTTPRequest(String mUrl, String mJsonString) {

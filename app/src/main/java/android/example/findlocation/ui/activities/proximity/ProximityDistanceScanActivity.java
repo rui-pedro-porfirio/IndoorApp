@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.example.findlocation.R;
 import android.example.findlocation.objects.client.BluetoothDistanceObject;
 import android.example.findlocation.ui.adapters.SectionsPagerAdapterProximityDistance;
+import android.example.findlocation.utils.Constants;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -53,14 +54,11 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
-    private static final String SERVER_ADDRESS_LOCAL = "http://192.168.42.55:8000/";
-    private static final String SERVER_ADDRESS_HEROKU = "https://indoorlocationapp.herokuapp.com/";
 
     private static final long SCAN_PERIOD_TIME = 60000 * 1; // 1 minute of continuous scanning
     private static final String TAG = "TIMER";
     private static final String BEACON = "BEACON";
     private static final String LOG = "LOG";
-    private static final String REGION_UUID = "b9407f30-f5f8-466e-aff9-25556b57fe6d";
 
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
     private static final int PERMISSION_REQUEST_BACKGROUND_LOCATION = 2;
@@ -71,7 +69,6 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
     private BluetoothDistanceObject mTargetBeacon;
     private Map<String, Float> preferences;
     private boolean isScanning;
-    private Region region;
     private String zoneClassifier;
 
     @Override
@@ -107,14 +104,12 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
                         builder.setMessage("Please grant location access so this app can detect beacons in the background.");
                         builder.setPositiveButton(android.R.string.ok, null);
                         builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
                             @TargetApi(23)
                             @Override
                             public void onDismiss(DialogInterface dialog) {
                                 requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                                         PERMISSION_REQUEST_BACKGROUND_LOCATION);
                             }
-
                         });
                         builder.show();
                     } else {
@@ -123,15 +118,12 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
                         builder.setMessage("Since background location access has not been granted, this app will not be able to discover beacons in the background.  Please go to Settings -> Applications -> Permissions and grant background location access to this app.");
                         builder.setPositiveButton(android.R.string.ok, null);
                         builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
                             @Override
                             public void onDismiss(DialogInterface dialog) {
                             }
-
                         });
                         builder.show();
                     }
-
                 }
             } else {
                 if (this.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -144,15 +136,12 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
                     builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.  Please go to Settings -> Applications -> Permissions and grant location access to this app.");
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
                         @Override
                         public void onDismiss(DialogInterface dialog) {
                         }
-
                     });
                     builder.show();
                 }
-
             }
         }
     }
@@ -170,11 +159,9 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
                     builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons.");
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
                         @Override
                         public void onDismiss(DialogInterface dialog) {
                         }
-
                     });
                     builder.show();
                 }
@@ -374,7 +361,7 @@ public class ProximityDistanceScanActivity extends AppCompatActivity implements 
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(SERVER_ADDRESS_HEROKU + "proximity/distance", json, "");
+                post(Constants.INDOOR_APP_SERVER_ENDPOINT + "proximity/distance", json, "");
 
             } catch (IOException e) {
                 e.printStackTrace();

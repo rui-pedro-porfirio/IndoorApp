@@ -13,7 +13,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.text.DecimalFormat;
 import java.util.List;
 
 public class FingerprintAdapter extends
@@ -48,17 +47,17 @@ public class FingerprintAdapter extends
         }
     }
 
-    private int getAverageRSSIBLE(List<BluetoothObject> beaconsList){
+    private int getAverageRSSIBLE(List<BluetoothObject> beaconsList) {
         int sum = 0;
-        for(BluetoothObject beacon : beaconsList){
+        for (BluetoothObject beacon : beaconsList) {
             sum += beacon.getSingleValue();
         }
         return sum / beaconsList.size();
     }
 
-    private int getAverageRSSIWiFi(List<WifiObject> apList){
+    private int getAverageRSSIWiFi(List<WifiObject> apList) {
         int sum = 0;
-        for(WifiObject ap : apList){
+        for (WifiObject ap : apList) {
             sum += ap.getSingleValue();
         }
         return sum / apList.size();
