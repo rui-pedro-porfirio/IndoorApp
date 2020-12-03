@@ -231,18 +231,20 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
 
     private void structureAuthorizationCode(Intent intent) {
         Uri responseUri = intent.getData();
-        mAutorizationCode = responseUri.getQueryParameter("code");
-        String error = responseUri.getQueryParameter("error");
-        if (BuildConfig.DEBUG) Log.d(TAG, "Authorization Code: " + mAutorizationCode);
-        if (mAutorizationCode == null) {
-            sendAuthorizationErrorMessageBackToUI(responseUri, mReceiver);
-        } else {
-            Log.i(TAG, "Successfully retrieved authorization code. Requesting access token.");
-            mPreferencesEditor.putString(PREF_AUTH_CODE, mAutorizationCode);
-            mPreferencesEditor.apply();
-            if (mOAuthFlow.equals(OAUTH_BASIC)) exchangeAuthorizationCode();
-            else exchangeAuthorizationCodePKCE();
+        if (responseUri != null) {
+            mAutorizationCode = responseUri.getQueryParameter("code");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Authorization Code: " + mAutorizationCode);
+            if (mAutorizationCode == null) {
+                sendAuthorizationErrorMessageBackToUI(responseUri, mReceiver);
+            } else {
+                Log.i(TAG, "Successfully retrieved authorization code. Requesting access token.");
+                mPreferencesEditor.putString(PREF_AUTH_CODE, mAutorizationCode);
+                mPreferencesEditor.apply();
+                if (mOAuthFlow.equals(OAUTH_BASIC)) exchangeAuthorizationCode();
+                else exchangeAuthorizationCodePKCE();
+            }
         }
+        //TODO: What should be done when null?
     }
 
     private void sendAuthorizationErrorMessageBackToUI(Uri responseUri, ResultReceiver mResultReceiver) {
