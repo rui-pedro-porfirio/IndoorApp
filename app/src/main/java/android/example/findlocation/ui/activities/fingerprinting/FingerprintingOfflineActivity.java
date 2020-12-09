@@ -105,14 +105,6 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
     //SENSOR MANAGERS
     private SensorManager mSensorManager;
     private WifiManager wifiManager;
-    final Runnable locationUpdate = new Runnable() {
-        @Override
-        public void run() {
-            wifiManager.startScan();
-            Log.d("START SCAN CALLED", "");
-            handler.postDelayed(locationUpdate, 1000);
-        }
-    };
     private BeaconManager beaconManager;
     //SENSOR DATA STRUCTURES
     private List<WifiObject> mAccessPoints;
@@ -374,6 +366,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
             }
             Toast.makeText(this, "Scanning Fingerprint", Toast.LENGTH_SHORT).show();
 
+            wifiManager.startScan();
             scanData();
         } else {
             Toast.makeText(this, "Finished Scanning", Toast.LENGTH_SHORT).show();
@@ -501,7 +494,7 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         this.registerReceiver(wifiScanReceiver, intentFilter);
         verifyLocation();
-        handler.post(locationUpdate);
+        wifiManager.startScan();
         Log.d(WIFI, "Access Points configuration ready. Started advertising packets");
     }
 
