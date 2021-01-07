@@ -1,3 +1,9 @@
+//TODO:
+// Rename the application package/name to something more fitting.
+// At least the basic package name should not be "android.example".
+// Moreover, I should eventually merge the "ActiveScanningService" with the "YanuX Scavenger" app to
+// so that we can run a single app instead of multiple background apps. It should be more efficient
+// in terms of resources and also more user friendly.
 package android.example.findlocation;
 
 import android.app.Application;
