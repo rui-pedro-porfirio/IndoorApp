@@ -25,7 +25,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.wifi.ScanResult;
+
+//TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+//import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
@@ -69,7 +71,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class ActiveScanningService extends Service implements SensorEventListener, BeaconConsumer, SharedPreferencesInterface {
-
     public static final int NOTIFICATION_ID = 8165;
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     static final String CHANNEL_ID = "indoorApp.BackgroundScanningService";
@@ -91,7 +92,9 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private ServiceHandler mServiceHandler;
     private OkHttpClient mHttpClient;
     private SensorManager mSensorManager;
-    private WifiManager wifiManager;
+
+    //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+    //private WifiManager wifiManager;
     private BeaconManager beaconManager;
     private int mLatestKnownAps;
     private int mLatestKnownBeacons;
@@ -110,24 +113,26 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private String mDeviceUuid;
     //Just a flag to check if the service is started
     private boolean mStarted;
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            boolean success = intent.getBooleanExtra(
-                    WifiManager.EXTRA_RESULTS_UPDATED, false);
-            if (mStarted) {
-                if (success) {
-                    // Refresh access points information
-                    mAccessPointsList.clear();
-                    scanSuccess();
-                } else {
-                    // Scan failure handling
-                    scanFailure();
-                }
-                wifiManager.startScan();
-            }
-        }
-    };
+
+    //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+    //private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+    //    @Override
+    //    public void onReceive(Context c, Intent intent) {
+    //        boolean success = intent.getBooleanExtra(
+    //                WifiManager.EXTRA_RESULTS_UPDATED, false);
+    //        if (mStarted) {
+    //            if (success) {
+    //                // Refresh access points information
+    //                mAccessPointsList.clear();
+    //                scanSuccess();
+    //            } else {
+    //                // Scan failure handling
+    //                scanFailure();
+    //            }
+    //            wifiManager.startScan();
+    //        }
+    //    }
+    //};
     private NotificationCompat.Builder mBuilder;
 
     @Override
@@ -201,7 +206,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private void cleanUpService() {
         stopForeground(true);
         beaconManager.unbind(this);
-        unregisterReceiver(wifiScanReceiver);
+        //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+        //unregisterReceiver(wifiScanReceiver);
         mSensorManager.unregisterListener(this);
         mServiceHandler.removeCallbacksAndMessages(null);
     }
@@ -266,7 +272,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
     private void restartScan() {
         mSensorInformationList.clear();
         mBeaconsList.clear();
-        wifiManager.startScan();
+        //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+        //wifiManager.startScan();
     }
 
     protected void handleScanningService() {
@@ -351,7 +358,8 @@ public class ActiveScanningService extends Service implements SensorEventListene
     protected void activateSensorScan() {
         initializeDeviceSensor();
         initializeBluetoothSensor();
-        initializeWifiSensor();
+        //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+        //initializeWifiSensor();
     }
 
     private void initializeDeviceSensor() {
@@ -431,6 +439,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
             mSensorInformationList.add(mOrientationSensor);
         }
 
+
         SensorObject mOrientationSensor = mSensorInformationList.get(0);
         mOrientationSensor.setValue(mOrientation);
     }
@@ -500,49 +509,53 @@ public class ActiveScanningService extends Service implements SensorEventListene
         }
     }
 
-    private void initializeWifiSensor() {
-        mAccessPointsList.clear();
-        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        this.registerReceiver(wifiScanReceiver, intentFilter);
-        boolean scanSuccess = wifiManager.startScan();
-        if (!scanSuccess)
-            scanFailure();
-        Log.i(TAG, "Successfully initialized wifi settings for scanning.");
-    }
+    //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+    //private void initializeWifiSensor() {
+    //    mAccessPointsList.clear();
+    //    wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    //    wifiManager.setWifiEnabled(true);
+    //    IntentFilter intentFilter = new IntentFilter();
+    //    intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+    //    this.registerReceiver(wifiScanReceiver, intentFilter);
+    //    boolean scanSuccess = wifiManager.startScan();
+    //    if (!scanSuccess)
+    //        scanFailure();
+    //    Log.i(TAG, "Successfully initialized wifi settings for scanning.");
+    //}
 
-    private void scanFailure() {
-        // handle failure: new scan did NOT succeed
-        // consider using old scan results: these are the OLD results!
-        Log.e(TAG, "Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
-    }
 
-    private void scanSuccess() {
-        List<ScanResult> mAvailableResults = wifiManager.getScanResults();
-        for (ScanResult mScanResult : mAvailableResults
-        ) {
-            int mRssi = mScanResult.level;
-            if (BuildConfig.DEBUG)
-                Log.d(TAG, "New values for access point: " + mScanResult.BSSID + " | RSSI: " + mRssi);
-            boolean mAccessPointExists = false;
-            synchronized (mAccessPointsList) {
-                for (WifiObject mKnownAccessPoint : mAccessPointsList) {
-                    if (mKnownAccessPoint.getName().equals(mScanResult.BSSID)) {
-                        mKnownAccessPoint.setSingleValue(mRssi);
-                        mAccessPointExists = true;
-                        break;
-                    }
-                }
-                if (!mAccessPointExists) {
-                    WifiObject mNewAccessPointFound = new WifiObject(mScanResult.BSSID, mRssi);
-                    Log.i(TAG, "Added access point " + mNewAccessPointFound.getName() + " to the known list.");
-                    mAccessPointsList.add(mNewAccessPointFound);
-                }
-            }
-        }
-    }
+    //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+    //private void scanFailure() {
+    //    // handle failure: new scan did NOT succeed
+    //    // consider using old scan results: these are the OLD results!
+    //    Log.e(TAG, "Scanned of Wi-Fi Access Points failed. Consider using old scan results but for now just this log");
+    //}
+
+    //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
+    //private void scanSuccess() {
+    //    List<ScanResult> mAvailableResults = wifiManager.getScanResults();
+    //    for (ScanResult mScanResult : mAvailableResults
+    //    ) {
+    //        int mRssi = mScanResult.level;
+    //        if (BuildConfig.DEBUG)
+    //            Log.d(TAG, "New values for access point: " + mScanResult.BSSID + " | RSSI: " + mRssi);
+    //        boolean mAccessPointExists = false;
+    //        synchronized (mAccessPointsList) {
+    //            for (WifiObject mKnownAccessPoint : mAccessPointsList) {
+    //                if (mKnownAccessPoint.getName().equals(mScanResult.BSSID)) {
+    //                    mKnownAccessPoint.setSingleValue(mRssi);
+    //                    mAccessPointExists = true;
+    //                    break;
+    //                }
+    //            }
+    //            if (!mAccessPointExists) {
+    //                WifiObject mNewAccessPointFound = new WifiObject(mScanResult.BSSID, mRssi);
+    //                Log.i(TAG, "Added access point " + mNewAccessPointFound.getName() + " to the known list.");
+    //                mAccessPointsList.add(mNewAccessPointFound);
+    //            }
+    //        }
+    //    }
+    //}
 
     // Handler that receives messages from the thread
     private static class ServiceHandler extends Handler {
