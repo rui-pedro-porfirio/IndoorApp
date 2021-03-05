@@ -1,4 +1,6 @@
 # Android Indoor Positioning Client
+This is part of the [__YanuX Frameworl__](https://yanux-framework.github.io/). 
+
 When it comes to the __Indoor Positioning Solution__, this Android application is the mobile counterpart of the [__YanuX Desktop Client__]. It continuously scans for __Wi-Fi Access Points__ and __Bluetooth Low Energy Beacons__ (iBeacons) and submits that information to the [__Indoor Positioning Server__](https://github.com/YanuX-Framework/YanuX-IPSServer) so that the position of a device can be determined.
 
 It also incorporates some additional tools that should be used in tandem with the [__Indoor Positioning Server__](https://github.com/YanuX-Framework/YanuX-IPSServer).
