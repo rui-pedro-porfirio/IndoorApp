@@ -8,7 +8,7 @@ import android.content.pm.PackageManager;
 import android.example.findlocation.R;
 import android.example.findlocation.objects.client.BluetoothDistanceObject;
 import android.example.findlocation.ui.adapters.SectionsPagerAdapterOnlineTrilateration;
-import android.example.findlocation.utils.Constants;
+import android.example.findlocation.utils.PreferenceUtils;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -408,7 +408,7 @@ public class TrilaterationScreenActivity extends AppCompatActivity implements Be
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(Constants.INDOOR_APP_SERVER_TRILATERATION_POSITION_ENDPOINT, json, "");
+                post(PreferenceUtils.getIndoorAppServerTrilaterationPositionEndpoint(TrilaterationScreenActivity.this), json, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -106,7 +106,15 @@
     <string name="start_scan">Start Scan</string>
     <string name="start_positioning_user">Start Positioning User</string>
     <string name="scan_string">Scan</string>
-    <string name="scanning_data_string">Scanning Data ...</string>
+    <string name="scanning_data_string">Scanning Data…</string>
     <string name="experimental_title_string">Experimental</string>
     <string name="notication_action_disable_active_scanning_service">Disable Active Scanning Service</string>
+
+    <string name="preferences">Preferences</string>
+    <string name="title_activity_preferences">Preferences</string>
+    <string name="endpoints_header">Endpoints</string>
+    <string name="indoor_app_server_endpoint">Indoor App Server Endpoint</string>
+    <string name="indoor_app_server_endpoint_default">https://indoorlocationapp.herokuapp.com/</string>
+    <string name="auth_server_endpoint">Auth Server Endpoint</string>
+    <string name="auth_server_endpoint_default">https://yanux-auth.herokuapp.com/</string>
 </resources>

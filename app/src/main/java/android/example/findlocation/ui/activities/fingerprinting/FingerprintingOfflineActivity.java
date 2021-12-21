@@ -20,7 +20,7 @@ import android.example.findlocation.objects.server.ServerFingerprint;
 import android.example.findlocation.objects.server.ServerWifiData;
 import android.example.findlocation.ui.adapters.FingerprintAdapter;
 import android.example.findlocation.ui.adapters.SectionsPagerAdapter;
-import android.example.findlocation.utils.Constants;
+import android.example.findlocation.utils.PreferenceUtils;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -784,28 +784,28 @@ public class FingerprintingOfflineActivity extends AppCompatActivity implements 
 
             try {
                 if (json != null && !json.isEmpty()) {
-                    post(Constants.INDOOR_APP_SERVER_ENDPOINT + "filter/", json, "");
+                    post(PreferenceUtils.getIndoorAppServerEndpoint(FingerprintingOfflineActivity.this) + "filter/", json, "");
                 }
                 fingerprintInJson = gson.toJson(serverFingerprint);
 
                 if (serverFingerprint != null) {
-                    fingerprintId = post(Constants.INDOOR_APP_SERVER_ENDPOINT + "fingerprints/", fingerprintInJson, "id");
+                    fingerprintId = post(PreferenceUtils.getIndoorAppServerEndpoint(FingerprintingOfflineActivity.this) + "fingerprints/", fingerprintInJson, "id");
                 }
                 if (!fingerprintId.equals("")) {
                     if (serverDeviceData != null) {
                         serverDeviceData.setFingerprintId("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
                         String deviceDataInJson = gson.toJson(serverDeviceData);
-                        post(Constants.INDOOR_APP_SERVER_ENDPOINT + "device/", deviceDataInJson, "");
+                        post(PreferenceUtils.getIndoorAppServerEndpoint(FingerprintingOfflineActivity.this) + "device/", deviceDataInJson, "");
                     }
                     if (serverWifiData != null) {
                         serverWifiData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
                         String wifiDataInJson = gson.toJson(serverWifiData);
-                        post(Constants.INDOOR_APP_SERVER_ENDPOINT + "wifi/", wifiDataInJson, "");
+                        post(PreferenceUtils.getIndoorAppServerEndpoint(FingerprintingOfflineActivity.this) + "wifi/", wifiDataInJson, "");
                     }
                     if (serverBluetoothData != null) {
                         serverBluetoothData.setFingerprint("http://127.0.0.1:8000/fingerprints/" + fingerprintId + "/");
                         String bleDataInJson = gson.toJson(serverBluetoothData);
-                        post(Constants.INDOOR_APP_SERVER_ENDPOINT + "bluetooth/", bleDataInJson, "");
+                        post(PreferenceUtils.getIndoorAppServerEndpoint(FingerprintingOfflineActivity.this) + "bluetooth/", bleDataInJson, "");
                     }
                 } else {
                     System.err.println("Fingerprint Id missing");

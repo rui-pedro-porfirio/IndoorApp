@@ -5,10 +5,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.example.findlocation.BuildConfig;
 import android.example.findlocation.IndoorApp;
@@ -20,7 +18,7 @@ import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
 import android.example.findlocation.objects.server.ScanningObject;
 import android.example.findlocation.ui.activities.scanning.ScanningActivity;
-import android.example.findlocation.utils.Constants;
+import android.example.findlocation.utils.PreferenceUtils;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -28,7 +26,6 @@ import android.hardware.SensorManager;
 
 //TODO: Disable Wi-Fi scanning. Since we are not using it right now it's a way to save resources.
 //import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -307,7 +304,7 @@ public class ActiveScanningService extends Service implements SensorEventListene
             }
         }
 
-        sendPostHTTPRequest(Constants.INDOOR_APP_SERVER_SCANNING_ENDPOINT, mScanningObjectInJson);
+        sendPostHTTPRequest(PreferenceUtils.getIndoorAppServerScanningEndpoint(this), mScanningObjectInJson);
     }
 
     private void sendPostHTTPRequest(String mUrl, String mJsonString) {

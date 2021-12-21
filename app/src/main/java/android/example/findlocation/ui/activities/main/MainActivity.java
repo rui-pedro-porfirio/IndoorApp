@@ -8,14 +8,17 @@ import android.example.findlocation.exceptions.HTTPRequestException;
 import android.example.findlocation.interfaces.SharedPreferencesInterface;
 import android.example.findlocation.services.OAuthBackgroundService;
 import android.example.findlocation.services.ServiceResultReceiver;
+import android.example.findlocation.ui.activities.preferences.PreferencesActivity;
 import android.example.findlocation.ui.activities.scanning.ScanningActivity;
-import android.example.findlocation.utils.Constants;
+import android.example.findlocation.utils.PreferenceUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -87,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     public void handleRegisterButton() {
-        String yanuxRegisterUri = Constants.AUTH_SERVER + "auth/register";
+        String yanuxRegisterUri = PreferenceUtils.getAuthServerEndpoint(this) + "auth/register";
         final Intent mStartRegisterIntent = new Intent("android.intent.action.VIEW", Uri.parse(yanuxRegisterUri));
         Button mRegisterButton = findViewById(R.id.button_registerButton);
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
@@ -187,7 +190,6 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
     }
 
     private class HTTPGetRequest extends AsyncTask<Void, Void, String> {
-
         private final String TAG = HTTPGetRequest.class.getSimpleName();
         private final String mIpAddress;
 
@@ -256,7 +258,22 @@ public class MainActivity extends AppCompatActivity implements ServiceResultRece
             }
             return null;
         }
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.main_menu_preferences) {
+            startActivity(new Intent(this, PreferencesActivity.class));
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
 
 }

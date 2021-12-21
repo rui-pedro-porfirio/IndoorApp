@@ -8,7 +8,7 @@ import android.content.pm.PackageManager;
 import android.example.findlocation.R;
 import android.example.findlocation.objects.client.BluetoothDistanceObject;
 import android.example.findlocation.ui.adapters.SectionsPagerAdapterOnlineProximity;
-import android.example.findlocation.utils.Constants;
+import android.example.findlocation.utils.PreferenceUtils;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -396,7 +396,7 @@ public class ProximityOnlineActivity extends AppCompatActivity implements Beacon
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(Constants.INDOOR_APP_SERVER_ENDPOINT + "proximity/position", json, "");
+                post(PreferenceUtils.getIndoorAppServerEndpoint(ProximityOnlineActivity.this) + "proximity/position", json, "");
 
             } catch (IOException e) {
                 e.printStackTrace();

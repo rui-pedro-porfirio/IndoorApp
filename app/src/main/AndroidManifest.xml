@@ -17,15 +17,18 @@
 
     <application
         android:name=".IndoorApp"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
-        android:usesCleartextTraffic="true"
-        android:allowBackup="false">
-
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".ui.activities.preferences.PreferencesActivity"
+            android:exported="false"
+            android:label="@string/title_activity_preferences" />
         <activity
             android:name=".ui.activities.scanning.ScanningActivity"
             android:parentActivityName=".ui.activities.main.MainActivity" />
@@ -39,51 +42,44 @@
 
         <activity
             android:name=".ui.activities.main.MainActivity"
-            android:launchMode="singleInstance"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
                     android:host="auth"
                     android:path="/redirect"
                     android:scheme="indoorapp" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.activities.trilateration.TrilaterationScreenActivity"
             android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
-
         <activity
             android:name=".ui.activities.proximity.ProximityOnlineActivity"
             android:parentActivityName=".ui.activities.proximity.ProximityScreenActivity" />
-
         <activity
             android:name=".ui.activities.proximity.ProximityDistanceScanActivity"
             android:parentActivityName=".ui.activities.proximity.ProximityScreenActivity" />
-
         <activity
             android:name=".ui.activities.proximity.ProximityScreenActivity"
             android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
-
         <activity
             android:name=".ui.activities.fingerprinting.FingerprintingOnlineActivity"
             android:parentActivityName=".ui.activities.fingerprinting.FingerprintingScreenActivity" />
-
         <activity
             android:name=".ui.activities.fingerprinting.FingerprintingOfflineActivity"
             android:parentActivityName=".ui.activities.fingerprinting.FingerprintingScreenActivity" />
-
         <activity
             android:name=".ui.activities.fingerprinting.FingerprintingScreenActivity"
             android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
-
         <activity
             android:name=".ui.activities.sensors.GraphicalSensorInformationActivity"
             android:parentActivityName=".ui.activities.main.ExperimentScreenActivity" />
-
         <activity
             android:name=".ui.activities.sensors.SensorAnalysisActivity"
             android:parentActivityName=".ui.activities.main.ExperimentScreenActivity">
@@ -91,17 +87,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.activities.main.ExperimentScreenActivity" />
         </activity>
-
         <activity
             android:name=".ui.activities.main.ExperimentScreenActivity"
             android:parentActivityName=".ui.activities.main.MainActivity" />
-
         <activity
             android:name=".ui.activities.main.LauncherActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -119,4 +114,5 @@
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
     </application>
+
 </manifest>

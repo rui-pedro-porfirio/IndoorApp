@@ -7,7 +7,7 @@ import android.example.findlocation.BuildConfig;
 import android.example.findlocation.IndoorApp;
 import android.example.findlocation.exceptions.HTTPRequestException;
 import android.example.findlocation.interfaces.SharedPreferencesInterface;
-import android.example.findlocation.utils.Constants;
+import android.example.findlocation.utils.PreferenceUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -179,7 +179,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     }
 
     private void requestAuthorizationCode() {
-        computeAuthorizationRequest(Constants.AUTHORIZE_ADDRESS);
+        computeAuthorizationRequest(PreferenceUtils.getAuthorizeAddress(this));
     }
 
     private void computeAuthorizationRequest(String authorizeAddress) {
@@ -223,7 +223,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     }
 
     private void requestPKCEAuthorizationCode() {
-        String final_uri = Constants.AUTHORIZE_ADDRESS +
+        String final_uri = PreferenceUtils.getAuthorizeAddress(this) +
                 "&code_challenge=" + mCodeChallenge +
                 "&code_challenge_method=S256";
         computeAuthorizationRequest(final_uri);
@@ -288,7 +288,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
         Log.i(TAG, "Requesting access token...");
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
         Request request = new Request.Builder()
-                .url(Constants.EXCHANGE_AUTH_ADDRESS)
+                .url(PreferenceUtils.getExchangeAuthAddress(this))
                 .header("Authorization", credentials)
                 .header("content-type", "application/x-www-form-urlencoded")
                 .post(requestBody)
@@ -305,7 +305,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
                 .add("redirect_uri", REDIRECT_URI)
                 .build();
         Request request = new Request.Builder()
-                .url(Constants.EXCHANGE_AUTH_ADDRESS)
+                .url(PreferenceUtils.getExchangeAuthAddress(this))
                 .header("Authorization", credentials)
                 .header("content-type", "application/x-www-form-urlencoded")
                 .post(requestBody)
@@ -316,7 +316,7 @@ public class OAuthBackgroundService extends JobIntentService implements SharedPr
     public void requestTokenInfo() {
         Log.i(TAG, "Requesting (GET) information about token including username and expiration date.");
         Request request = new Request.Builder()
-                .url(Constants.VERIFY_AUTH_DATA_ADDRESS)
+                .url(PreferenceUtils.getVerifyAuthDataAddress(this))
                 .header("content-type", "application/json")
                 .header("authorization", "Bearer " + mAccessToken)
                 .build();

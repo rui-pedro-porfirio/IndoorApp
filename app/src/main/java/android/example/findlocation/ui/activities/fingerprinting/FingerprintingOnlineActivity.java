@@ -13,7 +13,7 @@ import android.example.findlocation.objects.client.SensorObject;
 import android.example.findlocation.objects.client.WifiObject;
 import android.example.findlocation.objects.server.ServerPosition;
 import android.example.findlocation.ui.adapters.SectionsPagerAdapterOnline;
-import android.example.findlocation.utils.Constants;
+import android.example.findlocation.utils.PreferenceUtils;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -428,7 +428,7 @@ public class FingerprintingOnlineActivity extends AppCompatActivity implements S
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                post(Constants.INDOOR_APP_SERVER_ENDPOINT + "radiomap/position", json, "");
+                post(PreferenceUtils.getIndoorAppServerEndpoint(FingerprintingOnlineActivity.this) + "radiomap/position", json, "");
             } catch (IOException e) {
                 e.printStackTrace();
             }
