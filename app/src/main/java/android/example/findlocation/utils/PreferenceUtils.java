@@ -2,10 +2,12 @@ package android.example.findlocation.utils;
 
 import android.content.Context;
 import android.example.findlocation.R;
+import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
 public class PreferenceUtils {
+    private static final String TAG = "PreferenceUtils";
     /*
     public static final String INDOOR_APP_SERVER_ENDPOINT = "http://192.168.12.1:3101/";
     //public static final String INDOOR_APP_SERVER_ENDPOINT = "https://indoorlocationapp.herokuapp.com/";
@@ -20,13 +22,22 @@ public class PreferenceUtils {
     public static final String EXCHANGE_AUTH_ADDRESS = AUTH_SERVER + "oauth2/token";
     public static final String VERIFY_AUTH_DATA_ADDRESS = AUTH_SERVER + "api/verify_oauth2";
     */
-
     public static String getIndoorAppServerEndpoint(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context).getString("indoor_app_server_endpoint", context.getString(R.string.indoor_app_server_endpoint_default));
+        String result = PreferenceManager.getDefaultSharedPreferences(
+                context.getApplicationContext()).getString("indoor_app_server_endpoint",
+                context.getApplicationContext().getString(R.string.indoor_app_server_endpoint_default)
+        );
+        Log.d(TAG, "getIndoorAppServerEndpoint:" + result);
+        return result;
     }
 
     public static String getAuthServerEndpoint(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context).getString("auth_server_endpoint", context.getString(R.string.auth_server_endpoint_default));
+        String result = PreferenceManager.getDefaultSharedPreferences(
+                context.getApplicationContext()).getString("auth_server_endpoint",
+                context.getString(R.string.auth_server_endpoint_default)
+        );
+        Log.d(TAG, "getAuthServerEndpoint:" + result);
+        return result;
     }
 
     public static String getIndoorAppServerScanningEndpoint(Context context) {
